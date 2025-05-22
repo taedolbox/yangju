@@ -162,7 +162,7 @@ def main():
 
     # 사이드바 검색 기능
     with st.sidebar:
-        st.markdown("### 🔍 검:색")
+        st.markdown("### 🔍 검색")
         search_query = st.text_input("메뉴 또는 질문을 검색하세요", key="search_query")
         
         # 메뉴와 질문 정의
