@@ -14,16 +14,22 @@ st.title("날짜 선택 달력") # 달력 제목
 # len() 함수를 사용하여 집합의 크기(선택된 날짜 수)를 계산합니다.
 st.write(f"선택된 날짜 수: {len(st.session_state.selected_days)}개")
 
-# --- CSS 주입 전략 변경: 선택된 모든 날짜의 스타일을 한 번에 주입 ---
-# 선택된 날짜들의 data-testid에 기반한 CSS 규칙들을 모읍니다.
+# --- CSS 주입 전략 개선: 선택된 날짜의 부모 div를 타겟팅하여 배경색 적용 ---
+# Streamlit 버튼의 data-testid는 버튼을 감싸는 div에 붙습니다. 이 div를 타겟팅하여 배경을 변경합니다.
 all_selected_day_styles = []
 for day in st.session_state.selected_days:
-    # 변경: 배경색을 더 진한 파란색으로, 텍스트 색상을 흰색으로 변경하여 대비를 높임
+    # `data-testid`를 가진 div 자체에 배경색을 적용하고, 그 안의 button에 테두리와 텍스트 색상을 적용합니다.
     all_selected_day_styles.append(f"""
+    /* 선택된 날짜의 부모 div에 배경색을 적용 */
+    div[data-testid="stButton-primary-day_button_{day}"] {{
+        background-color: #007bff !important; /* 선택 시 더 진한 파란색 배경 */
+        border-radius: 50%; /* div 자체도 원형으로 유지 */
+    }}
+    /* 선택된 날짜의 버튼 텍스트 색상 및 테두리 적용 */
     div[data-testid="stButton-primary-day_button_{day}"] > button {{
         border: 2px solid #007bff !important; /* 선택 시 파란색 테두리 */
-        background-color: #007bff !important; /* 선택 시 더 진한 파란색 배경 */
         color: white !important; /* 선택 시 흰색 텍스트 */
+        background-color: transparent !important; /* 부모 div의 배경을 사용하도록 투명하게 설정 */
     }}
     """)
 
@@ -63,11 +69,11 @@ div.stButton > button > div {{
     padding: 0 !important;
 }}
 
-/* 선택된 날짜에 대한 동적 스타일 (이 부분이 선택된 날짜의 테두리를 유지합니다) */
+/* 선택된 날짜에 대한 동적 스타일 (이 부분이 선택된 날짜의 시각적 상태를 유지합니다) */
 {dynamic_styles_string}
 </style>
 """, unsafe_allow_html=True) # HTML 스타일 주입 허용
-# --- CSS 주입 전략 변경 끝 ---
+# --- CSS 주입 전략 개선 끝 ---
 
 
 # 달력 그리드 생성
