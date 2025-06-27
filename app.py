@@ -110,3 +110,4 @@ for _ in range(5):
 
 # 현재 선택된 날짜들을 정렬하여 표시 (디버깅 또는 확인용)
 st.write("선택된 날짜:", sorted(list(st.session_state.selected_days)))
+
