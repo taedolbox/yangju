@@ -4,12 +4,22 @@ import streamlit as st
 # 집합을 사용하면 날짜 추가/삭제 및 존재 여부 확인이 효율적입니다.
 if 'selected_days' not in st.session_state:
     st.session_state.selected_days = set()
+# 사용자에게 보여줄 마지막 작업 메시지를 저장할 세션 상태 변수를 초기화합니다.
+if 'last_action_message' not in st.session_state:
+    st.session_state.last_action_message = None
 
 # 페이지 레이아웃을 중앙으로 설정하여 달력을 보기 좋게 배치합니다.
 st.set_page_config(layout="centered")
 
 # 달력 제목을 표시합니다.
 st.title("날짜 선택 달력")
+
+# 이전에 설정된 작업 메시지가 있다면 화면 상단에 정보 메시지로 표시합니다.
+# 이 메시지는 사용자가 날짜를 클릭할 때마다 업데이트됩니다.
+if st.session_state.last_action_message:
+    st.info(st.session_state.last_action_message)
+    # 메시지를 한 번 표시한 후 다음 상호작용 시 지워지도록 (또는 다음 클릭에 의해 덮어쓰이도록) 합니다.
+    # 명시적으로 지우지 않으면 다음 렌더링 시에도 계속 표시될 수 있습니다.
 
 # 선택된 날짜 수를 표시합니다.
 st.write(f"선택된 날짜 수: {len(st.session_state.selected_days)}개")
@@ -101,9 +111,11 @@ for _ in range(5):
                     if day_counter in st.session_state.selected_days:
                         # 이미 선택된 날짜라면 selected_days 집합에서 제거 (선택 해제)
                         st.session_state.selected_days.remove(day_counter)
+                        st.session_state.last_action_message = f"{day_counter}일 선택이 해제되었습니다. 스타일 업데이트를 시도합니다."
                     else:
                         # 선택되지 않은 날짜라면 selected_days 집합에 추가 (선택)
                         st.session_state.selected_days.add(day_counter)
+                        st.session_state.last_action_message = f"{day_counter}일이 선택되었습니다. 스타일 적용을 시도합니다."
                     # UI를 즉시 업데이트하고 변경된 상태를 반영하기 위해 Streamlit 앱을 다시 실행 (리런)합니다.
                     st.rerun()
 
