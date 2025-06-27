@@ -25,9 +25,12 @@ if 'checkbox_value' not in st.session_state:
     st.session_state.checkbox_value = False
 
 # UI
-st.markdown('<div class="day">21</div>', unsafe_allow_html=True)
+# 원숫자 21을 버튼으로 대체
+if st.button("21", key="day_click"):
+    st.session_state.checkbox_value = not st.session_state.checkbox_value
+    st.rerun()
 
-# 버튼으로 상태 토글
+# 추가 버튼 (옵션 유지)
 if st.button("21일 선택", key="day_button"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
