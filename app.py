@@ -14,12 +14,27 @@ st.title("날짜 선택 달력") # 달력 제목
 # len() 함수를 사용하여 집합의 크기(선택된 날짜 수)를 계산합니다.
 st.write(f"선택된 날짜 수: {len(st.session_state.selected_days)}개")
 
-# 모든 버튼에 적용될 기본 CSS 스타일을 정의합니다.
-# 이 스타일은 버튼을 원형으로 만들고, 기본적인 테두리와 텍스트 정렬을 설정합니다.
-st.markdown("""
+# --- CSS 주입 전략 변경: 선택된 모든 날짜의 스타일을 한 번에 주입 ---
+# 선택된 날짜들의 data-testid에 기반한 CSS 규칙들을 모읍니다.
+all_selected_day_styles = []
+for day in st.session_state.selected_days:
+    all_selected_day_styles.append(f"""
+    /* 특정 버튼을 data-testid 속성으로 타겟팅합니다. */
+    div[data-testid="stButton-primary-day_button_{day}"] > button {{
+        border: 2px solid #007bff !important; /* 선택 시 파란색 테두리 */
+        background-color: #e0f0ff !important; /* 선택 시 연한 파란색 배경 */
+        color: #007bff !important; /* 선택 시 파란색 텍스트 */
+    }}
+    """)
+
+# 모든 동적 스타일을 하나의 문자열로 결합합니다.
+dynamic_styles_string = "\n".join(all_selected_day_styles)
+
+# 모든 버튼에 적용될 기본 CSS 스타일과 선택된 날짜의 동적 스타일을 함께 주입합니다.
+st.markdown(f"""
 <style>
-/* Streamlit 버튼의 주 요소인 div.stButton 내부의 button 태그를 타겟팅합니다. */
-div.stButton > button {
+/* Streamlit 버튼의 기본 스타일을 정의합니다. */
+div.stButton > button {{
     width: 50px; /* 버튼의 너비 */
     height: 50px; /* 버튼의 높이 */
     border: 1px solid #ccc; /* 기본 테두리 색상과 두께 */
@@ -36,19 +51,24 @@ div.stButton > button {
     cursor: pointer; /* 마우스 오버 시 포인터 변경 */
     transition: all 0.2s ease-in-out; /* 모든 속성 변경 시 부드러운 전환 효과 */
     padding: 0; /* 버튼의 기본 패딩 제거 */
-}
+}}
 
 /* 마우스 오버 시 배경색 변경 효과 */
-div.stButton > button:hover {
+div.stButton > button:hover {{
     background-color: #f0f0f0;
-}
+}}
 
 /* Streamlit 버튼 내부에 자동으로 생성되는 텍스트 컨테이너의 패딩을 제거하여 텍스트 정렬 보장 */
-div.stButton > button > div {
+div.stButton > button > div {{
     padding: 0 !important;
-}
+}}
+
+/* 선택된 날짜에 대한 동적 스타일 (이 부분이 선택된 날짜의 테두리를 유지합니다) */
+{dynamic_styles_string}
 </style>
 """, unsafe_allow_html=True) # HTML 스타일 주입 허용
+# --- CSS 주입 전략 변경 끝 ---
+
 
 # 달력 그리드 생성
 # st.columns를 사용하여 7개의 컬럼(요일)을 만듭니다.
@@ -62,26 +82,8 @@ for _ in range(5):
         with columns[col_idx]:
             # 날짜가 31일 이하일 때만 버튼을 표시합니다.
             if day_counter <= 31:
-                # 현재 날짜가 선택된 날짜 집합에 있는지 확인합니다.
-                is_selected = day_counter in st.session_state.selected_days
-
-                # 선택 여부에 따라 버튼에 적용될 동적 CSS 스타일을 생성합니다.
-                # 이 스타일은 해당 버튼의 `data-testid` 속성을 타겟팅하여
-                # 선택 시 파란색 테두리, 배경색, 텍스트 색상을 적용합니다.
-                dynamic_style = ""
-                if is_selected:
-                    dynamic_style = f"""
-                    <style>
-                    /* 특정 버튼을 data-testid 속성으로 타겟팅합니다. */
-                    div[data-testid="stButton-primary-day_button_{day_counter}"] > button {{
-                        border: 2px solid #007bff !important; /* 선택 시 파란색 테두리 */
-                        background-color: #e0f0ff !important; /* 선택 시 연한 파란색 배경 */
-                        color: #007bff !important; /* 선택 시 파란색 텍스트 */
-                    }}
-                    </style>
-                    """
-                # 동적 스타일을 페이지에 주입합니다.
-                st.markdown(dynamic_style, unsafe_allow_html=True)
+                # `is_selected` 변수는 더 이상 개별 스타일 주입에 사용되지 않습니다.
+                # 대신, 위에서 한 번에 주입된 `dynamic_styles_string`이 역할을 수행합니다.
 
                 # 날짜 버튼을 생성합니다.
                 # `key`는 Streamlit이 각 버튼을 고유하게 식별하는 데 사용됩니다.
