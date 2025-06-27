@@ -46,27 +46,36 @@ function setupClickHandlers() {
             }
         });
     } else {
-        showPopup('No .day element found');
+        showPopup('No .day element found after setup');
     }
 }
 
-// DOM이 완전히 로드된 후 실행
+// DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', function() {
     showPopup('DOM loaded, setting up handlers');
-    setTimeout(setupClickHandlers, 100); // 100ms 대기 후 실행
+    // 500ms 대기 후 실행
+    setTimeout(() => {
+        showPopup('Checking DOM for .day...');
+        setupClickHandlers();
+        // 추가 확인
+        setInterval(() => {
+            const day = document.querySelector('.day');
+            if (!day) showPopup('Still no .day element found');
+        }, 1000);
+    }, 500);
 });
 
 // DOM 변경 감지
 new MutationObserver(() => {
-    showPopup('DOM mutated, re-applying handlers');
-    setTimeout(setupClickHandlers, 100);
+    showPopup('DOM mutated, re-checking');
+    setTimeout(setupClickHandlers, 500);
 }).observe(document.body, { childList: true, subtree: true });
 </script>
 """
 components.html(click_handler_js, height=1)
 
 # 간단한 UI
-st.markdown('<div class="day">21</div>', unsafe_allow_html=True)
+st.html('<div class="day">21</div>')  # st.markdown 대신 st.html 사용
 st.markdown('<div class="checkbox-container">', unsafe_allow_html=True)
 checkbox_value = st.checkbox("21일 선택", key="test_checkbox")
 st.markdown('</div>', unsafe_allow_html=True)
