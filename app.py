@@ -73,7 +73,6 @@ for _ in range(5):
                     dynamic_style = f"""
                     <style>
                     /* 특정 버튼을 data-testid 속성으로 타겟팅합니다. */
-                    /* Streamlit은 `stButton-primary-{key}` 형태로 data-testid를 할당합니다. */
                     div[data-testid="stButton-primary-day_button_{day_counter}"] > button {{
                         border: 2px solid #007bff !important; /* 선택 시 파란색 테두리 */
                         background-color: #e0f0ff !important; /* 선택 시 연한 파란색 배경 */
