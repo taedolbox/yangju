@@ -30,13 +30,16 @@ if 'checkbox_value' not in st.session_state:
 # UI
 st.markdown('<div class="day">21</div>', unsafe_allow_html=True)
 
+# 버튼 클릭 시 상태 토글
 if st.button("21일 선택", key="day_button"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
-    st.experimental_rerun()
+    st.rerun()  # experimental_rerun 대신 rerun 사용
 
+# 체크박스 상태 반영 (읽기 전용)
 checkbox_value = st.session_state.checkbox_value
-st.checkbox("21일 선택", key="test_checkbox", value=checkbox_value, disabled=True)  # 읽기 전용으로 설정
+st.checkbox("21일 선택", key="test_checkbox", value=checkbox_value, disabled=True)
 
+# 상태에 따른 텍스트 출력
 if checkbox_value:
     st.write("21일이 선택되었습니다!")
 else:
