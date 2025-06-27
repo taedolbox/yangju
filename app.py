@@ -41,14 +41,15 @@ function setupClickHandlers() {
             const checkbox = document.getElementById('test_checkbox');
             if (checkbox) {
                 checkbox.checked = !checkbox.checked;
-                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                 showPopup('Checkbox toggled: ' + checkbox.checked);
-                // Streamlit 상태 업데이트 시뮬레이션
+                // Streamlit에 상태 변경 알림
                 window.parent.postMessage({
                     type: 'STREAMLIT_CHECKBOX_CHANGE',
                     key: 'test_checkbox',
                     value: checkbox.checked
                 }, '*');
+                // 상태 변경 후 UI 강제 갱신 요청
+                window.parent.location.reload();
             } else {
                 showPopup('Checkbox not found');
             }
@@ -75,7 +76,7 @@ new MutationObserver(() => {
 # HTML 통합 삽입
 components.html(html_code, height=200)
 
-# Streamlit 체크박스 상태 반영
+# Streamlit 체크박스 상태
 if 'checkbox_value' not in st.session_state:
     st.session_state.checkbox_value = False
 
