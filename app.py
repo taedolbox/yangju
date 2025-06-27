@@ -18,12 +18,12 @@ st.write(f"선택된 날짜 수: {len(st.session_state.selected_days)}개")
 # 선택된 날짜들의 data-testid에 기반한 CSS 규칙들을 모읍니다.
 all_selected_day_styles = []
 for day in st.session_state.selected_days:
+    # 변경: 배경색을 더 진한 파란색으로, 텍스트 색상을 흰색으로 변경하여 대비를 높임
     all_selected_day_styles.append(f"""
-    /* 특정 버튼을 data-testid 속성으로 타겟팅합니다. */
     div[data-testid="stButton-primary-day_button_{day}"] > button {{
         border: 2px solid #007bff !important; /* 선택 시 파란색 테두리 */
-        background-color: #e0f0ff !important; /* 선택 시 연한 파란색 배경 */
-        color: #007bff !important; /* 선택 시 파란색 텍스트 */
+        background-color: #007bff !important; /* 선택 시 더 진한 파란색 배경 */
+        color: white !important; /* 선택 시 흰색 텍스트 */
     }}
     """)
 
@@ -82,9 +82,6 @@ for _ in range(5):
         with columns[col_idx]:
             # 날짜가 31일 이하일 때만 버튼을 표시합니다.
             if day_counter <= 31:
-                # `is_selected` 변수는 더 이상 개별 스타일 주입에 사용되지 않습니다.
-                # 대신, 위에서 한 번에 주입된 `dynamic_styles_string`이 역할을 수행합니다.
-
                 # 날짜 버튼을 생성합니다.
                 # `key`는 Streamlit이 각 버튼을 고유하게 식별하는 데 사용됩니다.
                 # `use_container_width=True`는 버튼이 컬럼의 전체 너비를 사용하도록 하여
@@ -112,4 +109,5 @@ for _ in range(5):
 
 # 현재 선택된 날짜들을 정렬하여 표시 (디버깅 또는 확인용)
 st.write("선택된 날짜:", sorted(list(st.session_state.selected_days)))
+
 
