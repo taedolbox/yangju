@@ -29,30 +29,30 @@ st.write(f"선택된 날짜 수: {len(st.session_state.selected_days)}개")
 # `!important`를 사용하여 Streamlit의 기본 스타일보다 높은 우선순위를 가집니다.
 all_dynamic_styles = []
 
-# 1. 모든 날짜 버튼에 적용될 공통 기본 스타일
+# 1. 모든 날짜 버튼에 적용될 공통 기본 스타일 (강력하게! !important 추가)
 all_dynamic_styles.append("""
 div.stButton > button {
-    width: 50px; /* 버튼의 너비 */
-    height: 50px; /* 버튼의 높이 */
-    border: 1px solid #ccc; /* 기본 테두리 색상 */
-    border-radius: 50%; /* 원형 모양 */
-    text-align: center; /* 텍스트 가운데 정렬 */
-    line-height: 50px; /* 텍스트 수직 가운데 정렬 */
-    margin: 5px auto; /* 상하 5px, 좌우 자동 마진으로 중앙 정렬 */
-    display: flex; /* Flexbox를 사용하여 내용 정렬 */
-    justify-content: center; /* 수평 가운데 정렬 */
-    align-items: center; /* 수직 가운데 정렬 */
-    font-weight: bold; /* 글꼴 굵게 */
-    background-color: white; /* 기본 배경색 */
-    color: black; /* 기본 텍스트 색상 */
-    cursor: pointer; /* 마우스 오버 시 포인터 변경 */
-    transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
-    padding: 0; /* 버튼 내부 패딩 제거 */
+    width: 50px !important; /* 버튼의 너비 */
+    height: 50px !important; /* 버튼의 높이 */
+    border: 1px solid #ccc !important; /* 기본 테두리 색상 */
+    border-radius: 50% !important; /* 원형 모양 */
+    text-align: center !important; /* 텍스트 가운데 정렬 */
+    line-height: 50px !important; /* 텍스트 수직 가운데 정렬 */
+    margin: 5px auto !important; /* 상하 5px, 좌우 자동 마진으로 중앙 정렬 */
+    display: flex !important; /* Flexbox를 사용하여 내용 정렬 */
+    justify-content: center !important; /* 수평 가운데 정렬 */
+    align-items: center !important; /* 수직 가운데 정렬 */
+    font-weight: bold !important; /* 글꼴 굵게 */
+    background-color: white !important; /* 기본 배경색 (강력하게 적용) */
+    color: black !important; /* 기본 텍스트 색상 (강력하게 적용) */
+    cursor: pointer !important; /* 마우스 오버 시 포인터 변경 */
+    transition: all 0.2s ease-in-out !important; /* 부드러운 전환 효과 */
+    padding: 0 !important; /* 버튼 내부 패딩 제거 */
 }
 
 /* 마우스 오버 시의 기본 배경색 변화 */
 div.stButton > button:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0 !important; /* 기본 호버 배경색 */
 }
 
 /* Streamlit이 버튼 텍스트를 감싸는 div에 자동으로 추가하는 패딩 제거 */
@@ -125,6 +125,5 @@ for _ in range(5):
 
 # 현재 선택된 날짜들을 오름차순으로 정렬하여 웹 페이지 하단에 표시 (확인용)
 st.write("선택된 날짜:", sorted(list(st.session_state.selected_days)))
-
 
 
