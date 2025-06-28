@@ -13,11 +13,12 @@ st.markdown("""
         margin: 10px;
         display: inline-block;
         transition: background-color 0.3s; /* 부드러운 전환 효과 */
+        background-color: white; /* 기본 배경색 */
     }
     .stButton > button:hover {
         background-color: #f0f0f0; /* 호버 시 회색 */
     }
-    .stButton > button[data-selected="true"] {
+    .stButton > button.selected {
         background-color: #007bff !important; /* 선택 시 파란색 */
         color: white !important; /* 선택 시 텍스트 흰색 */
         border-color: #0056b3 !important; /* 선택 시 테두리 색상 */
@@ -37,15 +38,17 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# 버튼에 선택 상태 동적으로 반영 (JavaScript 없이 CSS로 처리)
-st.markdown(f"""
-    <script>
-        const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
-        if (button) {{
-            button.setAttribute('data-selected', {is_selected});
+# 버튼에 선택 상태 동적으로 반영 (CSS로 간접 처리)
+if is_selected:
+    st.markdown(f"""
+        <style>
+        .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"] {{
+            background-color: #007bff !important;
+            color: white !important;
+            border-color: #0056b3 !important;
         }}
-    </script>
-    """, unsafe_allow_html=True)
+        </style>
+        """, unsafe_allow_html=True)
 
 # 체크박스 상태 반영 (읽기 전용)
 checkbox_value = st.session_state.checkbox_value
