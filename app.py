@@ -30,13 +30,13 @@ if 'checkbox_value' not in st.session_state:
     st.session_state.checkbox_value = False
 
 # UI
-# 네모 21 버튼 (파란색 효과 통합)
+# 네모 21 버튼 (파란색 배경 통합)
 key = "day_21"
 is_selected = st.session_state.checkbox_value
 class_name = "day"
 if is_selected:
     class_name += " selected"
-if st.button("21", key=key, help="21을 선택/해제합니다"):
+if st.button("21", key=key, help="21을 선택/해제합니다", class_=class_name):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
