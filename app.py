@@ -3,7 +3,7 @@ import streamlit as st
 # 스타일시트
 st.markdown("""
     <style>
-    .day {
+    .stButton > button {
         width: 40px;
         height: 40px;
         border: 1px solid #ccc;
@@ -14,10 +14,10 @@ st.markdown("""
         display: inline-block;
         transition: background-color 0.3s; /* 부드러운 전환 효과 */
     }
-    .day:hover {
+    .stButton > button:hover {
         background-color: #f0f0f0; /* 호버 시 회색 */
     }
-    .day.selected {
+    .stButton > button.selected {
         background-color: #007bff; /* 선택 시 파란색 */
         color: white; /* 선택 시 텍스트 흰색 */
         border-color: #0056b3; /* 선택 시 테두리 색상 */
@@ -33,10 +33,7 @@ if 'checkbox_value' not in st.session_state:
 # 네모 21 버튼 (파란색 배경 통합)
 key = "day_21"
 is_selected = st.session_state.checkbox_value
-class_name = "day"
-if is_selected:
-    class_name += " selected"
-if st.button("21", key=key, help="21을 선택/해제합니다", class_=class_name):
+if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
