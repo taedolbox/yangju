@@ -3,7 +3,7 @@ import streamlit as st
 # 스타일시트
 st.markdown("""
     <style>
-    .custom-button {
+    .stButton > button {
         width: 40px;
         height: 40px;
         border: 1px solid #ccc;
@@ -15,10 +15,10 @@ st.markdown("""
         transition: background-color 0.3s; /* 부드러운 전환 효과 */
         background-color: white; /* 기본 배경색 */
     }
-    .custom-button:hover {
+    .stButton > button:hover {
         background-color: #f0f0f0; /* 호버 시 회색 */
     }
-    .custom-button.selected {
+    .stButton > button[data-selected="true"] {
         background-color: #007bff !important; /* 선택 시 파란색 */
         color: white !important; /* 선택 시 텍스트 흰색 */
         border-color: #0056b3 !important; /* 선택 시 테두리 색상 */
@@ -31,26 +31,20 @@ if 'checkbox_value' not in st.session_state:
     st.session_state.checkbox_value = False
 
 # UI
-# 네모 21 버튼 (HTML로 구현)
+# 네모 21 버튼
 key = "day_21"
 is_selected = st.session_state.checkbox_value
-button_class = "custom-button"
-if is_selected:
-    button_class += " selected"
-button_html = f'<button class="{button_class}" id="btn_{key}">21</button>'
-st.markdown(button_html, unsafe_allow_html=True)
-
-# 버튼 클릭 이벤트 처리
-if st.button("클릭 감지 (숨김)", key=f"hidden_{key}", help="버튼 클릭 감지용"):
+if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# JavaScript로 클릭 이벤트 바인딩 (간단한 대안)
-st.markdown("""
+# 버튼에 선택 상태 동적으로 반영
+st.markdown(f"""
     <script>
-    document.getElementById('btn_day_21').onclick = function() {
-        window.parent.postMessage({ type: 'STREAMLIT_RERUN' }, '*');
-    };
+        const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
+        if (button) {{
+            button.setAttribute('data-selected', {is_selected});
+        }}
     </script>
     """, unsafe_allow_html=True)
 
