@@ -20,6 +20,7 @@ st.markdown("""
     .day.selected {
         background-color: #007bff; /* 선택 시 파란색 */
         color: white; /* 선택 시 텍스트 흰색 */
+        border-color: #0056b3; /* 선택 시 테두리 색상 */
     }
     </style>
     """, unsafe_allow_html=True)
@@ -29,16 +30,15 @@ if 'checkbox_value' not in st.session_state:
     st.session_state.checkbox_value = False
 
 # UI
-# 네모 21 버튼
+# 네모 21 버튼 (파란색 효과 통합)
 key = "day_21"
 is_selected = st.session_state.checkbox_value
 class_name = "day"
 if is_selected:
     class_name += " selected"
-if st.button("21", key=key):
+if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
-st.markdown(f'<div class="{class_name}">21</div>', unsafe_allow_html=True)
 
 # 체크박스 상태 반영 (읽기 전용)
 checkbox_value = st.session_state.checkbox_value
