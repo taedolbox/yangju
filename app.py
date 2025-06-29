@@ -38,17 +38,21 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# 버튼에 선택 상태 동적으로 반영 (타이밍 개선)
+# 버튼에 선택 상태 동적으로 반영 (선택자 개선 및 MutationObserver 사용)
 st.markdown(f"""
     <script>
         document.addEventListener('DOMContentLoaded', function() {{
-            const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
-            if (button) {{
-                button.setAttribute('data-selected', {str(is_selected).lower()}); // true/false로 변환
-                console.log("Button found, data-selected set to: " + {str(is_selected).lower()});
-            }} else {{
-                console.log("Button not found");
-            }}
+            const observer = new MutationObserver((mutations) => {{
+                const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
+                if (button) {{
+                    button.setAttribute('data-selected', {str(is_selected).lower()});
+                    console.log("Button found, data-selected set to: " + {str(is_selected).lower()});
+                    observer.disconnect(); // 한 번 설정 후 관찰 중지
+                }} else {{
+                    console.log("Button not found, retrying...");
+                }}
+            }});
+            observer.observe(document.body, {{ childList: true, subtree: true }});
         }});
     </script>
     """, unsafe_allow_html=True)
