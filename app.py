@@ -38,21 +38,38 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# 버튼에 선택 상태 동적으로 반영 (선택자 개선 및 MutationObserver 사용)
+# 버튼에 선택 상태 동적으로 반영 (Observer 개선 및 상태 동기화)
 st.markdown(f"""
     <script>
         document.addEventListener('DOMContentLoaded', function() {{
-            const observer = new MutationObserver((mutations) => {{
+            function updateButtonState() {{
                 const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
                 if (button) {{
-                    button.setAttribute('data-selected', {str(is_selected).lower()});
-                    console.log("Button found, data-selected set to: " + {str(is_selected).lower()});
-                    observer.disconnect(); // 한 번 설정 후 관찰 중지
+                    const selected = {str(is_selected).lower()}; // 초기 상태
+                    button.setAttribute('data-selected', selected);
+                    console.log("Button found, data-selected set to: " + selected);
                 }} else {{
                     console.log("Button not found, retrying...");
                 }}
+            }}
+
+            // DOM 로드 후 초기 상태 설정
+            updateButtonState();
+
+            // 버튼 클릭 시 상태 갱신 (MutationObserver로 동적 감지)
+            const observer = new MutationObserver((mutations) => {{
+                updateButtonState();
             }});
             observer.observe(document.body, {{ childList: true, subtree: true }});
+
+            // 버튼 클릭 이벤트 리스너 (Streamlit 재렌더링 후에도 작동)
+            document.addEventListener('click', function(e) {{
+                if (e.target && e.target.textContent === '21' && e.target.getAttribute('data-baseweb') === 'button') {{
+                    const selected = e.target.getAttribute('data-selected') === 'true' ? 'false' : 'true';
+                    e.target.setAttribute('data-selected', selected);
+                    console.log("Button clicked, data-selected set to: " + selected);
+                }}
+            }});
         }});
     </script>
     """, unsafe_allow_html=True)
