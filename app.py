@@ -3,7 +3,7 @@ import streamlit as st
 # 스타일시트
 st.markdown("""
     <style>
-    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"] {
+    .stApp .stButton > button {
         width: 40px;
         height: 40px;
         border: 1px solid #ccc;
@@ -12,16 +12,16 @@ st.markdown("""
         cursor: pointer;
         margin: 10px;
         display: inline-block;
-        transition: background-color 0.3s; /* 부드러운 전환 효과 */
-        background-color: white; /* 기본 배경색 */
+        transition: background-color 0.3s;
+        background-color: white;
     }
-    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"]:hover {
-        background-color: #f0f0f0; /* 호버 시 회색 */
+    .stApp .stButton > button:hover {
+        background-color: #f0f0f0;
     }
-    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"].selected {
-        background-color: #007bff !important; /* 선택 시 파란색 */
-        color: white !important; /* 선택 시 텍스트 흰색 */
-        border-color: #0056b3 !important; /* 선택 시 테두리 색상 */
+    .stApp .stButton > button[data-selected="true"] {
+        background-color: #007bff !important;
+        color: white !important;
+        border-color: #0056b3 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -39,21 +39,21 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.rerun()
 
 # 버튼에 선택 상태 동적으로 반영
-if is_selected:
-    st.markdown("""
-        <style>
-        .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"] {
-            background-color: #007bff !important;
-            color: white !important;
-            border-color: #0056b3 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+st.markdown(f"""
+    <script>
+        const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
+        if (button) {{
+            button.setAttribute('data-selected', {is_selected});
+        }} else {{
+            console.log("Button not found");
+        }}
+    </script>
+    """, unsafe_allow_html=True)
 
 # 디버깅 메시지
-st.write(f"Debug: is_selected = {is_selected}")  # 상태 확인
+st.write(f"Debug: is_selected = {is_selected}")
 
-# 체크박스 상태 반영 (읽기 전용)
+# 체크박스 상태 반영
 checkbox_value = st.session_state.checkbox_value
 st.checkbox("21 선택", key="test_checkbox", value=checkbox_value, disabled=True)
 
