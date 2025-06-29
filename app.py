@@ -1,7 +1,7 @@
 import streamlit as st
 import datetime
 import calendar
-import json # JavaScript로 데이터 전달을 위해 필요
+import json
 
 # --- CSS 스타일 ---
 st.markdown("""
@@ -39,7 +39,9 @@ st.markdown("""
     .weekday-header:nth-child(7) { color: blue; } /* 토요일 */
 
     /* 개별 날짜 버튼 스타일 */
-    .stApp .stButton > button {
+    /* Streamlit이 생성하는 버튼의 실제 HTML 구조를 고려한 선택자 */
+    /* stButton 클래스 내부의 button 태그 */
+    div.stButton > button {
         width: 100%; /* 컬럼 너비에 맞춤 */
         aspect-ratio: 1 / 1; /* 가로 세로 비율 1:1 (정사각형) */
         border: 1px solid #d0d0d0;
@@ -59,13 +61,15 @@ st.markdown("""
     }
 
     /* 마우스 오버 시 */
-    .stApp .stButton > button:hover {
+    div.stButton > button:hover {
         background-color: #e8f5ff; /* 연한 파랑 */
         border-color: #aaddff;
     }
 
     /* 선택된 날짜 버튼 스타일 - 가장 중요! */
-    .stApp .stButton > button[data-selected="true"] {
+    /* data-selected="true" 속성이 있는 Streamlit 버튼에 적용 */
+    /* div.stButton을 추가하여 선택자의 우선순위를 높임 */
+    div.stButton > button[data-selected="true"] {
         background-color: #007bff !important; /* 파란색 배경 */
         color: white !important; /* 흰색 글자 */
         border: 2px solid #0056b3 !important; /* 진한 파란색 테두리 */
@@ -73,23 +77,19 @@ st.markdown("""
     }
 
     /* 비활성화된 날짜 스타일 (달력 범위 밖) */
-    .stApp .stButton > button[data-disabled="true"] {
+    /* Streamlit의 disabled 속성으로 인해 자동으로 data-testid에 "-disabled"가 붙습니다. */
+    /* 또는 직접 data-disabled="true"를 부여할 수도 있습니다. */
+    div.stButton > button[data-testid*="-disabled"] { /* disabled 버튼을 더 일반적인 방식으로 선택 */
         background-color: #f0f0f0 !important;
         color: #aaa !important;
         border-color: #e0e0e0 !important;
         cursor: not-allowed; /* 클릭 불가능 커서 */
         opacity: 0.7;
     }
-    .stApp .stButton > button[data-disabled="true"]:hover {
+    div.stButton > button[data-testid*="-disabled"]:hover {
         background-color: #f0f0f0 !important; /* 호버 시에도 동일 */
     }
 
-    /* Streamlit 내부 버튼 컨테이너의 마진/패딩 제거 */
-    .stApp .stButton {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100%;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -107,37 +107,42 @@ def inject_js_for_button_styling(selected_dates_list):
 
     js_code = f"""
     <script>
-        // console.log("Streamlit Calendar JS: Script loaded.");
+        console.log("Streamlit Calendar JS: Script loaded.");
 
         // 이 함수는 모든 Streamlit 렌더링 후에 호출되어 버튼 상태를 업데이트합니다.
         function applyButtonStates() {{
             const selectedDates = new Set({selected_dates_js_array});
-            // console.log("JS: applyButtonStates called. Selected dates from Python:", Array.from(selectedDates));
+            console.log("JS: applyButtonStates called. Selected dates from Python:", Array.from(selectedDates));
 
-            const buttons = document.querySelectorAll('.stButton > button');
-            // console.log(`JS: Found ${{buttons.length}} buttons.`);
+            // 모든 Streamlit 버튼 요소를 찾습니다.
+            // data-testid 속성을 가진 모든 버튼을 선택합니다.
+            const buttons = document.querySelectorAll('button[data-testid]');
+            console.log(`JS: Found ${{buttons.length}} buttons.`);
 
             buttons.forEach(button => {{
                 let dateStr = null;
-                const helpTitle = button.getAttribute('title'); // help='...' 속성이 title로 매핑됨
+                const dataTestId = button.getAttribute('data-testid'); // data-testid 속성 가져오기
 
-                if (helpTitle && helpTitle.startsWith('날짜 선택: ')) {{
-                    dateStr = helpTitle.substring('날짜 선택: '.length);
-                    // console.log(`JS: Extracted date from title: ${{dateStr}}`);
-                }}
+                // data-testid가 'stButton-day_YYYY-MM-DD' 형식인지 확인
+                if (dataTestId && dataTestId.startsWith('stButton-day_')) {{
+                    // 'stButton-day_' 접두사를 제거하여 날짜 문자열 추출
+                    dateStr = dataTestId.substring('stButton-day_'.length);
+                    // console.log(`JS: Extracted date from data-testid: ${{dateStr}}`);
 
-                if (dateStr && dateStr.match(/^\\d{{4}}-\\d{{2}}-\\d{{2}}$/)) {{ // YYYY-MM-DD 형식 유효성 검사
-                    const isSelected = selectedDates.has(dateStr);
-                    button.setAttribute('data-selected', isSelected ? 'true' : 'false');
-                    // console.log(`JS: Button for ${{dateStr}} - isSelected: ${{isSelected}}, data-selected set to: ${{button.getAttribute('data-selected')}}`);
-
-                    // 비활성화된 날짜는 data-disabled="true" 속성을 설정 (Python에서 처리하지만 혹시 모를 경우를 대비)
-                    // 이 부분은 Python에서 이미 'disabled' 버튼으로 만들었으므로 JS에서는 조작할 필요가 없습니다.
-                    // 그러나 JS에서 시각적으로만 비활성화를 표현하고 싶다면 활용 가능.
+                    // 날짜 문자열이 유효한 YYYY-MM-DD 형식인지 확인
+                    if (dateStr.match(/^\\d{{4}}-\\d{{2}}-\\d{{2}}$/)) {{
+                        const isSelected = selectedDates.has(dateStr);
+                        button.setAttribute('data-selected', isSelected ? 'true' : 'false');
+                        // console.log(`JS: Button for ${{dateStr}} - isSelected: ${{isSelected}}, data-selected set to: ${{button.getAttribute('data-selected')}}`);
+                    }} else {{
+                        // 유효하지 않은 날짜 형식인 경우 data-selected 제거
+                        button.removeAttribute('data-selected');
+                        // console.log(`JS: Invalid date format for ${{dateStr}}, removing data-selected.`);
+                    }}
                 }} else {{
-                    // 날짜 버튼이 아니거나 날짜를 추출할 수 없는 경우, data-selected 초기화
+                    // 날짜 버튼이 아니거나 data-testid 형식이 일치하지 않는 경우 data-selected 제거
                     button.removeAttribute('data-selected');
-                    // console.log(`JS: Non-date button or invalid date extracted: ${{button.textContent}}, removing data-selected.`);
+                    // console.log(`JS: Non-date button or data-testid mismatch: ${{dataTestId}}, removing data-selected.`);
                 }}
             }});
         }}
@@ -180,12 +185,13 @@ if selected_input_date != st.session_state.input_date:
     st.rerun() # 재실행하여 달력 업데이트
 
 # 입력된 날짜 기준 직전 달 초일 계산
+# 예를 들어 2023-03-15를 입력하면, 2023-02-01이 시작 날짜가 됩니다.
 first_day_of_previous_month = (st.session_state.input_date.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
-# 입력된 날짜 기준 달까지 표시 (단, 입력된 날짜까지만 클릭 가능)
-display_year = first_day_of_previous_month.year
-display_month = first_day_of_previous_month.month
 
-st.header(f"{first_day_of_previous_month.year}년 {first_day_of_previous_month.month}월 ~ {st.session_state.input_date.year}년 {st.session_state.input_date.month}월", divider='rainbow')
+st.header(
+    f"{first_day_of_previous_month.year}년 {first_day_of_previous_month.month}월 ~ {st.session_state.input_date.year}년 {st.session_state.input_date.month}월",
+    divider='rainbow'
+)
 
 st.markdown('<div class="calendar-container">', unsafe_allow_html=True)
 
@@ -197,100 +203,64 @@ for day in weekdays:
 # 달력 날짜 채우기
 cal = calendar.Calendar(firstweekday=6) # 일요일부터 시작 (0=월, 6=일)
 
-# 직전 달의 날짜들을 가져옴
-month_days_prev = cal.monthdatescalendar(first_day_of_previous_month.year, first_day_of_previous_month.month)
-# 현재 달의 날짜들을 가져옴
-month_days_current = cal.monthdatescalendar(st.session_state.input_date.year, st.session_state.input_date.month)
-
-# 두 달의 날짜를 합치되, 중복되는 주(직전 달 마지막 주와 현재 달 첫 주가 겹칠 수 있음)는 처리 필요
-# 여기서는 간단하게 두 달 전체를 그리는 방식으로 하겠습니다.
-# 실제로는 겹치는 부분을 제거하고, 입력된 날짜까지만 표시해야 합니다.
-
-# 입력된 날짜의 직전 달부터 시작 (이 부분의 렌더링 로직을 좀 더 정교하게 만듦)
-current_date_to_render = first_day_of_previous_month
-
 # 표시해야 할 마지막 날짜
 end_date_inclusive = st.session_state.input_date
 
 # 직전 달 1일부터 입력 날짜까지의 모든 날짜를 포함하는 Set을 만듭니다.
 # 이는 날짜 버튼을 활성화/비활성화 하는 기준으로 사용됩니다.
 active_date_range = set()
-delta = datetime.timedelta(days=1)
-while current_date_to_render <= end_date_inclusive:
-    active_date_range.add(current_date_to_render)
-    current_date_to_render += delta
-
-# 이제 두 달 (직전 달, 현재 달)을 모두 표시합니다.
-# 첫 번째 달 (직전 달) 렌더링
-for week in month_days_prev:
-    cols = st.columns(7)
-    for i, day_obj in enumerate(week):
-        with cols[i]:
-            # 달력 표시 범위 내에 있는 날짜 (직전 달 1일부터 입력 날짜까지)
-            is_in_active_range = day_obj in active_date_range
-
-            if is_in_active_range:
-                date_str = day_obj.isoformat()
-                is_selected = date_str in st.session_state.selected_dates
-
-                if st.button(
-                    f"{day_obj.day}",
-                    key=f"day_{date_str}",
-                    help=f"날짜 선택: {date_str}"
-                ):
-                    if date_str in st.session_state.selected_dates:
-                        st.session_state.selected_dates.remove(date_str)
-                    else:
-                        st.session_state.selected_dates.add(date_str)
-                    st.rerun()
-            else:
-                # 활성 범위 밖의 날짜는 비활성화된 것처럼 표시
-                # date_str을 만들어서 data-disabled="true"를 JavaScript에서 부여하도록 하거나,
-                # 아예 버튼을 만들지 않고 비활성 div로 대체.
-                # 여기서는 버튼을 만들되 data-disabled로 처리하여 JS에서 스타일링하도록 합니다.
-                date_str = day_obj.isoformat()
-                st.button(
-                    f"{day_obj.day}",
-                    key=f"disabled_day_{date_str}", # 고유 키
-                    help=f"선택 불가능한 날짜: {date_str}",
-                    disabled=True # Streamlit의 기본 disabled 기능 활용
-                )
-                # Note: Streamlit의 disabled=True는 버튼을 클릭할 수 없게 만들지만,
-                # 커스텀 CSS를 위한 data-disabled="true" 속성은 JS에서 부여해야 합니다.
-                # 현재는 기본 disabled 스타일 + JS에서 data-disabled를 부여하는 형태로 동작.
+current_date_to_populate = first_day_of_previous_month
+while current_date_to_populate <= end_date_inclusive:
+    active_date_range.add(current_date_to_populate)
+    current_date_to_populate += datetime.timedelta(days=1)
 
 
-# 두 번째 달 (현재 달) 렌더링 (단, 현재 달은 입력 날짜까지만 활성화)
-# 이미 active_date_range에 입력 날짜까지 모든 날짜가 포함되어 있습니다.
-for week in month_days_current:
-    cols = st.columns(7)
-    for i, day_obj in enumerate(week):
-        with cols[i]:
-            is_in_active_range = day_obj in active_date_range
+# 달력에 표시할 월 리스트 (직전 달과 현재 달)
+months_to_display = []
+months_to_display.append((first_day_of_previous_month.year, first_day_of_previous_month.month))
+# 현재 달이 직전 달과 다르면 추가
+if not (st.session_state.input_date.year == first_day_of_previous_month.year and
+        st.session_state.input_date.month == first_day_of_previous_month.month):
+    months_to_display.append((st.session_state.input_date.year, st.session_state.input_date.month))
 
-            if is_in_active_range:
-                date_str = day_obj.isoformat()
-                is_selected = date_str in st.session_state.selected_dates
 
-                if st.button(
-                    f"{day_obj.day}",
-                    key=f"day_{date_str}",
-                    help=f"날짜 선택: {date_str}"
-                ):
-                    if date_str in st.session_state.selected_dates:
-                        st.session_state.selected_dates.remove(date_str)
-                    else:
-                        st.session_state.selected_dates.add(date_str)
-                    st.rerun()
-            else:
-                # 활성 범위 밖의 날짜는 비활성화
-                date_str = day_obj.isoformat()
-                st.button(
-                    f"{day_obj.day}",
-                    key=f"disabled_day_{date_str}",
-                    help=f"선택 불가능한 날짜: {date_str}",
-                    disabled=True
-                )
+for year, month in months_to_display:
+    # 각 월의 이름 표시 (선택 사항)
+    if len(months_to_display) > 1: # 두 달 이상 표시될 때만 월 이름 표시
+        st.markdown(f"<h4 style='text-align: center; margin-top: 15px; margin-bottom: 5px;'>{year}년 {month}월</h4>", unsafe_allow_html=True)
+
+    month_days = cal.monthdatescalendar(year, month)
+    for week in month_days:
+        cols = st.columns(7) # 한 주에 7개의 컬럼 생성
+        for i, day_obj in enumerate(week):
+            with cols[i]: # 각 날짜를 해당 컬럼에 배치
+                date_str = day_obj.isoformat() # 'YYYY-MM-DD' 형식
+
+                # 해당 날짜가 활성 범위 내에 있고, 현재 표시하는 달에 속하는지 확인
+                is_active_and_in_current_month = (day_obj in active_date_range) and (day_obj.month == month)
+
+                if is_active_and_in_current_month:
+                    # 클릭 가능한 버튼
+                    if st.button(
+                        f"{day_obj.day}",
+                        key=f"day_{date_str}", # 고유한 키 (data-testid로 자동 변환)
+                        help=f"날짜 선택: {date_str}" # JavaScript가 파싱할 수 있도록 명확한 형식
+                    ):
+                        if date_str in st.session_state.selected_dates:
+                            st.session_state.selected_dates.remove(date_str)
+                        else:
+                            st.session_state.selected_dates.add(date_str)
+                        st.rerun() # 날짜 선택 시 페이지 재렌더링
+                else:
+                    # 비활성 날짜 (클릭 불가능)
+                    # Streamlit의 disabled=True를 사용하면 자동으로 data-testid에 '-disabled'가 붙습니다.
+                    # CSS에서 이 속성을 활용하여 스타일링합니다.
+                    st.button(
+                        f"{day_obj.day}",
+                        key=f"disabled_day_{date_str}", # 고유 키
+                        help=f"선택 불가능한 날짜: {date_str}",
+                        disabled=True # Streamlit의 기본 disabled 기능 활용
+                    )
 
 
 st.markdown('</div>', unsafe_allow_html=True) # calendar-container 닫기
