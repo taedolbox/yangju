@@ -38,15 +38,18 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# 버튼에 선택 상태 동적으로 반영
+# 버튼에 선택 상태 동적으로 반영 (타이밍 개선)
 st.markdown(f"""
     <script>
-        const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
-        if (button) {{
-            button.setAttribute('data-selected', {is_selected});
-        }} else {{
-            console.log("Button not found");
-        }}
+        document.addEventListener('DOMContentLoaded', function() {{
+            const button = document.querySelector('button[data-baseweb="button"][title="21을 선택/해제합니다"]');
+            if (button) {{
+                button.setAttribute('data-selected', {str(is_selected).lower()}); // true/false로 변환
+                console.log("Button found, data-selected set to: " + {str(is_selected).lower()});
+            }} else {{
+                console.log("Button not found");
+            }}
+        }});
     </script>
     """, unsafe_allow_html=True)
 
