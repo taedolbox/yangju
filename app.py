@@ -3,7 +3,7 @@ import streamlit as st
 # 스타일시트
 st.markdown("""
     <style>
-    .stButton > button {
+    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"] {
         width: 40px;
         height: 40px;
         border: 1px solid #ccc;
@@ -15,10 +15,10 @@ st.markdown("""
         transition: background-color 0.3s; /* 부드러운 전환 효과 */
         background-color: white; /* 기본 배경색 */
     }
-    .stButton > button:hover {
+    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"]:hover {
         background-color: #f0f0f0; /* 호버 시 회색 */
     }
-    .stButton > button[title="21을 선택/해제합니다"].selected {
+    .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"].selected {
         background-color: #007bff !important; /* 선택 시 파란색 */
         color: white !important; /* 선택 시 텍스트 흰색 */
         border-color: #0056b3 !important; /* 선택 시 테두리 색상 */
@@ -38,11 +38,11 @@ if st.button("21", key=key, help="21을 선택/해제합니다"):
     st.session_state.checkbox_value = not st.session_state.checkbox_value
     st.rerun()
 
-# 동적 스타일 적용 (JavaScript 대신)
+# 버튼에 선택 상태 동적으로 반영
 if is_selected:
     st.markdown("""
         <style>
-        .stButton > button[title="21을 선택/해제합니다"] {
+        .stApp .stButton > button[data-baseweb="button"][title="21을 선택/해제합니다"] {
             background-color: #007bff !important;
             color: white !important;
             border-color: #0056b3 !important;
