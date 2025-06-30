@@ -7,17 +7,16 @@ from streamlit_js_eval import streamlit_js_eval # 라이브러리 임포트
 # --- CSS 스타일 (이전과 동일) ---
 st.markdown("""
     <style>
-    /* 전체 앱 스타일 */
+    /* ... (제공해주신 전체 CSS 코드 여기에 붙여넣기) ... */
+    /* 위에 제공된 CSS 내용 전체를 여기에 넣어주세요 */
     .stApp {
         font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
-
-    /* 달력 컨테이너 */
     .calendar-container {
         display: grid;
-        grid-template-columns: repeat(7, 1fr); /* 7개의 열 (요일) */
-        gap: 5px; /* 버튼 사이 간격 */
-        max-width: 500px; /* 달력 최대 너비 */
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        max-width: 500px;
         margin: auto;
         padding: 20px;
         border: 1px solid #e0e0e0;
@@ -25,8 +24,6 @@ st.markdown("""
         background-color: #f9f9f9;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-
-    /* 요일 헤더 */
     .weekday-header {
         text-align: center;
         font-weight: bold;
@@ -36,10 +33,8 @@ st.markdown("""
         border-radius: 4px;
         font-size: 0.9em;
     }
-    .weekday-header:nth-child(1) { color: red; } /* 일요일 */
-    .weekday-header:nth-child(7) { color: blue; } /* 토요일 */
-
-    /* 개별 날짜 버튼 스타일 */
+    .weekday-header:nth-child(1) { color: red; }
+    .weekday-header:nth-child(7) { color: blue; }
     div.stButton > button {
         width: 100%;
         aspect-ratio: 1 / 1;
@@ -58,32 +53,20 @@ st.markdown("""
         justify-content: center;
         align-items: center;
     }
-
-    /* 마우스 오버 시 */
     div.stButton > button:hover {
         background-color: #e8f5ff;
         border-color: #aaddff;
     }
-
-/* 선택된 날짜 버튼 스타일 - 가장 중요! */
-/* div.stButton 내부의 button 태그 중 data-selected="true" 속성을 가진 요소에 적용 */
-/* Streamlit의 내부 클래스를 더 명시적으로 추가하여 우선순위 높이기 */
-.stButton > button[data-selected="true"] { /* div.stButton을 제외하고, 직접 .stButton 클래스 하위의 button을 타겟팅 */
-    background-color: #007bff !important; /* 파란색 배경 */
-    color: white !important; /* 흰색 글자 */
-    border: 2px solid #0056b3 !important; /* 진한 파란색 테두리 */
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
-}
-
-/* 추가적으로, 마우스 오버 시 선택된 상태의 색상이 바뀌지 않도록 방지 */
-.stButton > button[data-selected="true"]:hover {
-    background-color: #007bff !important; /* 선택된 상태에서는 호버해도 파란색 유지 */
-    border-color: #0056b3 !important;
-}
-
-/* (나머지 CSS는 이전과 동일하게 유지) */
-
-    /* 비활성화된 날짜 스타일 */
+    .stButton > button[data-selected="true"] {
+        background-color: #007bff !important;
+        color: white !important;
+        border: 2px solid #0056b3 !important;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+    }
+    .stButton > button[data-selected="true"]:hover {
+        background-color: #007bff !important;
+        border-color: #0056b3 !important;
+    }
     div.stButton > button[data-testid*="-disabled"] {
         background-color: #f0f0f0 !important;
         color: #aaa !important;
@@ -94,7 +77,6 @@ st.markdown("""
     div.stButton > button[data-testid*="-disabled"]:hover {
         background-color: #f0f0f0 !important;
     }
-
     </style>
     """, unsafe_allow_html=True)
 
@@ -117,49 +99,54 @@ js_function_definition = """
         const selectedDates = new Set(selectedDates_param);
         console.log("JS: applyButtonStates called. Selected dates from Python:", Array.from(selectedDates));
 
-        const buttons = document.querySelectorAll('button[data-testid]');
-        // console.log(`JS: Found ${buttons.length} buttons.`); // 너무 많을 수 있어 주석 처리
+        const buttons = document.querySelectorAll('button[data-testid^="stButton-day_"]'); // data-testid가 'stButton-day_'로 시작하는 버튼만 선택
+        console.log(`JS: Found ${buttons.length} date buttons.`);
 
         buttons.forEach(button => {
-            let dateStr = null;
             const dataTestId = button.getAttribute('data-testid');
+            // 'stButton-day_' 접두사를 제거하여 날짜 문자열 추출
+            const dateStr = dataTestId.substring('stButton-day_'.length);
 
-            if (dataTestId && dataTestId.startsWith('stButton-day_')) {
-                dateStr = dataTestId.substring('stButton-day_'.length);
-
-                if (dateStr.match(/^\\d{4}-\\d{2}-\\d{2}$/)) {
-                    const isSelected = selectedDates.has(dateStr);
-                    button.setAttribute('data-selected', isSelected ? 'true' : 'false');
-                    // console.log(`JS: Button for ${dateStr} - isSelected: ${isSelected}, data-selected set to: ${button.getAttribute('data-selected')}`);
-                } else {
-                    button.removeAttribute('data-selected');
-                }
+            // 날짜 문자열이 유효한 YYYY-MM-DD 형식인지 확인 (선택 사항, 하지만 안전함)
+            if (dateStr.match(/^\\d{4}-\\d{2}-\\d{2}$/)) {
+                const isSelected = selectedDates.has(dateStr);
+                button.setAttribute('data-selected', isSelected ? 'true' : 'false');
+                // console.log(`JS: Button for ${dateStr} - isSelected: ${isSelected}, data-selected set to: ${button.getAttribute('data-selected')}`);
             } else {
+                // 유효하지 않은 날짜 형식인 경우 data-selected 제거 (보험용)
                 button.removeAttribute('data-selected');
             }
         });
     };
 
-    // MutationObserver는 DOM 변경을 감지하고 applyButtonStates 호출 (초기 로딩 및 리렌더링 시)
+    // MutationObserver는 DOM 변경을 감지하고 applyButtonStates 호출
+    // Streamlit이 DOM을 다시 그릴 때마다 이 observer가 변경을 감지합니다.
     const observer = new MutationObserver((mutationsList, observer) => {
-        // 옵저버가 감지한 변경이 실제로 날짜 버튼과 관련이 있는지 확인 (성능 최적화)
-        // 여기서는 간단하게 모든 변경에 대해 함수를 호출합니다.
-        const currentSelectedDates = window.stSelectedDates || []; // stSelectedDates는 파이썬에서 주입될 전역 변수
-        window.applyButtonStates(currentSelectedDates);
+        // console.log("JS: DOM Mutation detected."); // 너무 많아서 주석 처리
+        // 변경이 발생하면 applyButtonStates를 호출합니다.
+        // 현재 선택된 날짜는 Python에서 window.stSelectedDates 변수에 업데이트됩니다.
+        if (window.applyButtonStates && window.stSelectedDates) {
+            window.applyButtonStates(window.stSelectedDates);
+        }
     });
 
+    // document.body의 자식 변경 및 하위 트리의 모든 변경을 감시합니다.
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 초기 로딩 시에도 한 번 실행되도록 (옵저버가 초기 상태를 놓칠 수 있으므로)
     // 그러나 실제 데이터는 Python에서 나중에 주입될 것이므로, 이 첫 호출은 큰 의미 없을 수 있음.
-    // setTimeout(() => window.applyButtonStates(window.stSelectedDates || []), 100);
+    // setTimeout(() => {
+    //     if (window.applyButtonStates && window.stSelectedDates) {
+    //         window.applyButtonStates(window.stSelectedDates);
+    //     }
+    // }, 100);
 </script>
 """
 # JavaScript 함수 정의는 한 번만 삽입합니다. (캐시되어 재실행되지 않도록)
 st.markdown(js_function_definition, unsafe_allow_html=True)
 
 
-# --- 달력 UI 렌더링 ---
+# --- 달력 UI 렌더링 (이전과 동일) ---
 st.title("🗓️ 기간 선택 달력")
 
 # 1. 날짜 입력 받기
@@ -273,8 +260,10 @@ else:
 # 앱이 재렌더링될 때마다 이 부분이 실행되어 최신 selected_dates를 JavaScript로 전달합니다.
 streamlit_js_eval(
     js_expressions=[
-        f"window.stSelectedDates = {json.dumps(list(st.session_state.selected_dates))};", # 전역 변수에 현재 선택된 날짜들을 저장
-        "window.applyButtonStates(window.stSelectedDates);" # 함수 호출
+        # 전역 변수에 현재 선택된 날짜들을 저장합니다.
+        f"window.stSelectedDates = {json.dumps(list(st.session_state.selected_dates))};",
+        # applyButtonStates 함수가 정의되어 있으면 호출합니다.
+        "if (typeof window.applyButtonStates === 'function') { window.applyButtonStates(window.stSelectedDates); }"
     ],
     key="js_button_update" # 이 컴포넌트의 고유 키
 )
