@@ -1,14 +1,14 @@
-import streamlit as st
-import datetime
+import streamlit.components.v1 as components
 
-st.title("Streamlit 기본 달력 테스트")
+# 'my_calendar_component' 폴더 안에 'frontend' 폴더 경로를 지정
+_COMPONENT_DIR = "my_calendar_component"
 
-# Streamlit 기본 날짜 선택 위젯 (Date Input)
-# 이 위젯은 선택하면 자동으로 선택된 날짜가 강조됩니다.
-selected_date = st.date_input("날짜를 선택해 보세요:", datetime.date.today())
+# 컴포넌트를 선언합니다.
+_component_func = components.declare_component(
+    "my_calendar_component", # 컴포넌트 이름
+    path=_COMPONENT_DIR      # 프론트엔드 코드가 있는 폴더의 상위 경로
+)
 
-st.write(f"선택된 날짜: {selected_date}")
-
-# Streamlit이 기본으로 제공하는 위젯도 선택 시 시각적 피드백이 없다면,
-# 브라우저나 Streamlit 설치 자체의 문제일 수 있습니다.
-# 하지만 보통은 잘 작동합니다.
+# 이제 _component_func를 사용하여 Streamlit 앱에서 커스텀 컴포넌트를 렌더링할 수 있습니다.
+# 예를 들어:
+# result = _component_func(name="World", key="my_custom_calendar")
