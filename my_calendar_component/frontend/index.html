@@ -1,1 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Calendar Component</title>
+    <script src="streamlit-component-lib.js"></script>
+    <style>
+        /* CSS 스타일: 선택된 날짜에 테두리 */
+        .calendar-day.selected {
+            border: 2px solid blue !important; /* 파란색 테두리 */
+        }
+        .calendar-day {
+            padding: 5px;
+            margin: 2px;
+            cursor: pointer;
+            border: 1px solid #eee;
+            display: inline-block;
+            width: 30px; /* 예시 */
+            height: 30px; /* 예시 */
+            text-align: center;
+            line-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
+    <script>
+        const rootDiv = document.getElementById("root");
+        let selectedDates = []; // 현재 선택된 날짜 배열
+
+        // --- 여기에 디버그 로그 추가 ---
+        console.log("Custom Calendar Component: Script loaded!");
+
+        /**
+         * Streamlit으로부터 데이터를 받을 때 호출되는 함수
+         */
+        function onRender(event) {
+            const args = event.detail.args;
+            console.log("Custom Calendar Component: Received render event with args:", args);
+
+            // Python에서 넘어온 selected_dates가 있다면 사용
+            if (args.selected_dates) {
+                selectedDates = args.selected_dates;
+                console.log("Custom Calendar Component: Updated selectedDates from Python:", selectedDates);
+            } else {
+                selectedDates = []; // 초기화 또는 기본값
+                console.log("Custom Calendar Component: No selected_dates from Python, initializing empty.");
+            }
+
+            // 달력 UI 업데이트 (가상의 달력 생성 로직)
+            renderCalendar(selectedDates);
+
+            // *** 중요: 컴포넌트가 준비되었음을 Streamlit에 알림 ***
+            // 이 부분이 없거나 늦으면 "unregistered" 오류가 발생합니다.
+            // 보통 onRender 호출될 때마다 호출해도 무방하지만, 컴포넌트의 초기화가 완료된 후 한 번만 호출하는게 더 좋습니다.
+            // 하지만 테스트를 위해 여기 넣어볼 수 있습니다.
+            Streamlit.setComponentReady();
+            console.log("Custom Calendar Component: Streamlit.setComponentReady() called.");
+
+            // Python에서 전달된 `applyButtonStates` 함수 호출 (만약 있다면)
+            // 당신의 원래 로그에 있던 함수입니다.
+            if (typeof window.applyButtonStates === 'function') {
+                console.log("Custom Calendar Component: Calling window.applyButtonStates...");
+                window.applyButtonStates(selectedDates); // args.selected_dates 대신 업데이트된 selectedDates 전달
+            } else {
+                console.log("Custom Calendar Component: window.applyButtonStates function not found.");
+            }
+        }
+
+        /**
+         * 달력을 화면에 그리는 가상의 함수 (실제 달력 라이브러리 사용 시 변경됨)
+         */
+        function renderCalendar(currentSelectedDates) {
+            rootDiv.innerHTML = ''; // 기존 내용 지우기
+            // 예시: 1일부터 30일까지의 날짜 버튼 생성
+            for (let i = 1; i <= 30; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+                dayDiv.textContent = i;
+                dayDiv.dataset.date = `2025-06-${String(i).padStart(2, '0')}`; // 예시 날짜 형식
+
+                // 선택된 날짜인지 확인하여 'selected' 클래스 추가
+                if (currentSelectedDates.includes(dayDiv.dataset.date)) {
+                    dayDiv.classList.add('selected');
+                }
+
+                // 클릭 이벤트 리스너 추가
+                dayDiv.addEventListener('click', () => {
+                    // 클릭 시 선택 상태 토글
+                    const clickedDate = dayDiv.dataset.date;
+                    const index = selectedDates.indexOf(clickedDate);
+                    if (index > -1) {
+                        selectedDates.splice(index, 1); // 제거
+                        dayDiv.classList.remove('selected');
+                        console.log(`Custom Calendar Component: Deselected date: ${clickedDate}`);
+                    } else {
+                        selectedDates.push(clickedDate); // 추가
+                        dayDiv.classList.add('selected');
+                        console.log(`Custom Calendar Component: Selected date: ${clickedDate}`);
+                    }
+                    // 파이썬으로 변경된 선택 날짜 보내기
+                    Streamlit.setComponentValue(selectedDates);
+                    console.log("Custom Calendar Component: Sent selected dates to Python:", selectedDates);
+                });
+                rootDiv.appendChild(dayDiv);
+            }
+        }
+
+        // Streamlit 렌더링 이벤트를 수신
+        Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
+
+        // 컴포넌트가 로드되자마자 한 번 초기화 준비 완료를 알림
+        // onRender 내에서도 호출되지만, 안정성을 위해 초기에 한 번 더 호출하는 것이 좋습니다.
+        Streamlit.setComponentReady();
+        console.log("Custom Calendar Component: Initial Streamlit.setComponentReady() called.");
+
+    </script>
+</body>
+</html>
