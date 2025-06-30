@@ -65,13 +65,23 @@ st.markdown("""
         border-color: #aaddff;
     }
 
-    /* 선택된 날짜 버튼 스타일 - 가장 중요! */
-    div.stButton > button[data-selected="true"] {
-        background-color: #007bff !important;
-        color: white !important;
-        border: 2px solid #0056b3 !important;
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
-    }
+/* 선택된 날짜 버튼 스타일 - 가장 중요! */
+/* div.stButton 내부의 button 태그 중 data-selected="true" 속성을 가진 요소에 적용 */
+/* Streamlit의 내부 클래스를 더 명시적으로 추가하여 우선순위 높이기 */
+.stButton > button[data-selected="true"] { /* div.stButton을 제외하고, 직접 .stButton 클래스 하위의 button을 타겟팅 */
+    background-color: #007bff !important; /* 파란색 배경 */
+    color: white !important; /* 흰색 글자 */
+    border: 2px solid #0056b3 !important; /* 진한 파란색 테두리 */
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* 추가적으로, 마우스 오버 시 선택된 상태의 색상이 바뀌지 않도록 방지 */
+.stButton > button[data-selected="true"]:hover {
+    background-color: #007bff !important; /* 선택된 상태에서는 호버해도 파란색 유지 */
+    border-color: #0056b3 !important;
+}
+
+/* (나머지 CSS는 이전과 동일하게 유지) */
 
     /* 비활성화된 날짜 스타일 */
     div.stButton > button[data-testid*="-disabled"] {
