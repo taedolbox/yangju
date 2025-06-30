@@ -103,16 +103,17 @@ if 'input_date' not in st.session_state:
     st.session_state.input_date = datetime.date.today()
 
 # --- JavaScript 함수 정의 (단 한 번만 삽입) ---
-# 이 함수는 selectedDates_param 매개변수를 받아 버튼 상태를 업데이트합니다.
-# MutationObserver는 Streamlit의 DOM 변화를 감지하고 이 함수를 호출합니다.
+# 이제 이 JavaScript 함수는 window.stSelectedDates 변수를 직접 사용하지 않고,
+# applyButtonStates 함수가 직접 인자를 받도록 합니다.
 js_function_definition = """
 <script>
     console.log("Streamlit Calendar JS: Script loaded.");
 
     // 이 함수는 파이썬에서 업데이트된 selectedDates 배열을 받아 호출됩니다.
+    // 인자로 받은 selectedDates_param을 직접 사용합니다.
     window.applyButtonStates = function(selectedDates_param) {
         const selectedDates = new Set(selectedDates_param);
-        console.log("JS: applyButtonStates called. Selected dates from Python:", Array.from(selectedDates));
+        console.log("JS: applyButtonStates called. Selected dates from Python (via arg):", Array.from(selectedDates));
 
         // 선택자 강화: div.stButton 내부의 button 요소를 찾고, data-testid가 특정 형태로 시작하는 것만 선택
         const buttons = document.querySelectorAll('div.stButton > button[data-testid^="stButton-day_"]'); 
@@ -120,55 +121,48 @@ js_function_definition = """
 
         buttons.forEach(button => {
             const dataTestId = button.getAttribute('data-testid');
-            if (dataTestId) { // dataTestId가 있는지 확인
+            if (dataTestId) { 
                 // 정규식을 사용하여 'stButton-day_' 이후의 YYYY-MM-DD 형식의 날짜 문자열 추출
                 const dateMatch = dataTestId.match(/stButton-day_(\\d{4}-\\d{2}-\\d{2})/); 
                 if (dateMatch && dateMatch[1]) {
-                    const dateStr = dateMatch[1]; // 추출된 날짜 문자열
+                    const dateStr = dateMatch[1]; 
                     const isSelected = selectedDates.has(dateStr);
                     button.setAttribute('data-selected', isSelected ? 'true' : 'false');
                     // 디버깅을 위해 이 로그를 활성화하여 개별 버튼의 상태를 확인해볼 수 있습니다.
                     // console.log(`JS: Button for ${dateStr} - isSelected: ${isSelected}, data-selected set to: ${button.getAttribute('data-selected')}`);
                 } else {
-                    // 날짜 형식이 아니거나 data-testid 형식이 일치하지 않는 경우 (예: 'stButton-disabled_...')
                     button.removeAttribute('data-selected');
                 }
             } else {
-                // data-testid 속성 자체가 없는 경우 (일반적인 Streamlit 버튼이 아님)
                 button.removeAttribute('data-selected');
             }
         });
     };
 
     // MutationObserver는 DOM 변경을 감지하고 applyButtonStates 호출
-    // Streamlit이 DOM을 다시 그릴 때마다 이 observer가 변경을 감지합니다.
+    // 이 Observer는 주로 Streamlit이 DOM을 다시 그릴 때 발생할 수 있는 변경을 처리합니다.
     const observer = new MutationObserver((mutationsList, observer) => {
-        // console.log("JS: DOM Mutation detected."); 
-        // 변경이 발생하면 applyButtonStates를 호출합니다.
-        // 현재 선택된 날짜는 Python에서 window.stSelectedDates 변수에 업데이트됩니다.
-        if (window.applyButtonStates && window.stSelectedDates) {
-            window.applyButtonStates(window.stSelectedDates);
-        }
+        // console.log("JS: DOM Mutation detected by observer.");
+        // 파이썬에서 streamlit_js_eval을 통해 applyButtonStates가 호출될 때까지 기다립니다.
+        // 이 observer는 초기 로드 시 applyButtonStates가 호출되지 않을 경우의 백업 역할만 합니다.
     });
 
-    // document.body의 자식 변경 및 하위 트리의 모든 변경을 감시합니다.
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // 스크립트 로드 시 초기 상태를 반영하기 위해 약간의 지연 후 호출
-    // 이 초기 호출은 페이지가 처음 로드될 때 모든 버튼이 준비되기 전에 발생할 수 있으므로,
-    // MutationObserver가 주요 역할을 합니다.
-    setTimeout(() => {
-        if (window.applyButtonStates && window.stSelectedDates) {
-            window.applyButtonStates(window.stSelectedDates);
-        }
-    }, 200); // 200ms 지연
+    // 초기 로딩 시 applyButtonStates가 즉시 호출될 필요는 없습니다.
+    // Python에서 streamlit_js_eval을 통해 정확한 시점에 데이터가 전달될 것이기 때문입니다.
+    // setTimeout(() => {
+    //     // 이 부분은 이제 Python의 streamlit_js_eval에서 데이터를 직접 전달하므로 제거하거나 비활성화합니다.
+    //     // 필요하다면, 초기 로드 시 기본적으로 모든 버튼에 data-selected="false"를 설정하는 로직을 추가할 수 있습니다.
+    // }, 200); 
+
 </script>
 """
 # JavaScript 함수 정의는 앱이 로드될 때 한 번만 삽입됩니다.
 st.markdown(js_function_definition, unsafe_allow_html=True)
 
 
-# --- 달력 UI 렌더링 ---
+# --- 달력 UI 렌더링 (이전과 동일) ---
 st.title("🗓️ 기간 선택 달력")
 
 # 1. 날짜 입력 받기
@@ -282,14 +276,17 @@ else:
     st.write("선택된 날짜가 없습니다.")
 
 
-# --- `streamlit_js_eval`을 사용하여 JavaScript 함수 호출 ---
+# --- `streamlit_js_eval`을 사용하여 JavaScript 함수 호출 (핵심 변경!) ---
 # 앱이 재렌더링될 때마다 이 부분이 실행되어 최신 selected_dates를 JavaScript로 전달합니다.
 streamlit_js_eval(
     js_expressions=[
-        # 전역 변수 window.stSelectedDates에 현재 선택된 날짜들을 JSON 형태로 할당합니다.
-        f"window.stSelectedDates = {json.dumps(list(st.session_state.selected_dates))};",
-        # applyButtonStates 함수가 정의되어 있으면 (typeof 체크) 최신 데이터를 인자로 전달하여 호출합니다.
-        "if (typeof window.applyButtonStates === 'function') { window.applyButtonStates(window.stSelectedDates); }"
+        # applyButtonStates 함수를 직접 호출하고, 파이썬 데이터를 args로 전달합니다.
+        # 이렇게 하면 JavaScript 코드 내에서 window.stSelectedDates 변수를 사용할 필요가 없어집니다.
+        "if (typeof window.applyButtonStates === 'function') { window.applyButtonStates(args.selected_dates); }"
     ],
-    key="js_button_update" # 이 컴포넌트의 고유 키 (Streamlit에게 이 컴포넌트의 상태를 추적하게 함)
+    args={
+        # 파이썬의 selected_dates를 'selected_dates'라는 이름의 인자로 JavaScript에 전달합니다.
+        "selected_dates": list(st.session_state.selected_dates)
+    },
+    key="js_button_update" # 이 컴포넌트의 고유 키
 )
