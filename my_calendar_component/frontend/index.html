@@ -3,130 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamlit Custom Calendar Component</title>
+    <title>테스트 컴포넌트</title>
     <script src="/_/streamlit_component_lib.js"></script>
-
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/main.min.css' rel='stylesheet' />
-    <style>
-        /* 달력 컨테이너 스타일 */
-        #calendar-container {
-            width: 100%;
-            max-width: 800px; /* 최대 너비 설정 */
-            margin: 20px auto; /* 중앙 정렬 */
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-        }
-
-        /* FullCalendar 기본 스타일 재정의 (선택 사항) */
-        .fc .fc-button-primary {
-            background-color: #4CAF50; /* 버튼 배경색 */
-            border-color: #4CAF50;
-        }
-        .fc .fc-button-primary:not(:disabled):active {
-            background-color: #45a049;
-            border-color: #45a049;
-        }
-        .fc .fc-daygrid-day-number {
-            font-weight: bold;
-            color: #333;
-        }
-        .fc .fc-daygrid-day-top {
-            flex-direction: row; /* 날짜 숫자와 이벤트가 가로로 정렬되도록 */
-        }
-    </style>
 </head>
 <body>
-    <div id="calendar-container">
-        <div id="calendar"></div>
+    <div id="root">
+        <h1>Test Component Loaded Successfully!</h1>
+        <p>If you see this, the component base is working.</p>
     </div>
-
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/index.global.min.js'></script>
-
     <script>
-        console.log("Custom Calendar Component: Script loaded!");
-
-        // Streamlit Component API가 로드되었는지 확인
+        console.log("TEST COMPONENT: Script loaded!");
         window.addEventListener('load', function() {
             if (window.Streamlit) {
-                console.log("Streamlit Component Library loaded? " + (!!window.Streamlit));
-                // 컴포넌트가 로드되었음을 Streamlit에 알림
+                console.log("TEST COMPONENT: Streamlit Component Library loaded: " + (!!window.Streamlit));
                 Streamlit.setComponentReady();
-                console.log("Custom Calendar Component: Initial Streamlit.setComponentReady() called on script load.");
+                Streamlit.setFrameHeight(200); // 고정 높이 설정
+                Streamlit.events.addEventListener(Streamlit.LIFECYCLE.AFTER_RERENDER, function(event) {
+                    console.log("TEST COMPONENT: Received render event with args:", event.args);
+                    // 이 부분에 아무런 복잡한 로직 없음.
+                    Streamlit.setComponentValue("Test Value"); // 값 반환 시도
+                });
+                // 초기 렌더링을 위해 수동 호출
+                Streamlit.setComponentReady(); // UI 변경이 없어도 다시 호출하여 상태 알림
             } else {
-                console.error("Streamlit Component Library not found!");
+                console.error("TEST COMPONENT: Streamlit Component Library not found!");
             }
         });
-
-        let calendarInstance; // FullCalendar 인스턴스를 저장할 변수
-
-        // Streamlit으로부터 렌더 이벤트를 받을 때 호출되는 함수
-        function onRender(event) {
-            console.log("Custom Calendar Component: Received render event with args:", event.args);
-            const { disabled, initial_date } = event.args; // Streamlit에서 전달된 props 받기
-
-            const calendarEl = document.getElementById('calendar');
-
-            if (!calendarEl) {
-                console.error("Calendar element not found!");
-                return;
-            }
-
-            // FullCalendar 인스턴스가 이미 있으면 파괴하고 다시 생성
-            if (calendarInstance) {
-                calendarInstance.destroy();
-            }
-
-            calendarInstance = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth', // 월별 달력
-                initialDate: initial_date || new Date().toISOString().slice(0, 10), // 초기 날짜 (YYYY-MM-DD), 없으면 오늘 날짜
-                selectable: true, // 날짜 선택 가능
-                locale: 'ko', // 한국어 로케일
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                // 날짜 클릭 이벤트 핸들러
-                dateClick: function(info) {
-                    console.log('Date clicked: ' + info.dateStr);
-                    // Streamlit으로 선택된 날짜 값 전달
-                    // Streamlit.setComponentValue(null)로 초기화할 수 있음.
-                    Streamlit.setComponentValue(info.dateStr);
-                    // 선택된 날짜에 시각적 피드백 주기 (예: 배경색 변경)
-                    // 현재 선택된 날짜 하이라이트 (이전 하이라이트 제거)
-                    const prevSelected = document.querySelector('.fc-daygrid-day.selected');
-                    if (prevSelected) {
-                        prevSelected.classList.remove('selected');
-                    }
-                    info.dayEl.classList.add('selected'); // 선택된 날짜에 'selected' 클래스 추가
-                },
-                // 이벤트 관련 (선택 사항: 필요한 경우 추가)
-                events: [], // 여기에 이벤트를 추가할 수 있습니다.
-            });
-
-            calendarInstance.render(); // 달력 렌더링
-            console.log("Custom Calendar Component: FullCalendar rendered.");
-
-            // 컴포넌트의 프레임 높이를 동적으로 설정
-            // FullCalendar가 렌더링된 후 정확한 높이를 계산하여 Streamlit에 전달
-            const calendarHeight = calendarEl.offsetHeight;
-            Streamlit.setFrameHeight(calendarHeight + 40); // 여유 공간 추가
-            console.log("Custom Calendar Component: Streamlit.setFrameHeight() called with height:", calendarHeight + 40);
-
-            // 컴포넌트가 준비되었음을 다시 Streamlit에 알림 (UI 렌더링 완료 후)
-            Streamlit.setComponentReady();
-            console.log("Custom Calendar Component: Streamlit.setComponentReady() called.");
-        }
-
-        // Streamlit 컴포넌트 라이브러리에서 렌더 이벤트 리스너 등록
-        Streamlit.events.addEventListener(Streamlit.LIFECYCLE.AFTER_RERENDER, onRender);
-
-        // 초기 렌더링을 위해 수동으로 onRender 호출
-        // (Streamlit.setComponentReady() 호출 전에 이벤트를 놓칠 경우 대비)
-        onRender({args: Streamlit.args});
-
     </script>
 </body>
 </html>
