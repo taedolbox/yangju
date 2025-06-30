@@ -3,155 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커스텀 달력 컴포넌트</title>
-
+    <title>테스트 컴포넌트</title>
     <script src="streamlit-component-lib.js"></script>
-
-    <style>
-        /* 달력 전체 스타일 */
-        .calendar-container {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-wrap: wrap;
-            width: 250px; /* 달력 전체 너비 */
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-
-        /* 날짜 칸 기본 스타일 */
-        .calendar-day {
-            width: 30px; /* 각 날짜 칸의 너비 */
-            height: 30px; /* 각 날짜 칸의 높이 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2px;
-            cursor: pointer;
-            border: 1px solid transparent; /* 기본 투명 테두리 */
-            border-radius: 4px;
-            transition: background-color 0.2s, border-color 0.2s;
-            box-sizing: border-box;
-        }
-
-        /* 마우스 오버 시 스타일 */
-        .calendar-day:hover {
-            background-color: #e0e0e0;
-        }
-
-        /* 선택된 날짜 스타일 (파란색 테두리) */
-        .calendar-day.selected {
-            border: 2px solid #007bff !important;
-            background-color: #e6f2ff;
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        /* 현재 월 표시 스타일 */
-        .calendar-month-header {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #333;
-        }
-    </style>
 </head>
 <body>
-    <div class="calendar-container" id="root">
-        </div>
-
+    <div id="root">
+        <h1>Hello from Custom Component!</h1>
+    </div>
     <script>
-        const rootDiv = document.getElementById("root");
-        let selectedDates = [];
-        const currentYear = 2025;
-        const currentMonth = 6; // 6월
-
-        console.log("Custom Calendar Component: Script loaded!");
-        console.log("Streamlit Component Library loaded?", typeof Streamlit !== 'undefined');
-
-        function onRender(event) {
-            const args = event.detail.args;
-            console.log("Custom Calendar Component: Received render event with args:", args);
-
-            if (Array.isArray(args.selected_dates)) {
-                selectedDates = args.selected_dates;
-                console.log("Custom Calendar Component: Updated selectedDates from Python:", selectedDates);
-            } else {
-                selectedDates = [];
-                console.log("Custom Calendar Component: No valid selected_dates from Python, initializing empty.");
-            }
-
-            renderCalendar(currentYear, currentMonth, selectedDates);
-
-            Streamlit.setComponentReady();
-            console.log("Custom Calendar Component: Streamlit.setComponentReady() called.");
-
-            if (typeof window.applyButtonStates === 'function') {
-                console.log("Custom Calendar Component: Calling window.applyButtonStates...");
-                window.applyButtonStates(selectedDates);
-            } else {
-                console.log("Custom Calendar Component: window.applyButtonStates function not found. (This is expected if not defined elsewhere)");
-            }
-
-            setTimeout(() => {
-                const height = document.documentElement.scrollHeight;
-                Streamlit.setFrameHeight(height);
-                console.log("Custom Calendar Component: Set frame height to", height);
-            }, 0);
-        }
-
-        function renderCalendar(year, month, currentSelectedDates) {
-            rootDiv.innerHTML = '';
-
-            const monthHeader = document.createElement('div');
-            monthHeader.className = 'calendar-month-header';
-            monthHeader.textContent = `${year}년 ${month}월`;
-            rootDiv.appendChild(monthHeader);
-
-            const daysInMonth = new Date(year, month, 0).getDate();
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'calendar-day';
-                dayDiv.textContent = i;
-
-                const dateString = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                dayDiv.dataset.date = dateString;
-
-                if (currentSelectedDates.includes(dateString)) {
-                    dayDiv.classList.add('selected');
-                    console.log(`Render: Applying 'selected' to ${dateString}`);
-                }
-
-                dayDiv.addEventListener('click', () => {
-                    const clickedDate = dayDiv.dataset.date;
-                    const index = selectedDates.indexOf(clickedDate);
-
-                    if (index > -1) {
-                        selectedDates.splice(index, 1);
-                        dayDiv.classList.remove('selected');
-                        console.log(`Custom Calendar Component: Deselected date: ${clickedDate}`);
-                    } else {
-                        selectedDates.push(clickedDate);
-                        dayDiv.classList.add('selected');
-                        console.log(`Custom Calendar Component: Selected date: ${clickedDate}`);
-                    }
-
-                    Streamlit.setComponentValue(selectedDates);
-                    console.log("Custom Calendar Component: Sent selected dates to Python:", selectedDates);
-                });
-
-                rootDiv.appendChild(dayDiv);
-            }
-        }
-
-        Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
-
         Streamlit.setComponentReady();
-        console.log("Custom Calendar Component: Initial Streamlit.setComponentReady() called on script load.");
-
+        Streamlit.setFrameHeight(100); // 고정 높이 설정
+        console.log("Test component loaded!");
     </script>
 </body>
 </html>
