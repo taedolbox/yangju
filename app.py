@@ -1,22 +1,45 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json # JavaScript에서 JSON 문자열을 받을 것이므로 필요합니다.
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
+# 👉 Streamlit 세션 상태 초기화: 선택된 날짜 리스트를 저장합니다.
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
+# 👉 JavaScript 컴포넌트로부터 데이터를 받을 콜백 함수
+# 이 함수는 st.components.v1.html 컴포넌트가 Python으로 값을 보낼 때 호출됩니다.
+def receive_selected_dates(selected_dates_json_str):
+    if selected_dates_json_str:
+        # JSON 문자열을 파이썬 리스트로 변환
+        try:
+            st.session_state.selected_dates_list = json.loads(selected_dates_json_str)
+        except json.JSONDecodeError:
+            st.error("날짜 데이터 형식이 올바르지 않습니다.")
+            st.session_state.selected_dates_list = []
+    else:
+        st.session_state.selected_dates_list = []
+    
+    # 디버깅을 위해 현재 선택된 날짜 목록 출력 (이 부분은 나중에 제거해도 됩니다)
+    # st.write(f"Python (receive_selected_dates)에서 수신: {st.session_state.selected_dates_list}")
+
+
+# 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
+# 👉 달력 범위: 직전 달 초일부터 입력 날짜까지
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
+# 👉 달력용 날짜 리스트 생성 (년/월 구분)
 cal_dates = []
 current_date = first_day_prev_month
 while current_date <= last_day:
     cal_dates.append(current_date)
     current_date += timedelta(days=1)
 
+# 👉 년/월 별로 그룹화
 calendar_groups = {}
 for date in cal_dates:
     year_month = date.strftime("%Y-%m")
@@ -24,37 +47,7 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-def update_selected_dates_from_input():
-    # 이 콜백은 st.text_input 값이 변경될 때마다 호출되지만,
-    # Streamlit의 감지 방식에 따라 약간의 지연이 있을 수 있습니다.
-    if st.session_state.text_input_for_js_communication:
-        st.session_state.selected_dates_list = list(
-            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
-        )
-    else:
-        st.session_state.selected_dates_list = []
-
-st.text_input(
-    label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)",
-    value=",".join(st.session_state.selected_dates_list),
-    key="text_input_for_js_communication",
-    on_change=update_selected_dates_from_input,
-    help="이 필드는 달력과 Python 간의 통신용입니다. 값이 변경되는지 확인하세요."
-)
-
-st.markdown("""
-<style>
-/* 이 CSS는 모든 것이 작동하는지 확인 후 주석을 해제하여 숨길 수 있습니다. */
-/* input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"] {
-    display: none !important;
-}
-div[data-testid="stTextInput"] {
-    display: none !important;
-} */
-</style>
-""", unsafe_allow_html=True)
-
-
+# 👉 HTML + JS 달력 생성
 calendar_html = ""
 
 for ym, dates in calendar_groups.items():
@@ -82,6 +75,7 @@ for ym, dates in calendar_groups.items():
     for date in dates:
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
+        # 현재 선택된 날짜인지 확인하여 'selected' 클래스 추가 (Python 세션 상태 기반)
         is_selected = " selected" if date_str in st.session_state.selected_dates_list else ""
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
@@ -164,6 +158,9 @@ h4 {
 </style>
 
 <script>
+// Streamlit 컴포넌트 API 로드 (필수)
+const streamlit = window.parent.Streamlit;
+
 function toggleDate(element) {
     element.classList.toggle('selected');
 
@@ -175,21 +172,18 @@ function toggleDate(element) {
         }
     }
 
-    // 이제 HTML에서 확인된 ID를 사용합니다.
-    const streamlitInput = window.parent.document.getElementById('text_input_1'); 
+    // ⭐⭐⭐ 중요: st.text_input을 사용하지 않고 직접 Streamlit에 값을 전달합니다. ⭐⭐⭐
+    // Streamlit.setComponentValue(value)를 사용하면 Python의 컴포넌트 호출에 값이 전달됩니다.
+    // 여기서는 선택된 날짜 리스트를 JSON 문자열로 변환하여 보냅니다.
+    streamlit.setComponentValue(JSON.stringify(selected));
 
-    if (streamlitInput) {
-        streamlitInput.value = selected.join(',');
-        streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
-        console.log("JS: Streamlit input updated to:", selected.join(','));
-    } else {
-        console.error("JS: Streamlit input element with ID 'text_input_1' not found!");
-    }
+    console.log("JS: Streamlit component value updated to:", selected.join(',')); // 디버깅용
 
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }
 
 window.onload = function() {
+    // 초기 로드 시 선택된 날짜 텍스트를 업데이트하여 달력에 반영
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     if (currentSelectedTextElement) {
         const currentSelectedText = currentSelectedTextElement.innerText;
@@ -211,23 +205,34 @@ window.onload = function() {
 </script>
 """
 
-st.components.v1.html(calendar_html, height=600, scrolling=True)
+# Streamlit 컴포넌트 렌더링
+# st.components.v1.html의 두 번째 인자로 key와 default를 넘겨주면,
+# JavaScript의 streamlit.setComponentValue로 전송된 값이 Python의 이 컴포넌트 호출로 돌아옵니다.
+# on_change 대신 이 컴포넌트 자체가 변경 감지 역할을 합니다.
+# initial_value는 컴포넌트가 처음 로드될 때 JavaScript로 전달될 값입니다.
+# Python의 selected_dates_list를 JSON 문자열로 변환하여 전달합니다.
+component_value = st.components.v1.html(
+    calendar_html,
+    height=600,
+    scrolling=True,
+    key="calendar_component", # 컴포넌트 고유 키
+    on_change=lambda: receive_selected_dates(st.session_state["calendar_component"]), # 컴포넌트 값이 변경되면 콜백 호출
+    default=json.dumps(st.session_state.selected_dates_list) # 초기값
+)
 
+# 이 부분은 실제 컴포넌트가 값을 반환했을 때 (콜백 호출 시) 사용됩니다.
+# 하지만 on_change 콜백으로 직접 처리하고 있으므로, 이 변수를 직접 사용할 필요는 없습니다.
+# 다만, 컴포넌트의 반환값이 필요한 경우 사용할 수 있습니다.
+# st.write(f"컴포넌트 최종 반환 값: {component_value}") # 디버깅용
+
+# 결과 계산 버튼
 if st.button("결과 계산"):
-    # ⭐⭐⭐ 추가된 부분: 버튼 클릭 시 st.text_input의 현재 값을 강제로 세션 상태에 반영합니다. ⭐⭐⭐
-    if st.session_state.text_input_for_js_communication:
-        st.session_state.selected_dates_list = list(
-            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
-        )
-    else:
-        st.session_state.selected_dates_list = []
-    # ⭐⭐⭐ 추가된 부분 끝 ⭐⭐⭐
-
-    selected_dates = st.session_state.selected_dates_list 
+    # st.session_state.selected_dates_list는 이미 receive_selected_dates 함수에 의해 최신화되어 있습니다.
+    selected_dates = st.session_state.selected_dates_list
 
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected_dates)
+    worked_days = len(selected_dates) # 이제 이 부분이 올바르게 카운트될 것입니다.
 
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
