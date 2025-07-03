@@ -71,7 +71,7 @@ label[for="js_message"] {
 calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
 fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
 fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
-calendar_html = f"""
+calendar_html = """
 <div id="calendar-container">
 """
 for ym, dates in calendar_groups.items():
@@ -200,6 +200,7 @@ function sendMessageToParent(data) {{
 
 // 결과 계산 및 표시
 function calculateAndDisplayResult(selected) {{
+    console.log("JS: Calculating result for:", selected);
     const totalDays = CALENDAR_DATES.length;
     const threshold = totalDays / 3;
     const workedDays = selected.length;
@@ -222,16 +223,16 @@ function calculateAndDisplayResult(selected) {{
         ? '✅ 신청 가능' 
         : '❌ 신청 불가능';
 
-    const resultHtml = `
-        <p>총 기간 일수: ${totalDays}일</p>
-        <p>기준 (총일수의 1/3): ${threshold.toFixed(1)}일</p>
-        <p>선택한 근무일 수: ${workedDays}일</p>
-        <p>${condition1Text}</p>
-        <p>${condition2Text}</p>
-        <h3>📌 최종 판단</h3>
-        <p>일반일용근로자: ${generalWorkerText}</p>
-        <p>건설일용근로자: ${constructionWorkerText}</p>
-    `;
+    const resultHtml = [
+        '<p>총 기간 일수: ' + totalDays + '일</p>',
+        '<p>기준 (총일수의 1/3): ' + threshold.toFixed(1) + '일</p>',
+        '<p>선택한 근무일 수: ' + workedDays + '일</p>',
+        '<p>' + condition1Text + '</p>',
+        '<p>' + condition2Text + '</p>',
+        '<h3>📌 최종 판단</h3>',
+        '<p>일반일용근로자: ' + generalWorkerText + '</p>',
+        '<p>건설일용근로자: ' + constructionWorkerText + '</p>'
+    ].join('');
     document.getElementById('resultContainer').innerHTML = resultHtml;
 }}
 
@@ -254,7 +255,7 @@ function toggleDate(element) {{
 
 window.onload = function() {{
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
-    const initialDatesStr = "''' + ','.join(st.session_state.selected_dates_list) + '''";
+    const initialDatesStr = "{','.join(st.session_state.selected_dates_list)}";
     let initialSelectedArray = [];
     if (initialDatesStr && initialDatesStr.length > 0) {{
         initialSelectedArray = initialDatesStr.split(',').filter(date => date);
