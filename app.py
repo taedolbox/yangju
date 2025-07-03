@@ -29,7 +29,7 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# JavaScript 메시지 처리 및 결과 계산 함수
+# JavaScript 메시지 처리 (디버깅용)
 def handle_js_message():
     if st.session_state.js_message:
         try:
@@ -40,49 +40,19 @@ def handle_js_message():
                 st.session_state.selected_dates_list = []
         except json.JSONDecodeError:
             st.session_state.selected_dates_list = []
-    else:
-        st.session_state.selected_dates_list = []
     
     # 디버깅 로그
     st.write("디버깅: JavaScript 메시지:", st.session_state.js_message)
     st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
-    # 결과 계산
-    selected_dates = st.session_state.selected_dates_list
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(selected_dates)
-
-    # 디버깅: 선택된 근무일 수 출력
-    st.write("디버깅: 선택된 근무일 수:", worked_days)
-
-    fourteen_days_prior_end = input_date - timedelta(days=1)
-    fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
-    fourteen_days_str = [
-        d.strftime("%Y-%m-%d") for d in cal_dates
-        if fourteen_days_prior_start <= d <= fourteen_days_prior_end
-    ]
-    selected_dates_set = set(selected_dates)
-    no_work_14_days = all(d not in selected_dates_set for d in fourteen_days_str)
-
-    st.write(f"총 기간 일수: {total_days}일")
-    st.write(f"기준 (총일수의 1/3): {threshold:.1f}일")
-    st.write(f"선택한 근무일 수: {worked_days}일")
-    st.write(f"{'✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' if worked_days < threshold else '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}")
-    st.write(f"{'✅ 조건 2 충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 근무내역이 없습니다.' if no_work_14_days else '❌ 조건 2 불충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 내 근무기록이 존재합니다.'}")
-
-    st.markdown("### 📌 최종 판단")
-    st.write(f"일반일용근로자: {'✅ 신청 가능' if worked_days < threshold else '❌ 신청 불가능'}")
-    st.write(f"건설일용근로자: {'✅ 신청 가능' if worked_days < threshold and no_work_14_days else '❌ 신청 불가능'}")
-
-# JavaScript 메시지 수신용 입력 필드 (숨김)
+# JavaScript 메시지 수신용 입력 필드 (디버깅용, 숨김)
 st.text_input(
     label="JavaScript 메시지 (숨김)",
     value="",
     key="js_message",
     on_change=handle_js_message,
     disabled=True,
-    help="이 필드는 JavaScript와 Python 간의 통신용입니다."
+    help="이 필드는 JavaScript와 Python 간의 통신 디버깅용입니다."
 )
 
 # CSS로 입력 필드와 레이블 숨김
@@ -98,7 +68,10 @@ label[for="js_message"] {
 """, unsafe_allow_html=True)
 
 # 달력 HTML 생성
-calendar_html = """
+calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
+fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
+fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+calendar_html = f"""
 <div id="calendar-container">
 """
 for ym, dates in calendar_groups.items():
@@ -128,11 +101,12 @@ for ym, dates in calendar_groups.items():
         '''
     calendar_html += "</div>"
 
-calendar_html += """
+calendar_html += f"""
 </div>
 <p id="selectedDatesText"></p>
+<div id="resultContainer"></div>
 <style>
-.calendar {
+.calendar {{
     display: grid;
     grid-template-columns: repeat(7, 40px);
     grid-gap: 5px;
@@ -141,25 +115,25 @@ calendar_html += """
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-.day-header, .empty-day {
+}}
+.day-header, .empty-day {{
     width: 40px;
     height: 40px;
     line-height: 40px;
     text-align: center;
     font-weight: bold;
     color: #555;
-}
-.day-header {
+}}
+.day-header {{
     background-color: #e0e0e0;
     border-radius: 5px;
     font-size: 14px;
-}
-.empty-day {
+}}
+.empty-day {{
     background-color: transparent;
     border: none;
-}
-.day {
+}}
+.day {{
     width: 40px;
     height: 40px;
     line-height: 40px;
@@ -171,110 +145,132 @@ calendar_html += """
     transition: background-color 0.1s ease, border 0.1s ease;
     font-size: 16px;
     color: #333;
-}
-.day:hover {
+}}
+.day:hover {{
     background-color: #f0f0f0;
-}
-.day.selected {
+}}
+.day.selected {{
     border: 2px solid #2196F3;
     background-color: #2196F3;
     color: white;
     font-weight: bold;
-}
-h4 {
+}}
+h4 {{
     margin: 10px 0 5px 0;
     font-size: 1.2em;
     color: #333;
     text-align: center;
-}
-#selectedDatesText {
+}}
+#selectedDatesText {{
     margin-top: 15px;
     font-size: 0.9em;
     color: #666;
-}
+}}
+#resultContainer {{
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    font-size: 1em;
+    color: #333;
+}}
+#resultContainer h3 {{
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #333;
+}}
 </style>
 <script>
+const CALENDAR_DATES = {calendar_dates_json};
+const FOURTEEN_DAYS_START = "{fourteen_days_prior_start}";
+const FOURTEEN_DAYS_END = "{fourteen_days_prior_end}";
+
 // localStorage에 데이터 저장
-function saveToLocalStorage(data) {
+function saveToLocalStorage(data) {{
     console.log("JS: Saving to localStorage:", JSON.stringify(data));
     localStorage.setItem('selectedDates', JSON.stringify(data));
-    sendMessageToParent({type: 'localStorageUpdate', data: data});
-}
+    sendMessageToParent({{type: 'localStorageUpdate', data: data}});
+}}
 
 // 부모 창으로 메시지 전송
-function sendMessageToParent(data) {
+function sendMessageToParent(data) {{
     console.log("JS: Sending message to parent:", JSON.stringify(data));
     window.parent.postMessage(JSON.stringify(data), '*');
-}
+}}
 
-// Streamlit 입력 필드 찾기 시도
-function tryUpdateInput(selected, attempts = 10, delay = 200) {
-    if (attempts <= 0) {
-        console.error("JS: Streamlit input not found after multiple attempts! Using localStorage.");
-        saveToLocalStorage(selected);
-        return;
-    }
-    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-    if (streamlitInput) {
-        streamlitInput.value = JSON.stringify(selected);
-        const events = ['input', 'change', 'blur'];
-        events.forEach(eventType => {
-            const event = new Event(eventType, { bubbles: true });
-            streamlitInput.dispatchEvent(event);
-        });
-        console.log("JS: Streamlit input updated to:", JSON.stringify(selected));
-    } else {
-        console.warn("JS: Streamlit input not found, retrying...");
-        setTimeout(() => tryUpdateInput(selected, attempts - 1, delay), delay);
-    }
-}
+// 결과 계산 및 표시
+function calculateAndDisplayResult(selected) {{
+    const totalDays = CALENDAR_DATES.length;
+    const threshold = totalDays / 3;
+    const workedDays = selected.length;
+    
+    const fourteenDays = CALENDAR_DATES.filter(date => 
+        date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END
+    );
+    const noWork14Days = fourteenDays.every(date => !selected.includes(date));
 
-function toggleDate(element) {
+    const resultHtml = `
+        <p>총 기간 일수: ${totalDays}일</p>
+        <p>기준 (총일수의 1/3): ${threshold.toFixed(1)}일</p>
+        <p>선택한 근무일 수: ${workedDays}일</p>
+        <p>${workedDays < threshold ? '✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' : '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}</p>
+        <p>${noWork14Days ? '✅ 조건 2 충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START} ~ ${FOURTEEN_DAYS_END}) 근무내역이 없습니다.' : '❌ 조건 2 불충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START} ~ ${FOURTEEN_DAYS_END}) 내 근무기록이 존재합니다.'}</p>
+        <h3>📌 최종 판단</h3>
+        <p>일반일용근로자: ${workedDays < threshold ? '✅ 신청 가능' : '❌ 신청 불가능'}</p>
+        <p>건설일용근로자: ${workedDays < threshold && noWork14Days ? '✅ 신청 가능' : '❌ 신청 불가능'}</p>
+    `;
+    document.getElementById('resultContainer').innerHTML = resultHtml;
+}}
+
+function toggleDate(element) {{
     element.classList.toggle('selected');
-    var selected = [];
-    var days = document.getElementsByClassName('day');
-    for (var i = 0; i < days.length; i++) {
-        if (days[i].classList.contains('selected')) {
+    const selected = [];
+    const days = document.getElementsByClassName('day');
+    for (let i = 0; i < days.length; i++) {{
+        if (days[i].classList.contains('selected')) {{
             selected.push(days[i].getAttribute('data-date'));
-        }
-    }
-    // localStorage에 저장 및 입력 필드 업데이트 시도
+        }}
+    }}
+    // localStorage에 저장
     saveToLocalStorage(selected);
-    tryUpdateInput(selected);
+    // 결과 계산 및 표시
+    calculateAndDisplayResult(selected);
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
-}
+}}
 
-window.onload = function() {
+window.onload = function() {{
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     const initialDatesStr = "''' + ','.join(st.session_state.selected_dates_list) + '''";
-    if (initialDatesStr && initialDatesStr.length > 0) {
-        var initialSelectedArray = initialDatesStr.split(',').filter(date => date);
-        var days = document.getElementsByClassName('day');
-        for (var i = 0; i < days.length; i++) {
-            if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
+    let initialSelectedArray = [];
+    if (initialDatesStr && initialDatesStr.length > 0) {{
+        initialSelectedArray = initialDatesStr.split(',').filter(date => date);
+        const days = document.getElementsByClassName('day');
+        for (let i = 0; i < days.length; i++) {{
+            if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {{
                 days[i].classList.add('selected');
-            }
-        }
+            }}
+        }}
         currentSelectedTextElement.innerText = "선택한 날짜: " + initialDatesStr.replace(/,/g, ', ') + " (총 " + initialSelectedArray.length + "일)";
-    } else {
+    }} else {{
         currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
-    }
-    // 초기 localStorage 설정
-    saveToLocalStorage(initialSelectedArray || []);
-};
+    }}
+    // 초기 localStorage 설정 및 결과 표시
+    saveToLocalStorage(initialSelectedArray);
+    calculateAndDisplayResult(initialSelectedArray);
+}};
 
 // 부모 창으로부터 메시지 수신 (디버깅용)
-window.addEventListener('message', function(event) {
+window.addEventListener('message', function(event) {{
     console.log("JS: Received message from parent:", event.data);
-});
+}});
 </script>
 """
 
 # st.components.v1.html 호출
-st.components.v1.html(calendar_html, height=600, scrolling=True)
+st.components.v1.html(calendar_html, height=800, scrolling=True)
 
-# localStorage 폴링 및 메시지 수신 처리
+# localStorage 폴링 (디버깅용)
 st.markdown("""
 <script>
 function pollLocalStorage() {
@@ -290,7 +286,7 @@ function pollLocalStorage() {
             });
             console.log("Python: Streamlit input updated from localStorage:", data);
         } else {
-            console.error("Python: Streamlit input not found for localStorage!");
+            console.warn("Python: Streamlit input not found for localStorage, retrying...");
         }
     }
     setTimeout(pollLocalStorage, 500); // 500ms마다 폴링
@@ -310,7 +306,7 @@ window.addEventListener('message', function(event) {
                 });
                 console.log("Python: Streamlit input updated from message:", JSON.stringify(message.data));
             } else {
-                console.error("Python: Streamlit input not found for message!");
+                console.warn("Python: Streamlit input not found for message, retrying...");
             }
         }
     } catch (e) {
