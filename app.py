@@ -25,6 +25,8 @@ for date in cal_dates:
     calendar_groups[year_month].append(date)
 
 def update_selected_dates_from_input():
+    # 이 콜백은 st.text_input 값이 변경될 때마다 호출되지만,
+    # Streamlit의 감지 방식에 따라 약간의 지연이 있을 수 있습니다.
     if st.session_state.text_input_for_js_communication:
         st.session_state.selected_dates_list = list(
             set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
@@ -32,9 +34,6 @@ def update_selected_dates_from_input():
     else:
         st.session_state.selected_dates_list = []
 
-# id="text_input_1"은 Streamlit이 이 위젯에 자동으로 부여한 ID입니다.
-# 만약 나중에 다른 st.text_input을 추가한다면 id가 변경될 수 있습니다 (예: text_input_2).
-# 이 경우 JavaScript의 getElementById 값도 함께 수정해야 합니다.
 st.text_input(
     label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)",
     value=",".join(st.session_state.selected_dates_list),
@@ -176,11 +175,8 @@ function toggleDate(element) {
         }
     }
 
-    // ⭐⭐⭐ 여기를 `getElementById`로 수정했습니다. ⭐⭐⭐
-    // 이제 data-testid 대신 <input> 태그에 직접 붙은 id="text_input_1"을 사용합니다.
+    // 이제 HTML에서 확인된 ID를 사용합니다.
     const streamlitInput = window.parent.document.getElementById('text_input_1'); 
-    // 만약 이 페이지에 다른 st.text_input 위젯이 추가되어 id가 'text_input_2' 등으로 바뀌면,
-    // 이 코드도 그에 맞춰 수정해야 합니다.
 
     if (streamlitInput) {
         streamlitInput.value = selected.join(',');
@@ -218,7 +214,16 @@ window.onload = function() {
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 if st.button("결과 계산"):
-    selected_dates = st.session_state.selected_dates_list
+    # ⭐⭐⭐ 추가된 부분: 버튼 클릭 시 st.text_input의 현재 값을 강제로 세션 상태에 반영합니다. ⭐⭐⭐
+    if st.session_state.text_input_for_js_communication:
+        st.session_state.selected_dates_list = list(
+            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
+        )
+    else:
+        st.session_state.selected_dates_list = []
+    # ⭐⭐⭐ 추가된 부분 끝 ⭐⭐⭐
+
+    selected_dates = st.session_state.selected_dates_list 
 
     total_days = len(cal_dates)
     threshold = total_days / 3
