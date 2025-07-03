@@ -106,34 +106,35 @@ calendar_html += f"""
 <p id="selectedDatesText"></p>
 <div id="resultContainer"></div>
 <style>
-.calendar {{
+.calendar {
     display: grid;
     grid-template-columns: repeat(7, 40px);
     grid-gap: 5px;
+    width: 310px;
     margin-bottom: 20px;
     background-color: #ffffff;
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}}
-.day-header, .empty-day {{
+}
+.day-header, .empty-day {
     width: 40px;
     height: 40px;
     line-height: 40px;
     text-align: center;
     font-weight: bold;
     color: #555;
-}}
-.day-header {{
+}
+.day-header {
     background-color: #e0e0e0;
     border-radius: 5px;
     font-size: 14px;
-}}
-.empty-day {{
+}
+.empty-day {
     background-color: transparent;
     border: none;
-}}
-.day {{
+}
+.day {
     width: 40px;
     height: 40px;
     line-height: 40px;
@@ -145,40 +146,71 @@ calendar_html += f"""
     transition: background-color 0.1s ease, border 0.1s ease;
     font-size: 16px;
     color: #333;
-}}
-.day:hover {{
+}
+.day:hover {
     background-color: #f0f0f0;
-}}
-.day.selected {{
+}
+.day.selected {
     border: 2px solid #2196F3;
     background-color: #2196F3;
     color: white;
     font-weight: bold;
-}}
-h4 {{
+}
+h4 {
     margin: 10px 0 5px 0;
     font-size: 1.2em;
     color: #333;
     text-align: center;
-}}
-#selectedDatesText {{
+}
+#selectedDatesText {
     margin-top: 15px;
     font-size: 0.9em;
     color: #666;
-}}
-#resultContainer {{
+}
+#resultContainer {
+    width: 310px;
     margin-top: 20px;
     padding: 15px;
     background-color: #f9f9f9;
     border-radius: 8px;
     font-size: 1em;
     color: #333;
-}}
-#resultContainer h3 {{
+}
+#resultContainer h3 {
     margin: 0 0 10px 0;
     font-size: 1.2em;
     color: #333;
-}}
+}
+@media (prefers-color-scheme: dark) {
+    .calendar {
+        background-color: #1e1e1e;
+        box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+    }
+    .day-header {
+        background-color: #333;
+        color: #ccc;
+    }
+    .day {
+        border: 1px solid #555;
+        color: #ccc;
+    }
+    .day:hover {
+        background-color: #333;
+    }
+    h4 {
+        color: #ccc;
+    }
+    #selectedDatesText {
+        color: #aaa;
+    }
+    #resultContainer {
+        background-color: #1e1e1e;
+        color: #ccc;
+    }
+    #resultContainer h3 {
+        color: #ccc;
+    }
+}
 </style>
 <script>
 const CALENDAR_DATES = {calendar_dates_json};
@@ -186,20 +218,20 @@ const FOURTEEN_DAYS_START = "{fourteen_days_prior_start}";
 const FOURTEEN_DAYS_END = "{fourteen_days_prior_end}";
 
 // localStorage에 데이터 저장
-function saveToLocalStorage(data) {{
+function saveToLocalStorage(data) {
     console.log("JS: Saving to localStorage:", JSON.stringify(data));
     localStorage.setItem('selectedDates', JSON.stringify(data));
-    sendMessageToParent({{type: 'localStorageUpdate', data: data}});
-}}
+    sendMessageToParent({type: 'localStorageUpdate', data: data});
+}
 
 // 부모 창으로 메시지 전송
-function sendMessageToParent(data) {{
+function sendMessageToParent(data) {
     console.log("JS: Sending message to parent:", JSON.stringify(data));
     window.parent.postMessage(JSON.stringify(data), '*');
-}}
+}
 
 // 결과 계산 및 표시
-function calculateAndDisplayResult(selected) {{
+function calculateAndDisplayResult(selected) {
     console.log("JS: Calculating result for:", selected);
     const totalDays = CALENDAR_DATES.length;
     const threshold = totalDays / 3;
@@ -234,50 +266,50 @@ function calculateAndDisplayResult(selected) {{
         '<p>건설일용근로자: ' + constructionWorkerText + '</p>'
     ].join('');
     document.getElementById('resultContainer').innerHTML = resultHtml;
-}}
+}
 
-function toggleDate(element) {{
+function toggleDate(element) {
     element.classList.toggle('selected');
     const selected = [];
     const days = document.getElementsByClassName('day');
-    for (let i = 0; i < days.length; i++) {{
-        if (days[i].classList.contains('selected')) {{
+    for (let i = 0; i < days.length; i++) {
+        if (days[i].classList.contains('selected')) {
             selected.push(days[i].getAttribute('data-date'));
-        }}
-    }}
+        }
+    }
     // localStorage에 저장
     saveToLocalStorage(selected);
     // 결과 계산 및 표시
     calculateAndDisplayResult(selected);
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
-}}
+}
 
-window.onload = function() {{
+window.onload = function() {
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     const initialDatesStr = "{','.join(st.session_state.selected_dates_list)}";
     let initialSelectedArray = [];
-    if (initialDatesStr && initialDatesStr.length > 0) {{
+    if (initialDatesStr && initialDatesStr.length > 0) {
         initialSelectedArray = initialDatesStr.split(',').filter(date => date);
         const days = document.getElementsByClassName('day');
-        for (let i = 0; i < days.length; i++) {{
-            if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {{
+        for (let i = 0; i < days.length; i++) {
+            if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
                 days[i].classList.add('selected');
-            }}
-        }}
+            }
+        }
         currentSelectedTextElement.innerText = "선택한 날짜: " + initialDatesStr.replace(/,/g, ', ') + " (총 " + initialSelectedArray.length + "일)";
-    }} else {{
+    } else {
         currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
-    }}
+    }
     // 초기 localStorage 설정 및 결과 표시
     saveToLocalStorage(initialSelectedArray);
     calculateAndDisplayResult(initialSelectedArray);
-}};
+};
 
 // 부모 창으로부터 메시지 수신 (디버깅용)
-window.addEventListener('message', function(event) {{
+window.addEventListener('message', function(event) {
     console.log("JS: Received message from parent:", event.data);
-}});
+});
 </script>
 """
 
