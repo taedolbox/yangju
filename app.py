@@ -3,6 +3,15 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
+# 👉 session_state 초기화 (안전하게)
+# 앱 실행 초기에 session_state를 초기화하지 않고, 필요한 시점에 처리
+def initialize_session_state():
+    if "selected_dates" not in st.session_state:
+        st.session_state["selected_dates"] = ""
+
+# 초기화 호출 (Streamlit 렌더링 사이클 내에서 실행)
+initialize_session_state()
+
 # 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
@@ -25,10 +34,6 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 👉 session_state 초기화 (안전하게)
-if "selected_dates" not in st.session_state:
-    st.session_state["selected_dates"] = ""
-
 # 👉 HTML + JS 달력 생성
 calendar_html = """
 <style>
@@ -45,7 +50,7 @@ calendar_html = """
     line-height: 40px;
     text-align: center;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-plradius: 5px;
     cursor: pointer;
     user-select: none;
 }
@@ -105,14 +110,18 @@ function toggleDate(element) {
     }
 
     // Streamlit 입력 필드 업데이트
-    var inputField = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+    var inputField = window.parent.document.querySelector('input[data-testid="stTextInput"][id*="selected_dates"]');
     if (inputField) {
         console.log('Input field found:', inputField);
+        console.log('Setting input value to:', selected.join(','));
         inputField.value = selected.join(',');
         inputField.dispatchEvent(new Event('input', { bubbles: true }));
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
-        console.error('Streamlit input field not found. Available inputs:', document.querySelectorAll('input'));
+        console.error('Streamlit input field not found. Available inputs:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
+            id: input.id,
+            dataTestid: input.getAttribute('data-testid')
+        })));
     }
 
     // 선택된 날짜 표시
@@ -122,6 +131,7 @@ function toggleDate(element) {
 // 페이지 로드 시 기존 선택된 날짜 복원
 window.onload = function() {
     var selectedDates = " """ + st.session_state["selected_dates"] + """ ".split(',').filter(date => date.trim());
+    console.log('Restoring selected dates:', selectedDates);
     var days = document.getElementsByClassName('day');
     for (var i = 0; i < days.length; i++) {
         if (selectedDates.includes(days[i].getAttribute('data-date'))) {
@@ -148,7 +158,7 @@ if st.button("결과 계산"):
     # 선택된 날짜 처리
     if selected_dates_str:
         selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()]
-        # session_state 업데이트 (안전하게)
+        # session_state 업데이트
         st.session_state["selected_dates"] = selected_dates_str
     else:
         selected_dates = []
