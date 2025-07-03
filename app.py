@@ -194,6 +194,13 @@ h4 {
 }
 </style>
 <script>
+// localStorage에 데이터 저장
+function saveToLocalStorage(data) {
+    console.log("JS: Saving to localStorage:", JSON.stringify(data));
+    localStorage.setItem('selectedDates', JSON.stringify(data));
+    sendMessageToParent({type: 'localStorageUpdate', data: data});
+}
+
 // 부모 창으로 메시지 전송
 function sendMessageToParent(data) {
     console.log("JS: Sending message to parent:", JSON.stringify(data));
@@ -203,8 +210,8 @@ function sendMessageToParent(data) {
 // Streamlit 입력 필드 찾기 시도
 function tryUpdateInput(selected, attempts = 10, delay = 200) {
     if (attempts <= 0) {
-        console.error("JS: Streamlit input not found after multiple attempts! Falling back to postMessage.");
-        sendMessageToParent(selected);
+        console.error("JS: Streamlit input not found after multiple attempts! Using localStorage.");
+        saveToLocalStorage(selected);
         return;
     }
     const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
@@ -231,10 +238,9 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    // 입력 필드 업데이트 시도
+    // localStorage에 저장 및 입력 필드 업데이트 시도
+    saveToLocalStorage(selected);
     tryUpdateInput(selected);
-    // 항상 postMessage로 데이터 전송
-    sendMessageToParent(selected);
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
@@ -254,6 +260,8 @@ window.onload = function() {
     } else {
         currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
     }
+    // 초기 localStorage 설정
+    saveToLocalStorage(initialSelectedArray || []);
 };
 
 // 부모 창으로부터 메시지 수신 (디버깅용)
@@ -266,27 +274,51 @@ window.addEventListener('message', function(event) {
 # st.components.v1.html 호출
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
-# JavaScript 메시지 수신 처리
+# localStorage 폴링 및 메시지 수신 처리
 st.markdown("""
 <script>
-window.addEventListener('message', function(event) {
-    try {
-        const data = JSON.parse(event.data);
+function pollLocalStorage() {
+    const data = localStorage.getItem('selectedDates');
+    if (data) {
         const input = document.querySelector('input[data-testid="stTextInput"]');
         if (input) {
-            input.value = JSON.stringify(data);
+            input.value = data;
             const events = ['input', 'change', 'blur'];
             events.forEach(eventType => {
                 const event = new Event(eventType, { bubbles: true });
                 input.dispatchEvent(event);
             });
-            console.log("Python: Streamlit input updated from message:", JSON.stringify(data));
+            console.log("Python: Streamlit input updated from localStorage:", data);
         } else {
-            console.error("Python: Streamlit input not found for message!");
+            console.error("Python: Streamlit input not found for localStorage!");
+        }
+    }
+    setTimeout(pollLocalStorage, 500); // 500ms마다 폴링
+}
+
+window.addEventListener('message', function(event) {
+    try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'localStorageUpdate') {
+            const input = document.querySelector('input[data-testid="stTextInput"]');
+            if (input) {
+                input.value = JSON.stringify(message.data);
+                const events = ['input', 'change', 'blur'];
+                events.forEach(eventType => {
+                    const event = new Event(eventType, { bubbles: true });
+                    input.dispatchEvent(event);
+                });
+                console.log("Python: Streamlit input updated from message:", JSON.stringify(message.data));
+            } else {
+                console.error("Python: Streamlit input not found for message!");
+            }
         }
     } catch (e) {
         console.error("Python: Failed to parse message:", event.data);
     }
 });
+
+// 폴링 시작
+pollLocalStorage();
 </script>
 """, unsafe_allow_html=True)
