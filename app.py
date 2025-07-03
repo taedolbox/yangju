@@ -106,12 +106,12 @@ function toggleDate(element) {
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
         console.log('Input field value after setting:', inputField.value);
     } else {
-        console.error('Streamlit input field not found. Available inputs:', Array.from(document.querySelectorAll('input')).map(input => ({
+        console.error('Streamlit input field not found. Available inputs (current document):', Array.from(document.querySelectorAll('input')).map(input => ({
             id: input.id,
             dataTestid: input.getAttribute('data-testid'),
             value: input.value
         })));
-        console.error('Parent document inputs:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
+        console.error('Available inputs (parent document):', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
             id: input.id,
             dataTestid: input.getAttribute('data-testid'),
             value: input.value
