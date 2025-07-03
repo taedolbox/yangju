@@ -4,10 +4,8 @@ import json
 
 st.set_page_config(layout="centered")
 
-# 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 직전 달 1일부터 입력 날짜까지 범위 생성
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
@@ -17,15 +15,10 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
-
-# 세션 상태 초기화
 if 'selected_dates' not in st.session_state:
     st.session_state.selected_dates = []
 
-# 초기 선택 리스트
-initial_selected = st.session_state.selected_dates
-
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 calendar_html = f"""
 <style>
 .calendar {{
@@ -59,11 +52,14 @@ calendar_html = f"""
 .empty-day {{
   border: none;
 }}
+#selectedCount {{
+  margin-top: 10px;
+  font-weight: bold;
+}}
 </style>
 
 <div class="calendar">
 """
-
 for d in days_of_week:
     calendar_html += f'<div class="day-header">{d}</div>'
 
@@ -73,59 +69,46 @@ for _ in range(start_offset):
 
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
-    selected_class = "selected" if date_str in initial_selected else ""
+    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
     calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
 
 calendar_html += "</div>"
+calendar_html += '<div id="selectedCount">선택된 날짜 수: {}</div>'.format(len(st.session_state.selected_dates))
 
-# 숨겨진 textarea + JS
-calendar_html += f'''
-<textarea id="selectedDatesInput" style="display:none;">{json.dumps(initial_selected)}</textarea>
-
+calendar_html += f"""
 <script>
-const selectedDates = new Set({json.dumps(initial_selected)});
+const selectedDates = new Set({json.dumps(st.session_state.selected_dates)});
 
 function toggleDate(el) {{
     const date = el.getAttribute("data-date");
-    if (selectedDates.has(date)) {{
+    if(selectedDates.has(date)) {{
         selectedDates.delete(date);
         el.classList.remove("selected");
     }} else {{
         selectedDates.add(date);
         el.classList.add("selected");
     }}
-    document.getElementById("selectedDatesInput").value = JSON.stringify(Array.from(selectedDates));
+    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
+
+    // Streamlit에 선택 목록 전달
+    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}}, "*");
 }}
 </script>
-'''
+"""
 
-st.components.v1.html(calendar_html, height=450, scrolling=False, key="calendar")
-
-# Streamlit에서 숨겨진 textarea 값 읽기 위한 text_area 연결
-selected_dates_json = st.text_area(
-    "selected_dates_json",
-    value=json.dumps(st.session_state.selected_dates),
-    height=1,
-    label_visibility="collapsed"
-)
-
-try:
-    selected_dates = json.loads(selected_dates_json)
-except:
-    selected_dates = []
-
-# 상태 갱신 (이 부분이 핵심)
-st.session_state.selected_dates = selected_dates
+st.components.v1.html(calendar_html, height=450, scrolling=False)
 
 if st.button("결과 계산"):
+    selected = list(st.session_state.selected_dates)
+    st.write(f"선택된 날짜: {selected}")
+    st.write(f"선택된 날짜 수: {len(selected)}")
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected_dates)
-    st.write(f"총 기간 일수: {total_days}일")
-    st.write(f"기준 (총일수의 1/3): {threshold:.1f}일")
-    st.write(f"선택한 근무일 수: {worked_days}일")
+    worked_days = len(selected)
+    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
     if worked_days < threshold:
         st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
     else:
         st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+
 
