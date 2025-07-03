@@ -15,10 +15,12 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-if 'selected_dates' not in st.session_state:
-    st.session_state.selected_dates = []
+# 세션 상태 초기화
+if 'selected_dates_json' not in st.session_state:
+    st.session_state.selected_dates_json = "[]"
 
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
+
 calendar_html = f"""
 <style>
 .calendar {{
@@ -67,17 +69,22 @@ start_offset = (first_day_prev_month.weekday() + 1) % 7
 for _ in range(start_offset):
     calendar_html += '<div class="empty-day"></div>'
 
+# 초기 선택 날짜 리스트
+initial_selected = json.loads(st.session_state.selected_dates_json)
+
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
-    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
+    selected_class = "selected" if date_str in initial_selected else ""
     calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
 
 calendar_html += "</div>"
-calendar_html += '<div id="selectedCount">선택된 날짜 수: {}</div>'.format(len(st.session_state.selected_dates))
+calendar_html += f'<div id="selectedCount">선택된 날짜 수: {len(initial_selected)}</div>'
 
-calendar_html += f"""
+# 숨겨진 textarea (Streamlit 측에서 값 읽을 용도)
+calendar_html += f'''
+<textarea id="selectedDatesInput" style="display:none;">{json.dumps(initial_selected)}</textarea>
 <script>
-const selectedDates = new Set({json.dumps(st.session_state.selected_dates)});
+const selectedDates = new Set({json.dumps(initial_selected)});
 
 function toggleDate(el) {{
     const date = el.getAttribute("data-date");
@@ -89,22 +96,34 @@ function toggleDate(el) {{
         el.classList.add("selected");
     }}
     document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
-
-    // Streamlit에 선택 목록 전달
-    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}}, "*");
+    document.getElementById("selectedDatesInput").value = JSON.stringify(Array.from(selectedDates));
 }}
 </script>
-"""
+'''
 
-st.components.v1.html(calendar_html, height=450, scrolling=False)
+st.components.v1.html(calendar_html, height=450, scrolling=False, key="calendar")
+
+# 버튼 클릭 시 JS가 바꾼 hidden textarea 값 읽기
+selected_dates_json = st.experimental_get_query_params().get("selectedDates", [st.session_state.selected_dates_json])[0]
+
+selected_dates_json = st.session_state.selected_dates_json  # 기본값
+
+# Streamlit에서 HTML내 textarea값 직접 읽기는 안 되므로 workaround로 폼 제출 혹은 아래 방식 사용 가능
+# 따라서 textarea값을 Streamlit에 보내는 작업은 별도 input 위젯이나 폼 전송 필요
+
+# 그래서 아래와 같이 텍스트 입력 박스를 사용자에게 안 보이게 두고 강제로 값 갱신 요청하는 게 필요함
+
+selected_dates_json = st.text_area("selectedDatesJson", st.session_state.selected_dates_json, height=1, key="selectedDatesJson", label_visibility="collapsed")
+
+try:
+    selected_dates = json.loads(selected_dates_json)
+except Exception:
+    selected_dates = []
 
 if st.button("결과 계산"):
-    selected = list(st.session_state.selected_dates)
-    st.write(f"선택된 날짜: {selected}")
-    st.write(f"선택된 날짜 수: {len(selected)}")
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected)
+    worked_days = len(selected_dates)
     st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
     if worked_days < threshold:
         st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
