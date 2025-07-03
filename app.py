@@ -209,15 +209,28 @@ function calculateAndDisplayResult(selected) {{
     );
     const noWork14Days = fourteenDays.every(date => !selected.includes(date));
 
+    const condition1Text = workedDays < threshold 
+        ? '✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' 
+        : '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.';
+    const condition2Text = noWork14Days 
+        ? '✅ 조건 2 충족: 신청일 직전 14일간(' + FOURTEEN_DAYS_START + ' ~ ' + FOURTEEN_DAYS_END + ') 근무내역이 없습니다.' 
+        : '❌ 조건 2 불충족: 신청일 직전 14일간(' + FOURTEEN_DAYS_START + ' ~ ' + FOURTEEN_DAYS_END + ') 내 근무기록이 존재합니다.';
+    const generalWorkerText = workedDays < threshold 
+        ? '✅ 신청 가능' 
+        : '❌ 신청 불가능';
+    const constructionWorkerText = (workedDays < threshold && noWork14Days) 
+        ? '✅ 신청 가능' 
+        : '❌ 신청 불가능';
+
     const resultHtml = `
         <p>총 기간 일수: ${totalDays}일</p>
         <p>기준 (총일수의 1/3): ${threshold.toFixed(1)}일</p>
         <p>선택한 근무일 수: ${workedDays}일</p>
-        <p>${workedDays < threshold ? '✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' : '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}</p>
-        <p>${noWork14Days ? '✅ 조건 2 충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START} ~ ${FOURTEEN_DAYS_END}) 근무내역이 없습니다.' : '❌ 조건 2 불충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START} ~ ${FOURTEEN_DAYS_END}) 내 근무기록이 존재합니다.'}</p>
+        <p>${condition1Text}</p>
+        <p>${condition2Text}</p>
         <h3>📌 최종 판단</h3>
-        <p>일반일용근로자: ${workedDays < threshold ? '✅ 신청 가능' : '❌ 신청 불가능'}</p>
-        <p>건설일용근로자: ${workedDays < threshold && noWork14Days ? '✅ 신청 가능' : '❌ 신청 불가능'}</p>
+        <p>일반일용근로자: ${generalWorkerText}</p>
+        <p>건설일용근로자: ${constructionWorkerText}</p>
     `;
     document.getElementById('resultContainer').innerHTML = resultHtml;
 }}
