@@ -63,14 +63,8 @@ def update_selected_dates_from_input():
     st.write(f"{'✅ 조건 2 충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 근무내역이 없습니다.' if no_work_14_days else '❌ 조건 2 불충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 내 근무기록이 존재합니다.'}")
 
     st.markdown("### 📌 최종 판단")
-    if worked_days < threshold:
-        st.write(f"✅ 일반일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 일반일용근로자: 신청 불가능")
-    if worked_days < threshold and no_work_14_days:
-        st.write(f"✅ 건설일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 건설일용근로자: 신청 불가능")
+    st.write(f"일반일용근로자: {'✅ 신청 가능' if worked_days < threshold else '❌ 신청 불가능'}")
+    st.write(f"건설일용근로자: {'✅ 신청 가능' if worked_days < threshold and no_work_14_days else '❌ 신청 불가능'}")
 
 # Streamlit 입력 필드
 st.text_input(
@@ -85,7 +79,7 @@ st.text_input(
 # CSS로 입력 필드와 레이블 숨김
 st.markdown("""
 <style>
-input[aria-label="선택한 날짜 (숨김)"] {
+input[data-testid="stTextInput"] {
     display: none !important;
 }
 label[for="text_input_for_js_communication"] {
@@ -200,20 +194,28 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    // Streamlit 입력 필드 찾기 (쿼리 최적화)
-    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"][aria-label="선택한 날짜 (숨김)"]');
-    if (streamlitInput) {
-        streamlitInput.value = selected.join(',');
-        // input, change, blur 이벤트를 트리거
-        const events = ['input', 'change', 'blur'];
-        events.forEach(eventType => {
-            const event = new Event(eventType, { bubbles: true });
-            streamlitInput.dispatchEvent(event);
-        });
-        console.log("JS: Streamlit input updated to:", selected.join(','));
-    } else {
-        console.error("JS: Streamlit input not found!");
+    // Streamlit 입력 필드 찾기 (타이밍 문제 해결)
+    function tryUpdateInput(attempts = 5, delay = 100) {
+        if (attempts <= 0) {
+            console.error("JS: Streamlit input not found after multiple attempts!");
+            return;
+        }
+        const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+        if (streamlitInput) {
+            streamlitInput.value = selected.join(',');
+            // input, change, blur 이벤트를 트리거
+            const events = ['input', 'change', 'blur'];
+            events.forEach(eventType => {
+                const event = new Event(eventType, { bubbles: true });
+                streamlitInput.dispatchEvent(event);
+            });
+            console.log("JS: Streamlit input updated to:", selected.join(','));
+        } else {
+            console.warn("JS: Streamlit input not found, retrying...");
+            setTimeout(() => tryUpdateInput(attempts - 1, delay), delay);
+        }
     }
+    tryUpdateInput();
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
