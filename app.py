@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json
 
 st.set_page_config(layout="centered")
 
@@ -15,54 +16,96 @@ while cur <= last_day:
     cur += timedelta(days=1)
 
 if 'selected_dates' not in st.session_state:
-    st.session_state.selected_dates = set()
+    st.session_state.selected_dates = []
 
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
-st.write("## 달력")
+calendar_html = f"""
+<style>
+.calendar {{
+  display: grid;
+  grid-template-columns: repeat(7, 40px);
+  grid-gap: 5px;
+  margin-top: 20px;
+}}
+.day-header {{
+  font-weight: bold;
+  text-align: center;
+  background: #eee;
+  border-radius: 5px;
+  line-height: 40px;
+  height: 40px;
+}}
+.day {{
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  line-height: 40px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 16px;
+  color: #333;
+  transition: background-color 0.2s, border 0.2s;
+}}
+.day:hover {{
+  background-color: #f0f0f0;
+}}
+.day.selected {{
+  background-color: #2196F3;
+  color: white;
+  border: 2px solid #2196F3;
+  font-weight: bold;
+}}
+.empty-day {{
+  border: none;
+}}
+#selectedCount {{
+  margin-top: 10px;
+  font-weight: bold;
+}}
+</style>
 
-# 요일 헤더 출력
-cols = st.columns(7)
-for i, day_name in enumerate(days_of_week):
-    cols[i].write(f"**{day_name}**")
+<div class="calendar">
+"""
+for d in days_of_week:
+    calendar_html += f'<div class="day-header">{d}</div>'
 
-# 달력 날짜 출력: 7개씩 한 줄(row)로
 start_offset = (first_day_prev_month.weekday() + 1) % 7
+for _ in range(start_offset):
+    calendar_html += '<div class="empty-day"></div>'
 
-# 빈칸 먼저 출력 (줄 맞추기)
-if start_offset > 0:
-    cols = st.columns(start_offset)
-    for col in cols:
-        col.write("")
-
-# 날짜 출력
-for i, d in enumerate(cal_dates):
-    if (i + start_offset) % 7 == 0:
-        cols = st.columns(7)
+for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
-    selected = date_str in st.session_state.selected_dates
-    label = f"**{d.day}**" if selected else str(d.day)
-    
-    if cols[(i + start_offset) % 7].button(label, key=date_str):
-        if selected:
-            st.session_state.selected_dates.remove(date_str)
-        else:
-            st.session_state.selected_dates.add(date_str)
-        # rerun은 호출하지 않고 상태 변경 후 자연 rerun 기다림
+    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
+    calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
 
-st.write(f"### 선택된 날짜 수: {len(st.session_state.selected_dates)}")
-st.write(f"### 선택된 날짜: {sorted(st.session_state.selected_dates)}")
+calendar_html += "</div>"
+calendar_html += f'<div id="selectedCount">선택된 날짜 수: {len(st.session_state.selected_dates)}</div>'
 
-if st.button("결과 계산"):
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(st.session_state.selected_dates)
-    st.write(f"총 기간 일수: {total_days}일, 기준(1/3): {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-    if worked_days < threshold:
-        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
-    else:
-        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+calendar_html += f"""
+<script>
+const selectedDates = new Set({json.dumps(st.session_state.selected_dates)});
 
+function toggleDate(el) {{
+    const date = el.getAttribute("data-date");
+    if(selectedDates.has(date)) {{
+        selectedDates.delete(date);
+        el.classList.remove("selected");
+    }} else {{
+        selectedDates.add(date);
+        el.classList.add("selected");
+    }}
+    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
+
+    // 여기서 Streamlit에 선택 날짜 전달 필요
+    // 하지만 기본 st.components.v1.html 에선 콜백 직접 연결 안 됨
+    // 임시로 console.log()만 출력
+    console.log("선택된 날짜 목록:", Array.from(selectedDates));
+}}
+</script>
+"""
+
+st.components.v1.html(calendar_html, height=450, scrolling=False)
 
 
 
