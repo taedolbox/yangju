@@ -1,43 +1,69 @@
 import streamlit as st
-from datetime import datetime
-import pytz
-import time
+from datetime import datetime, timedelta
 
-# KST
-KST = pytz.timezone('Asia/Seoul')
+st.set_page_config(layout="centered")
 
-# 캐시 함수 예시
-@st.cache_data
-def load_data():
-    return f"데이터 로드 시각: {datetime.now(KST)}"
+input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 헤더
-st.title("🔄 캐시 삭제 + 진행막대 + 알림 예시")
+first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+last_day = input_date
 
-# 현재 데이터 보여줌 (캐시됨)
-st.write(load_data())
+cal_dates = []
+cur = first_day_prev_month
+while cur <= last_day:
+    cal_dates.append(cur)
+    cur += timedelta(days=1)
 
-# 버튼 누르면 진행
-if st.button("🚀 캐시 삭제 & 새로고침"):
-    # 진행 막대
-    progress_bar = st.progress(0)
-    with st.spinner("⏳ 캐시 삭제 및 새로고침 준비 중..."):
-        # 진행 막대 단계적으로 채움 (딜레이는 체감용)
-        for percent in range(100):
-            progress_bar.progress(percent + 1)
-            time.sleep(0.01)
+if 'selected_dates' not in st.session_state:
+    st.session_state.selected_dates = set()
 
-        # 캐시 삭제
-        st.cache_data.clear()
-        # 완료 알림
-        st.toast("✅ 캐시 삭제 완료! 새로고침됩니다.")
-        # 새로고침
-        st.experimental_rerun()
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
-# 설명
-st.markdown("""
----
-- ⏳ **진행중:** 진행막대 + 스피너 표시  
-- ✅ **완료:** 토스트 알림 후 새로고침
-- 🔄 **캐시:** `@st.cache_data` 사용
-""")
+calendar_html = """
+<style>
+.calendar { display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px; margin-top: 20px; }
+.day-header { font-weight: bold; text-align: center; background: #eee; border-radius: 5px; line-height: 40px; height: 40px; }
+.day { text-align: center; border: 1px solid #ddd; border-radius: 5px; line-height: 40px; cursor: pointer; user-select: none; }
+.day.selected { background-color: #2196F3; color: white; border: 2px solid #2196F3; font-weight: bold; }
+.empty-day { border: none; }
+#selectedCount { margin-top: 10px; font-weight: bold; }
+</style>
+<div class="calendar">
+"""
+
+for d in days_of_week:
+    calendar_html += f'<div class="day-header">{d}</div>'
+
+start_offset = (first_day_prev_month.weekday() + 1) % 7
+for _ in range(start_offset):
+    calendar_html += '<div class="empty-day"></div>'
+
+for d in cal_dates:
+    date_str = d.strftime("%Y-%m-%d")
+    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
+    calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
+
+calendar_html += "</div>"
+calendar_html += f'<div id="selectedCount">선택된 날짜 수: {len(st.session_state.selected_dates)}</div>'
+
+calendar_html += f"""
+<script>
+const selectedDates = new Set({list(st.session_state.selected_dates)});
+
+function toggleDate(el) {{
+    const date = el.getAttribute("data-date");
+    if(selectedDates.has(date)) {{
+        selectedDates.delete(date);
+        el.classList.remove("selected");
+    }} else {{
+        selectedDates.add(date);
+        el.classList.add("selected");
+    }}
+    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
+
+    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}} , "*");
+}}
+</script>
+"""
+
+st.components.v1.html(calendar_html, height=450, scrolling=False, key="calendar_simple")
