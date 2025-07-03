@@ -22,6 +22,9 @@ while current_date <= last_day:
     cal_dates.append(current_date)
     current_date += timedelta(days=1)
 
+# 디버깅: cal_dates 확인
+st.write("디버깅: 생성된 날짜 범위:", [d.strftime("%Y-%m-%d") for d in cal_dates])
+
 calendar_groups = {}
 for date in cal_dates:
     year_month = date.strftime("%Y-%m")
@@ -241,6 +244,11 @@ function sendMessageToParent(data) {
 // 결과 계산 및 표시
 function calculateAndDisplayResult(selected) {
     console.log("JS: Calculating result for:", selected);
+    const resultContainer = document.getElementById('resultContainer');
+    if (!resultContainer) {
+        console.error("JS: resultContainer not found");
+        return;
+    }
     const totalDays = CALENDAR_DATES.length;
     const threshold = totalDays / 3;
     const workedDays = selected.length;
@@ -273,7 +281,7 @@ function calculateAndDisplayResult(selected) {
         '<p>일반일용근로자: ' + generalWorkerText + '</p>',
         '<p>건설일용근로자: ' + constructionWorkerText + '</p>'
     ].join('');
-    document.getElementById('resultContainer').innerHTML = resultHtml;
+    resultContainer.innerHTML = resultHtml;
 }
 
 function toggleDate(element) {
@@ -290,11 +298,21 @@ function toggleDate(element) {
     // 결과 계산 및 표시
     calculateAndDisplayResult(selected);
     // 하단에 선택된 날짜와 카운트 표시
-    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
+    const selectedText = document.getElementById('selectedDatesText');
+    if (selectedText) {
+        selectedText.innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
+    } else {
+        console.error("JS: selectedDatesText not found");
+    }
 }
 
 window.onload = function() {
+    console.log("JS: Window loaded, initializing calendar");
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
+    if (!currentSelectedTextElement) {
+        console.error("JS: selectedDatesText element not found on load");
+        return;
+    }
     const initialDatesStr = """ + json.dumps(','.join(st.session_state.selected_dates_list)) + """;
     let initialSelectedArray = [];
     if (initialDatesStr && initialDatesStr.length > 0) {
