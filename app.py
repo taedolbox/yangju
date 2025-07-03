@@ -1,34 +1,29 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="달력 선택", layout="centered")
+st.set_page_config(page_title="다중선택 달력", layout="centered")
 
-# 기준 날짜
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 범위
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
-# 날짜 목록
 cal_dates = []
 current_date = first_day_prev_month
 while current_date <= last_day:
     cal_dates.append(current_date)
     current_date += timedelta(days=1)
 
-# 그룹
 calendar_groups = {}
-for date in cal_dates:
-    ym = date.strftime("%Y-%m")
+for d in cal_dates:
+    ym = d.strftime("%Y-%m")
     if ym not in calendar_groups:
         calendar_groups[ym] = []
-    calendar_groups[ym].append(date)
+    calendar_groups[ym].append(d)
 
-# Hidden input 저장용
+# 👉 Streamlit에서 부모 input field
 selected_dates_str = st.text_input("선택한 날짜", value="", key="selected_dates")
 
-# HTML + JS
 calendar_html = """
 <style>
 .calendar {
@@ -65,9 +60,12 @@ function toggleDate(el) {
             selected.push(d.getAttribute('data-date'));
         }
     }
-    parent.document.querySelector('input[data-baseweb="input"]').value = selected.join(',');
-    const event = new Event('input', { bubbles: true });
-    parent.document.querySelector('input[data-baseweb="input"]').dispatchEvent(event);
+    let input = parent.document.querySelector('input[data-testid="stTextInput"]');
+    if (input) {
+        input.value = selected.join(',');
+        const event = new Event('input', { bubbles: true });
+        input.dispatchEvent(event);
+    }
 }
 </script>
 """
@@ -83,7 +81,6 @@ for ym, dates in calendar_groups.items():
 
 st.components.v1.html(calendar_html, height=600)
 
-# 결과 버튼
 if st.button("결과 보기"):
     st.write(f"선택된 날짜: {selected_dates_str}")
     st.write(f"총 선택: {len(selected_dates_str.split(',')) if selected_dates_str else 0}일")
