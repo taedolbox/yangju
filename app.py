@@ -1,11 +1,11 @@
 import streamlit as st
 from datetime import datetime, timedelta
-from streamlit_js_eval import streamlit_js_eval  # 꼭 필요!
 
 st.set_page_config(layout="centered")
 
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
+# 달력 범위: 이전 달 1일부터 입력일 까지
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
@@ -15,108 +15,119 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
+if 'selected_dates' not in st.session_state:
+    st.session_state.selected_dates = set()
+
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
+st.write("## 달력")
+cols = st.columns(7)
+for i, day_name in enumerate(days_of_week):
+    cols[i].write(f"**{day_name}**")
+
+# 달력 첫날 요일 오프셋 (일요일=0)
+start_offset = (first_day_prev_month.weekday() + 1) % 7
+
+# 빈 칸 출력
+for _ in range(start_offset):
+    st.write("")
+
+# 체크박스 숨기는 CSS
+hide_checkbox_css = """
+    <style>
+    .hidden-checkbox {
+        display: none;
+    }
+    </style>
+"""
+st.markdown(hide_checkbox_css, unsafe_allow_html=True)
+
+# 체크박스 숨기고 달력 숫자 버튼으로 동기화
+for d in cal_dates:
+    date_str = d.strftime("%Y-%m-%d")
+    checked = date_str in st.session_state.selected_dates
+
+    # 체크박스 (숨김)
+    checkbox_id = f"cb_{date_str}"
+    checked_new = st.checkbox(label="", key=checkbox_id, value=checked, help=date_str)
+
+    # 체크박스 상태 변화 감지
+    if checked_new and date_str not in st.session_state.selected_dates:
+        st.session_state.selected_dates.add(date_str)
+    elif not checked_new and date_str in st.session_state.selected_dates:
+        st.session_state.selected_dates.remove(date_str)
+
+# 달력 숫자 출력 및 클릭 JS (Streamlit HTML 내 버튼으로 대체)
 calendar_html = """
 <style>
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 40px);
   grid-gap: 5px;
-  margin-top: 20px;
-}
-.day-header {
-  font-weight: bold;
-  text-align: center;
-  background: #eee;
-  border-radius: 5px;
-  line-height: 40px;
-  height: 40px;
+  margin-top: 10px;
 }
 .day {
+  width: 40px;
+  height: 40px;
   text-align: center;
+  line-height: 40px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  line-height: 40px;
   cursor: pointer;
   user-select: none;
 }
-.day.selected {
+.selected {
   background-color: #2196F3;
   color: white;
-  border: 2px solid #2196F3;
   font-weight: bold;
+  border: 2px solid #2196F3;
 }
-.empty-day {
+.empty {
+  background-color: transparent;
   border: none;
+  cursor: default;
 }
 </style>
-
 <div class="calendar">
 """
 
-# 요일 헤더
-for d in days_of_week:
-    calendar_html += f'<div class="day-header">{d}</div>'
-
-# 시작 공백
-start_offset = (first_day_prev_month.weekday() + 1) % 7
+# 빈칸 채우기
 for _ in range(start_offset):
-    calendar_html += '<div class="empty-day"></div>'
+    calendar_html += '<div class="day empty"></div>'
 
-# 달력 날짜
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
-    calendar_html += f'''
-    <div class="day" id="day-{date_str}" onclick="toggleDay('{date_str}')">{d.day}</div>
-    '''
+    is_selected = "selected" if date_str in st.session_state.selected_dates else ""
+    calendar_html += f'<div class="day {is_selected}" onclick="toggleCheckbox(\'cb_{date_str}\')" id="day_{date_str}">{d.day}</div>'
 
+calendar_html += "</div>"
+
+# JS 함수: 달력 숫자 클릭 시 해당 체크박스 클릭 유도
 calendar_html += """
-</div>
-
 <script>
-const selectedDates = new Set();
-
-function toggleDay(dateStr) {
-  const dayDiv = document.getElementById("day-" + dateStr);
-  if (selectedDates.has(dateStr)) {
-    selectedDates.delete(dateStr);
-    dayDiv.classList.remove("selected");
-  } else {
-    selectedDates.add(dateStr);
-    dayDiv.classList.add("selected");
-  }
-  // 선택 목록을 hidden input에 넣어 둔다.
-  document.getElementById("selectedDatesHidden").value = JSON.stringify(Array.from(selectedDates));
+function toggleCheckbox(cb_id) {
+    const cb = window.parent.document.querySelector('input[id="'+cb_id+'"]');
+    if(cb) {
+        cb.click();
+    }
 }
 </script>
-
-<input type="hidden" id="selectedDatesHidden" value="[]">
 """
 
-st.components.v1.html(calendar_html, height=500, scrolling=False)
+st.components.v1.html(calendar_html, height=300, scrolling=False)
 
-# 👉 핵심! JS로 hidden input에 넣고 Py로 eval로 가져오기
-selected_dates = streamlit_js_eval(
-    js_expressions=["document.getElementById('selectedDatesHidden').value"],
-    key="js_getter"
-)[0]
-
-try:
-    selected_dates = eval(selected_dates) if selected_dates else []
-except:
-    selected_dates = []
-
-st.write(f"✅ 선택된 날짜: {selected_dates}")
-st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
+st.write(f"### 선택된 날짜 수: {len(st.session_state.selected_dates)}")
+st.write(f"### 선택된 날짜: {sorted(st.session_state.selected_dates)}")
 
 if st.button("결과 계산"):
-    st.write(f"선택된 날짜: {selected_dates}")
-    st.write(f"선택된 날짜 수: {len(selected_dates)}")
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected_dates)
-    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
+    worked_days = len(st.session_state.selected_dates)
+    st.write(f"총 기간 일수: {total_days}일, 기준(1/3): {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
+    if worked_days < threshold:
+        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
+    else:
+        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
 
 
 
