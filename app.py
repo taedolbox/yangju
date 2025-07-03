@@ -173,11 +173,15 @@ h4 {{
     border-radius: 8px;
     font-size: 1em;
     color: #333;
+    overflow: hidden; /* 스크롤을 없애는 속성 */
 }}
 #resultContainer h3 {{
     margin: 0 0 10px 0;
     font-size: 1.2em;
     color: #333;
+}}
+#calendar-container {{
+    overflow: hidden; /* 달력 부분의 스크롤을 없애는 속성 */
 }}
 </style>
 <script>
@@ -282,53 +286,5 @@ window.addEventListener('message', function(event) {{
 """
 
 # st.components.v1.html 호출
-st.components.v1.html(calendar_html, height=800, scrolling=True)
+st.components.v1.html(calendar_html, height=800, scrolling=False)
 
-# localStorage 폴링 (디버깅용)
-st.markdown("""
-<script>
-function pollLocalStorage() {
-    const data = localStorage.getItem('selectedDates');
-    if (data) {
-        const input = document.querySelector('input[data-testid="stTextInput"]');
-        if (input) {
-            input.value = data;
-            const events = ['input', 'change', 'blur'];
-            events.forEach(eventType => {
-                const event = new Event(eventType, { bubbles: true });
-                input.dispatchEvent(event);
-            });
-            console.log("Python: Streamlit input updated from localStorage:", data);
-        } else {
-            console.warn("Python: Streamlit input not found for localStorage, retrying...");
-        }
-    }
-    setTimeout(pollLocalStorage, 500); // 500ms마다 폴링
-}
-
-window.addEventListener('message', function(event) {
-    try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'localStorageUpdate') {
-            const input = document.querySelector('input[data-testid="stTextInput"]');
-            if (input) {
-                input.value = JSON.stringify(message.data);
-                const events = ['input', 'change', 'blur'];
-                events.forEach(eventType => {
-                    const event = new Event(eventType, { bubbles: true });
-                    input.dispatchEvent(event);
-                });
-                console.log("Python: Streamlit input updated from message:", JSON.stringify(message.data));
-            } else {
-                console.warn("Python: Streamlit input not found for message, retrying...");
-            }
-        }
-    } catch (e) {
-        console.error("Python: Failed to parse message:", event.data);
-    }
-});
-
-// 폴링 시작
-pollLocalStorage();
-</script>
-""", unsafe_allow_html=True)
