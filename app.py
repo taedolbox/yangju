@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json
+from streamlit_js_eval import streamlit_js_eval  # 꼭 필요!
 
 st.set_page_config(layout="centered")
 
@@ -74,8 +74,6 @@ for d in cal_dates:
 calendar_html += """
 </div>
 
-<textarea id="selectedDates" name="selectedDates" style="display:none"></textarea>
-
 <script>
 const selectedDates = new Set();
 
@@ -88,18 +86,24 @@ function toggleDay(dateStr) {
     selectedDates.add(dateStr);
     dayDiv.classList.add("selected");
   }
-  document.getElementById("selectedDates").value = JSON.stringify(Array.from(selectedDates));
+  // 선택 목록을 hidden input에 넣어 둔다.
+  document.getElementById("selectedDatesHidden").value = JSON.stringify(Array.from(selectedDates));
 }
 </script>
+
+<input type="hidden" id="selectedDatesHidden" value="[]">
 """
 
-# 삽입
 st.components.v1.html(calendar_html, height=500, scrolling=False)
 
-# 숨겨진 textarea 값을 Py에서 읽음
-selected_dates_raw = st.text_area("선택된 Raw", "", label_visibility="collapsed")
+# 👉 핵심! JS로 hidden input에 넣고 Py로 eval로 가져오기
+selected_dates = streamlit_js_eval(
+    js_expressions=["document.getElementById('selectedDatesHidden').value"],
+    key="js_getter"
+)[0]
+
 try:
-    selected_dates = json.loads(selected_dates_raw) if selected_dates_raw else []
+    selected_dates = eval(selected_dates) if selected_dates else []
 except:
     selected_dates = []
 
@@ -107,11 +111,12 @@ st.write(f"✅ 선택된 날짜: {selected_dates}")
 st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
 
 if st.button("결과 계산"):
+    st.write(f"선택된 날짜: {selected_dates}")
+    st.write(f"선택된 날짜 수: {len(selected_dates)}")
     total_days = len(cal_dates)
     threshold = total_days / 3
     worked_days = len(selected_dates)
     st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-
 
 
 
