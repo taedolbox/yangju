@@ -1,138 +1,137 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json
 
 st.set_page_config(layout="centered")
 
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+last_day = input_date
 
 cal_dates = []
 cur = first_day_prev_month
-while cur <= input_date:
+while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 체크박스 숨기기 CSS
-st.markdown("""
+# 세션 상태 초기화
+if 'selected_dates' not in st.session_state:
+    st.session_state.selected_dates = []
+
+# 달력 HTML 생성
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
+calendar_html = f"""
 <style>
-input[type="checkbox"] {
-  display: none;
-}
-.calendar {
+.calendar {{
   display: grid;
   grid-template-columns: repeat(7, 40px);
   grid-gap: 5px;
   margin-top: 20px;
-}
-.day-header {
+}}
+.day-header {{
   font-weight: bold;
   text-align: center;
   background: #eee;
   border-radius: 5px;
   line-height: 40px;
   height: 40px;
-}
-.day {
+}}
+.day {{
   text-align: center;
   border: 1px solid #ddd;
   border-radius: 5px;
   line-height: 40px;
   cursor: pointer;
   user-select: none;
-  user-select: none;
-}
-.day.selected {
+}}
+.day.selected {{
   background-color: #2196F3;
   color: white;
   border: 2px solid #2196F3;
   font-weight: bold;
-}
-.empty-day {
+}}
+.empty-day {{
   border: none;
-}
-#countDisplay {
+}}
+#selectedCount {{
   margin-top: 10px;
   font-weight: bold;
-  font-size: 16px;
-}
+}}
 </style>
-""", unsafe_allow_html=True)
 
-# 초기 세션 상태 설정
-for date in cal_dates:
-    date_str = date.strftime("%Y-%m-%d")
-    if date_str not in st.session_state:
-        st.session_state[date_str] = False
+<div class="calendar">
+"""
+for d in days_of_week:
+    calendar_html += f'<div class="day-header">{d}</div>'
 
-# 숨긴 체크박스 생성
-for date in cal_dates:
-    date_str = date.strftime("%Y-%m-%d")
-    st.checkbox(label=date_str, key=date_str, value=st.session_state[date_str], label_visibility="collapsed")
-
-# 요일 헤더 출력
-days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
-st.markdown('<div class="calendar">' + "".join(f'<div class="day-header">{d}</div>' for d in days_of_week) + '</div>', unsafe_allow_html=True)
-
-# 달력 숫자 출력
-calendar_html = '<div class="calendar">'
 start_offset = (first_day_prev_month.weekday() + 1) % 7
 for _ in range(start_offset):
     calendar_html += '<div class="empty-day"></div>'
 
-for date in cal_dates:
-    date_str = date.strftime("%Y-%m-%d")
-    selected_class = "selected" if st.session_state.get(date_str, False) else ""
-    calendar_html += f'<div class="day {selected_class}" id="{date_str}" onclick="toggleDate(this)">{date.day}</div>'
+for d in cal_dates:
+    date_str = d.strftime("%Y-%m-%d")
+    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
+    calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
 
-calendar_html += '</div>'
+calendar_html += "</div>"
+calendar_html += '<div id="selectedCount">선택된 날짜 수: {}</div>'.format(len(st.session_state.selected_dates))
 
-st.markdown(calendar_html, unsafe_allow_html=True)
-
-# 현재 선택된 개수 계산
-selected_count = sum(st.session_state.get(date.strftime("%Y-%m-%d"), False) for date in cal_dates)
-st.markdown(f'<div id="countDisplay">선택된 날짜 수: {selected_count}</div>', unsafe_allow_html=True)
-
-# JS 스크립트: 달력 숫자 클릭 시 체크박스 토글 + 카운트 즉시 반영
-st.markdown(f"""
+calendar_html += """
 <script>
-function toggleDate(elem) {{
-    const dateStr = elem.id;
-    const cb = window.parent.document.querySelector('input[type="checkbox"][data-key="' + dateStr + '"]');
-    if(cb) {{
-        cb.checked = !cb.checked;
-        cb.dispatchEvent(new Event('change'));
-    }}
+const selectedDates = new Set(%s);
 
-    // 선택된 날짜 수 직접 카운트하여 화면에 즉시 표시
-    let selectedCount = 0;
-    const days = document.querySelectorAll('.day');
-    days.forEach(day => {{
-        if(day.classList.contains('selected')) selectedCount++;
-    }});
+function toggleDate(el) {
+    const date = el.getAttribute("data-date");
+    if(selectedDates.has(date)) {
+        selectedDates.delete(date);
+        el.classList.remove("selected");
+    } else {
+        selectedDates.add(date);
+        el.classList.add("selected");
+    }
+    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
 
-    // 토글 전 클래스는 바뀌지 않으므로 여기서 직접 클래스 토글
-    elem.classList.toggle('selected');
-
-    // 클래스 토글 후 다시 계산 (정확한 카운트)
-    selectedCount = 0;
-    days.forEach(day => {{
-        if(day.classList.contains('selected')) selectedCount++;
-    }});
-
-    document.getElementById('countDisplay').innerText = '선택된 날짜 수: ' + selectedCount;
-}}
+    // Streamlit에 선택 목록 전달
+    window.parent.postMessage({isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}, "*");
+}
 </script>
-""", unsafe_allow_html=True)
+""" % json.dumps(st.session_state.selected_dates)
 
+# 컴포넌트 렌더링
+st.components.v1.html(calendar_html, height=400, scrolling=False)
+
+# Streamlit 메시지 수신 (Streamlit 1.23+ 버전 필요)
+if "selectedDates" not in st.session_state:
+    st.session_state.selectedDates = []
+
+# 선택 날짜 갱신용 JS 메시지 핸들링
+def handle_js_message():
+    import streamlit.components.v1 as components
+
+    from streamlit import runtime
+    if runtime.exists():
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        ctx = get_script_run_ctx()
+        if ctx and ctx.session_id:
+            # 아래는 Streamlit 1.23+의 message 이벤트를 처리하는 예시, 환경 따라 다를 수 있음
+            pass
+
+# 결과 계산 버튼
 if st.button("결과 계산"):
-    worked_days = sum(st.session_state.get(date.strftime("%Y-%m-%d"), False) for date in cal_dates)
-    threshold = len(cal_dates) / 3
-    st.write(f"선택한 근무일 수: {worked_days}일 (기준: {threshold:.1f}일)")
+    selected = list(st.session_state.selected_dates)
+    st.write(f"선택된 날짜: {selected}")
+    st.write(f"선택된 날짜 수: {len(selected)}")
+    total_days = len(cal_dates)
+    threshold = total_days / 3
+    worked_days = len(selected)
+    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
     if worked_days < threshold:
-        st.success("✅ 조건 충족: 근무일 수가 기준 미만입니다.")
+        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
     else:
-        st.error("❌ 조건 불충족: 근무일 수가 기준 이상입니다.")
+        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+""" 
+
 
 
 
