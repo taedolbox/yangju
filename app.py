@@ -13,24 +13,18 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 날짜별 체크박스 이름 생성
+# 체크박스 키 생성 함수
 def checkbox_key(date):
     return f"chk_{date.strftime('%Y%m%d')}"
 
-# 선택된 날짜 리스트 초기화
-selected_dates = []
-
-st.write("달력 아래에 체크박스는 숨겨져 있습니다. 달력 숫자를 클릭하면 체크박스가 토글됩니다.")
-
-# 체크박스를 숨기기 위한 CSS
+# CSS로 체크박스 숨기기 (모든 체크박스)
 hide_checkbox_style = """
-    <style>
-    .hidden-checkbox > div > input[type="checkbox"] {
+<style>
+    div[data-testid="stCheckbox"] > div > input[type="checkbox"] {
         display: none;
     }
-    </style>
+</style>
 """
-
 st.markdown(hide_checkbox_style, unsafe_allow_html=True)
 
 # 요일 표시
@@ -46,14 +40,14 @@ for _ in range(start_offset):
 
 # 달력과 체크박스 그리기
 cols = st.columns(7)
+selected_dates = []
+
 for idx, d in enumerate(cal_dates):
     col = cols[idx % 7]
     key = checkbox_key(d)
-    checked = st.checkbox(str(d.day), key=key)
+    checked = col.checkbox(str(d.day), key=key)
     if checked:
         selected_dates.append(d.strftime("%Y-%m-%d"))
-    # 체크박스 숨기기 CSS 클래스 적용
-    col.markdown(f'<div class="hidden-checkbox">{st.checkbox(str(d.day), key=key)}</div>', unsafe_allow_html=True)
 
 st.write(f"✅ 선택된 날짜: {selected_dates}")
 st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
