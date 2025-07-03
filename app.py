@@ -1,58 +1,155 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import os
+from datetime import datetime, timedelta
 
-# _RELEASE 변수는 개발 환경과 배포 환경을 구분합니다.
-# 개발 중에는 False로 설정하여 로컬에서 frontend/index.html을 직접 로드하고,
-# 배포 시에는 True로 설정하여 빌드된 컴포넌트를 사용합니다.
-_RELEASE = True  # 배포 시에는 True로 설정합니다.
+st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
-if not _RELEASE:
-    # 개발 환경 (로컬)
-    # 현재 스크립트(app.py)의 디렉토리에서 'my_calendar_component/frontend'를 찾습니다.
-    _COMPONENT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "my_calendar_component", "frontend")
-    _my_calendar_component = components.declare_component(
-        "my_calendar_component",
-        path=_COMPONENT_DIR
-    )
-else:
-    # 배포 환경 (Streamlit Cloud)
-    # 이 부분은 Streamlit 컴포넌트가 패키지화되었을 때 사용됩니다.
-    # 일반적으로 setup.py 등을 통해 패키징된 후 설치될 때의 경로를 가리킵니다.
-    # 하지만 Streamlit Cloud에서는 GitHub 리포지토리를 직접 클론하므로,
-    # 로컬 개발 환경과 동일하게 상대 경로를 사용하는 것이 일반적입니다.
-    # 따라서 _RELEASE가 True일 때도 _COMPONENT_DIR을 동일하게 설정합니다.
-    _COMPONENT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "my_calendar_component", "frontend")
-    _my_calendar_component = components.declare_component(
-        "my_calendar_component",
-        path=_COMPONENT_DIR
-    )
+# 👉 기준 날짜 선택
+input_date = st.date_input("기준 날짜 선택", datetime.today())
 
+# 👉 달력 범위: 직전 달 초일부터 입력 날짜까지
+first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+last_day = input_date
 
-# Streamlit 앱의 메인 함수
-def main():
-    st.set_page_config(layout="wide")
-    st.title("나의 커스텀 달력 앱")
+# 👉 달력용 날짜 리스트 생성 (년/월 구분)
+cal_dates = []
+current_date = first_day_prev_month
+while current_date <= last_day:
+    cal_dates.append(current_date)
+    current_date += timedelta(days=1)
 
-    st.write("---")
-    st.header("Streamlit 기본 날짜 선택 위젯 (비교)")
-    st.date_input("날짜를 선택하세요")
-    st.write("---")
+# 👉 년/월 별로 그룹화
+calendar_groups = {}
+for date in cal_dates:
+    year_month = date.strftime("%Y-%m")
+    if year_month not in calendar_groups:
+        calendar_groups[year_month] = []
+    calendar_groups[year_month].append(date)
 
-    st.header("커스텀 달력 컴포넌트")
+# 👉 숨겨진 input 박스로 JS → Python 데이터 전달
+selected_dates_str = st.text_input("선택한 날짜", value="", key="selected_dates")
 
-    # 커스텀 컴포넌트를 호출하고 값을 받습니다.
-    # 이 컴포넌트는 selected_date라는 키로 날짜 값을 반환할 것입니다.
-    # default는 컴포넌트가 로드되기 전이나 값이 없을 때의 기본값입니다.
-    # 컴포넌트의 props (예: 'initial_date')는 여기에 키워드 인수로 전달합니다.
-    # 예를 들어, 오늘 날짜를 초기값으로 전달하고 싶다면:
-    # my_date_value = _my_calendar_component(initial_date="2025-07-01", key="my_calendar")
-    my_date_value = _my_calendar_component(key="my_calendar")
+# 👉 HTML + JS 달력 생성
+calendar_html = ""
 
-    if my_date_value:
-        st.success(f"선택된 날짜: {my_date_value}")
+for ym, dates in calendar_groups.items():
+    year = ym.split("-")[0]
+    month = ym.split("-")[1]
+
+    # 년월 헤더
+    calendar_html += f"""
+    <h4>{year}년 {month}월</h4>
+    <div class="calendar">
+    """
+
+    # 날짜 블럭
+    for date in dates:
+        day_num = date.day
+        date_str = date.strftime("%Y-%m-%d")
+        calendar_html += f'''
+        <div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
+        '''
+
+    calendar_html += "</div>"
+
+calendar_html += """
+<p id="selectedDatesText"></p>
+
+<style>
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 40px);
+    grid-gap: 5px;
+    margin-bottom: 20px;
+}
+
+.day {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.day:hover {
+    background-color: #eee;
+}
+
+.day.selected {
+    border: 2px solid #2196F3;
+    background-color: #2196F3;
+    color: white;
+}
+
+h4 {
+    margin: 10px 0 5px 0;
+    font-size: 18px;
+}
+</style>
+
+<script>
+function toggleDate(element) {
+    // 선택/해제
+    element.classList.toggle('selected');
+
+    // 선택된 날짜 수집
+    var selected = [];
+    var days = document.getElementsByClassName('day');
+    for (var i = 0; i < days.length; i++) {
+        if (days[i].classList.contains('selected')) {
+            selected.push(days[i].getAttribute('data-date'));
+        }
+    }
+
+    // Streamlit hidden input으로 전달 (input box 업데이트)
+    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInputInput"]');
+    if (streamlitInput) {
+        streamlitInput.value = selected.join(',');
+        streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
+}
+</script>
+"""
+
+st.components.v1.html(calendar_html, height=600, scrolling=True)
+
+# 👉 결과 버튼
+if st.button("결과 계산"):
+    if selected_dates_str:
+        selected_dates = selected_dates_str.split(",")
     else:
-        st.info("달력에서 날짜를 선택해주세요.")
+        selected_dates = []
 
-if __name__ == "__main__":
-    main()
+    # 👉 결과 계산 로직
+    total_days = len(cal_dates)
+    threshold = total_days / 3
+    worked_days = len(selected_dates)
+
+    fourteen_days_prior_end = input_date - timedelta(days=1)
+    fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
+    fourteen_days = [d for d in cal_dates if fourteen_days_prior_start <= d <= fourteen_days_prior_end]
+    selected_dates_set = set(selected_dates)
+    no_work_14_days = all(d.strftime("%Y-%m-%d") not in selected_dates_set for d in fourteen_days)
+
+    st.write(f"총 기간 일수: {total_days}일")
+    st.write(f"기준 (총일수의 1/3): {threshold:.1f}일")
+    st.write(f"선택한 근무일 수: {worked_days}일")
+
+    st.write(f"{'✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' if worked_days < threshold else '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}")
+    st.write(f"{'✅ 조건 2 충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 근무내역이 없습니다.' if no_work_14_days else '❌ 조건 2 불충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 내 근무기록이 존재합니다.'}")
+
+    st.markdown("### 📌 최종 판단")
+    if worked_days < threshold:
+        st.write(f"✅ 일반일용근로자: 신청 가능")
+    else:
+        st.write(f"❌ 일반일용근로자: 신청 불가능")
+
+    if worked_days < threshold and no_work_14_days:
+        st.write(f"✅ 건설일용근로자: 신청 가능")
+    else:
+        st.write(f"❌ 건설일용근로자: 신청 불가능")
+
