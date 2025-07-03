@@ -61,8 +61,7 @@ function toggleDate(el) {{
     }}
     document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
 
-    // Python에 선택 목록 전달 (postMessage 예시)
-    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}}, "*");
+    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}} , "*");
 }}
 </script>
 """
