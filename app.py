@@ -100,7 +100,7 @@ function toggleDate(element) {
     if (!inputFields.length) {
         inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
     }
-    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('data-testid') === 'stTextInput');
+    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates'));
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
         console.log('Setting input value to:', selected.join(','));
@@ -151,6 +151,6 @@ st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_
 # 👉 선택된 날짜 카운트 확인
 if st.button("선택된 날짜 확인"):
     selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()] if selected_dates_str else []
-    # session_state는 st.text_input을 통해 이미 동기화되므로 직접 수정하지 않음
+    # session_state는 st.text_input을 통해 이미 동기화됨
     st.write(f"**선택된 날짜**: {selected_dates}")
     st.write(f"**선택한 일수**: {len(selected_dates)}일")
