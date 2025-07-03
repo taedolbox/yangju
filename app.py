@@ -25,7 +25,7 @@ def receive_selected_dates(new_value):
         st.session_state.selected_dates_list = []
     st.write(f"DEBUG: selected_dates_list 업데이트됨: {st.session_state.selected_dates_list}")
 
-# --- (이전과 동일한 달력 데이터 준비 및 HTML 생성 로직) ---
+# --- (달력 데이터 준비 및 HTML 생성 로직은 1단계와 동일) ---
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
@@ -57,8 +57,8 @@ for ym, dates in calendar_groups.items():
     for date in dates:
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
-        # 이 단계에서는 is_selected 로직이 작동하지 않습니다. (default 인자가 없으므로)
-        is_selected = "" 
+        # default 인자를 추가했으므로 초기 선택 상태가 반영됩니다.
+        is_selected = " selected" if date_str in st.session_state.selected_dates_list else "" 
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
         '''
@@ -94,30 +94,50 @@ function toggleDate(element) {
     console.log("JS: Streamlit component value (TEST) updated to:", JSON.stringify(selected)); 
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }
-window.onload = function() { /* (생략) */ }; // 초기 로드 로직은 이 단계에서 중요하지 않습니다.
+window.onload = function() {
+    const currentSelectedTextElement = document.getElementById('selectedDatesText');
+    if (currentSelectedTextElement) {
+        const currentSelectedText = currentSelectedTextElement.innerText;
+        if (currentSelectedText.includes("선택한 날짜:")) {
+            const initialDatesStr = currentSelectedText.split("선택한 날짜: ")[1]?.split(" (총")[0];
+            if (initialDatesStr && initialDatesStr.length > 0) {
+                var initialSelectedArray = initialDatesStr.split(', ');
+                var days = document.getElementsByClassName('day');
+                for (var i = 0; i < days.length; i++) {
+                    if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
+                        days[i].classList.add('selected');
+                    }
+                }
+            }
+        }
+    }
+};
 </script>
 """
 
-st.write("### 1단계: 최소한의 `st.components.v1.html` 호출 테스트")
-st.write("이 단계에서 `TypeError`가 발생한다면, HTML 내용 자체나 Streamlit 핵심 컴포넌트 문제일 가능성이 높습니다.")
+st.write("### 2단계: `default` 인자 추가 테스트")
+st.write("이 단계에서 `TypeError`가 발생한다면, `default` 값이나 세션 상태 초기화 방식에 문제가 있을 수 있습니다.")
+
+component_default_value = json.dumps(st.session_state.selected_dates_list)
 
 try:
-    # `on_change`와 `default` 인자 제거
+    # `default` 인자만 추가
     component_value = st.components.v1.html(
         calendar_html,
         height=600,
         scrolling=True,
-        key="calendar_component_minimal" # 테스트용 새 키 사용
+        key="calendar_component_with_default", # 테스트용 새 키 사용
+        default=component_default_value
     )
-    st.write("✅ 최소한의 컴포넌트 렌더링 성공! (TypeError 없음)")
+    st.write("✅ `default` 인자를 포함한 컴포넌트 렌더링 성공! (TypeError 없음)")
     st.write("이제 '결과 계산' 버튼을 눌러도 동작하지 않을 것입니다. 다음 단계로 진행해주세요.")
 except TypeError as e:
-    st.error(f"❌ 1단계 테스트 실패: TypeError 발생 - {e}")
-    st.stop() # 에러 발생 시 앱 중단
+    st.error(f"❌ 2단계 테스트 실패: TypeError 발생 - {e}")
+    st.stop()
 except Exception as e:
-    st.error(f"❌ 1단계 테스트 실패: 알 수 없는 에러 발생 - {e}")
+    st.error(f"❌ 2단계 테스트 실패: 알 수 없는 에러 발생 - {e}")
     st.stop()
 
 # --- 결과 계산 버튼 (이 단계에서는 동작하지 않음) ---
-if st.button("결과 계산 (1단계 테스트 중)"):
-    st.write("이 버튼은 1단계 테스트 중에는 동작하지 않습니다. 2단계로 진행해주세요.")
+if st.button("결과 계산 (2단계 테스트 중)"):
+    st.write("이 버튼은 2단계 테스트 중에는 동작하지 않습니다. 3단계로 진행해주세요.")
