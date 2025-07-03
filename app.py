@@ -96,12 +96,16 @@ function toggleDate(element) {
         }
     }
     // Streamlit Cloud의 iframe 환경 고려
-    var inputFields = document.querySelectorAll('input[data-testid="stTextInput"]') || window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
+    var inputFields = document.querySelectorAll('input[data-testid="stTextInput"]');
+    if (!inputFields.length) {
+        inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
+    }
     var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('data-testid') === 'stTextInput');
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
         console.log('Setting input value to:', selected.join(','));
         inputField.value = selected.join(',');
+        // Streamlit이 값을 감지하도록 이벤트 트리거
         inputField.dispatchEvent(new Event('input', { bubbles: true }));
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
         console.log('Input field value after setting:', inputField.value);
@@ -147,6 +151,6 @@ st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_
 # 👉 선택된 날짜 카운트 확인
 if st.button("선택된 날짜 확인"):
     selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()] if selected_dates_str else []
-    st.session_state.selected_dates = selected_dates_str
+    # session_state는 st.text_input을 통해 이미 동기화되므로 직접 수정하지 않음
     st.write(f"**선택된 날짜**: {selected_dates}")
     st.write(f"**선택한 일수**: {len(selected_dates)}일")
