@@ -41,3 +41,41 @@ st.markdown("""
 - ✅ **완료:** 토스트 알림 후 새로고침
 - 🔄 **캐시:** `@st.cache_data` 사용
 """)
+
+
+import streamlit as st
+import traceback
+
+st.title("🚨 오류 메시지 출력 & 복사 예시")
+
+try:
+    # 예시: 일부러 ZeroDivisionError 발생
+    a = 1 / 0
+
+except Exception as e:
+    # 전체 Traceback 문자열로 받기
+    tb_str = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+
+    st.error("❌ 오류가 발생했습니다!")
+    st.code(tb_str, language="bash")
+
+    # 복사 팁: 텍스트박스도 같이 제공
+    st.text_area("📝 아래 내용 복사:", tb_str, height=200)
+
+    # 필요하면 텍스트파일로 다운로드 버튼 제공
+    st.download_button(
+        label="📄 에러 로그 파일 다운로드",
+        data=tb_str,
+        file_name="error_log.txt",
+        mime="text/plain"
+    )
+
+st.markdown("""
+---
+- 위 예시는 일부러 `1 / 0`으로 에러를 발생시킨 것임  
+- 실제로는 `try: ... except:`로 감싸면 어떤 오류든 그대로 출력됨  
+- `st.code` + `st.text_area` + `st.download_button`을 조합하면:
+    - 화면에 보기 좋게 출력
+    - 복사 가능
+    - 파일로 저장도 가능
+""")
