@@ -58,7 +58,7 @@ calendar_html += """
 <p id="selectedDatesText">선택한 날짜: {selected_dates} (총 {count}일)</p>
 
 <style>
-.calendar {
+.calendar {{
     display: grid;
     grid-template-columns: repeat(7, 40px);
     grid-gap: 5px;
@@ -67,68 +67,68 @@ calendar_html += """
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-.day-header, .empty-day {
+}}
+.day-header, .empty-day {{
     width: 40px; height: 40px; line-height: 40px; text-align: center; font-weight: bold; color: #555;
-}
-.day-header {
+}}
+.day-header {{
     background-color: #e0e0e0; border-radius: 5px; font-size: 14px;
-}
-.empty-day {
+}}
+.empty-day {{
     background-color: transparent; border: none;
-}
-.day {
+}}
+.day {{
     width: 40px; height: 40px; line-height: 40px; text-align: center; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none; transition: background-color 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
-}
-.day:hover {
+}}
+.day:hover {{
     background-color: #f0f0f0;
-}
-.day.selected {
+}}
+.day.selected {{
     border: 2px solid #2196F3; background-color: #2196F3; color: white; font-weight: bold;
-}
-h4 {
+}}
+h4 {{
     margin: 10px 0 5px 0; font-size: 1.2em; color: #333; text-align: center;
-}
-#selectedDatesText {
+}}
+#selectedDatesText {{
     margin-top: 15px; font-size: 0.9em; color: #666;
-}
+}}
 </style>
 
 <script>
-function toggleDate(element) {
+function toggleDate(element) {{
     element.classList.toggle('selected');
     var selected = [];
     var days = document.getElementsByClassName('day');
-    for (var i=0; i < days.length; i++) {
-        if (days[i].classList.contains('selected')) {
+    for (var i=0; i < days.length; i++) {{
+        if (days[i].classList.contains('selected')) {{
             selected.push(days[i].getAttribute('data-date'));
-        }
-    }
+        }}
+    }}
     const textarea = window.parent.document.getElementById('selected_dates_textarea');
-    if (textarea) {
+    if (textarea) {{
         textarea.value = JSON.stringify(selected);
         textarea.dispatchEvent(new Event('input'));
-    }
+    }}
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
-}
+}}
 
-window.onload = function() {
+window.onload = function() {{
     const textarea = window.parent.document.getElementById('selected_dates_textarea');
-    if(textarea) {
-        try {
+    if(textarea) {{
+        try {{
             const val = JSON.parse(textarea.value || '[]');
             document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + val.join(', ') + " (총 " + val.length + "일)";
             var days = document.getElementsByClassName('day');
-            for (var i=0; i < days.length; i++) {
-                if (val.includes(days[i].getAttribute('data-date'))) {
+            for (var i=0; i < days.length; i++) {{
+                if (val.includes(days[i].getAttribute('data-date'))) {{
                     days[i].classList.add('selected');
-                }
-            }
-        } catch(e) {
+                }}
+            }}
+        }} catch(e) {{
             console.error("JSON parse error:", e);
-        }
-    }
-};
+        }}
+    }}
+}};
 </script>
 """.format(
     selected_dates=", ".join(st.session_state.selected_dates_list),
