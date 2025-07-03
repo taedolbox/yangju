@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json
 
 st.set_page_config(layout="centered")
 
@@ -70,9 +71,11 @@ for d in cal_dates:
     <div class="day" id="day-{date_str}" onclick="toggleDay('{date_str}')">{d.day}</div>
     '''
 
-calendar_html += "</div>"
-
 calendar_html += """
+</div>
+
+<textarea id="selectedDates" name="selectedDates" style="display:none"></textarea>
+
 <script>
 const selectedDates = new Set();
 
@@ -85,21 +88,29 @@ function toggleDay(dateStr) {
     selectedDates.add(dateStr);
     dayDiv.classList.add("selected");
   }
-  // Streamlit으로 전달
-  window.parent.postMessage({isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}, "*");
+  document.getElementById("selectedDates").value = JSON.stringify(Array.from(selectedDates));
 }
 </script>
 """
 
+# 삽입
 st.components.v1.html(calendar_html, height=500, scrolling=False)
 
-# 선택된 날짜 받아오기
-selected_dates = st.experimental_get_query_params().get("selectedDates", [])
+# 숨겨진 textarea 값을 Py에서 읽음
+selected_dates_raw = st.text_area("선택된 Raw", "", label_visibility="collapsed")
+try:
+    selected_dates = json.loads(selected_dates_raw) if selected_dates_raw else []
+except:
+    selected_dates = []
 
-st.write(f"선택된 날짜 (실제는 JS → Py 연결 아직 직접 전달 못함): {selected_dates}")
+st.write(f"✅ 선택된 날짜: {selected_dates}")
+st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
 
 if st.button("결과 계산"):
-    st.write(f"선택된 날짜 개수: {len(selected_dates)}")
+    total_days = len(cal_dates)
+    threshold = total_days / 3
+    worked_days = len(selected_dates)
+    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
 
 
 
