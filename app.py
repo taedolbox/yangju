@@ -1,29 +1,25 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json # JavaScript에서 JSON 문자열을 받을 것이므로 필요합니다.
+import json
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
-# 👉 Streamlit 세션 상태 초기화: 선택된 날짜 리스트를 저장합니다.
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
 # 👉 JavaScript 컴포넌트로부터 데이터를 받을 콜백 함수
 # 이 함수는 st.components.v1.html 컴포넌트가 Python으로 값을 보낼 때 호출됩니다.
-def receive_selected_dates(selected_dates_json_str):
-    if selected_dates_json_str:
-        # JSON 문자열을 파이썬 리스트로 변환
+def receive_selected_dates(new_value): # ⭐⭐ 인자를 new_value로 받도록 수정 ⭐⭐
+    if new_value:
         try:
-            st.session_state.selected_dates_list = json.loads(selected_dates_json_str)
+            st.session_state.selected_dates_list = json.loads(new_value)
         except json.JSONDecodeError:
             st.error("날짜 데이터 형식이 올바르지 않습니다.")
             st.session_state.selected_dates_list = []
     else:
         st.session_state.selected_dates_list = []
     
-    # 디버깅을 위해 현재 선택된 날짜 목록 출력 (이 부분은 나중에 제거해도 됩니다)
-    # st.write(f"Python (receive_selected_dates)에서 수신: {st.session_state.selected_dates_list}")
-
+    # st.write(f"Python (receive_selected_dates)에서 수신: {st.session_state.selected_dates_list}") # 디버깅용
 
 # 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
@@ -75,7 +71,6 @@ for ym, dates in calendar_groups.items():
     for date in dates:
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
-        # 현재 선택된 날짜인지 확인하여 'selected' 클래스 추가 (Python 세션 상태 기반)
         is_selected = " selected" if date_str in st.session_state.selected_dates_list else ""
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
@@ -158,7 +153,6 @@ h4 {
 </style>
 
 <script>
-// Streamlit 컴포넌트 API 로드 (필수)
 const streamlit = window.parent.Streamlit;
 
 function toggleDate(element) {
@@ -172,9 +166,7 @@ function toggleDate(element) {
         }
     }
 
-    // ⭐⭐⭐ 중요: st.text_input을 사용하지 않고 직접 Streamlit에 값을 전달합니다. ⭐⭐⭐
-    // Streamlit.setComponentValue(value)를 사용하면 Python의 컴포넌트 호출에 값이 전달됩니다.
-    // 여기서는 선택된 날짜 리스트를 JSON 문자열로 변환하여 보냅니다.
+    // Streamlit.setComponentValue로 Python에 선택된 날짜 리스트를 JSON 문자열로 전달
     streamlit.setComponentValue(JSON.stringify(selected));
 
     console.log("JS: Streamlit component value updated to:", selected.join(',')); // 디버깅용
@@ -183,7 +175,14 @@ function toggleDate(element) {
 }
 
 window.onload = function() {
-    // 초기 로드 시 선택된 날짜 텍스트를 업데이트하여 달력에 반영
+    // 초기 로드 시 Streamlit이 컴포넌트에 default 값을 전달했을 경우,
+    // 그 값에 따라 달력의 초기 선택 상태를 반영합니다.
+    // Streamlit 컴포넌트의 초기값을 읽어오기 위한 약간의 트릭 (Streamlit JS API에 직접 접근)
+    // 이 부분은 Streamlit 버전이나 내부 구현에 따라 작동 방식이 달라질 수 있습니다.
+    // 안정성을 위해 Python의 selected_dates_list를 기반으로 HTML을 생성하는 방식이 더 좋습니다.
+    // 현재 코드에서는 Python에서 is_selected를 통해 초기 상태를 반영하고 있으므로 이 JS 로직은 불필요할 수 있습니다.
+    // 하지만 만약을 대비해 둡니다.
+
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     if (currentSelectedTextElement) {
         const currentSelectedText = currentSelectedTextElement.innerText;
@@ -206,33 +205,24 @@ window.onload = function() {
 """
 
 # Streamlit 컴포넌트 렌더링
-# st.components.v1.html의 두 번째 인자로 key와 default를 넘겨주면,
-# JavaScript의 streamlit.setComponentValue로 전송된 값이 Python의 이 컴포넌트 호출로 돌아옵니다.
-# on_change 대신 이 컴포넌트 자체가 변경 감지 역할을 합니다.
-# initial_value는 컴포넌트가 처음 로드될 때 JavaScript로 전달될 값입니다.
-# Python의 selected_dates_list를 JSON 문자열로 변환하여 전달합니다.
+# on_change 콜백을 receive_selected_dates 함수 자체로 연결
 component_value = st.components.v1.html(
     calendar_html,
     height=600,
     scrolling=True,
-    key="calendar_component", # 컴포넌트 고유 키
-    on_change=lambda: receive_selected_dates(st.session_state["calendar_component"]), # 컴포넌트 값이 변경되면 콜백 호출
-    default=json.dumps(st.session_state.selected_dates_list) # 초기값
+    key="calendar_component",
+    on_change=receive_selected_dates, # ⭐⭐ 함수 이름만 전달 ⭐⭐
+    default=json.dumps(st.session_state.selected_dates_list)
 )
-
-# 이 부분은 실제 컴포넌트가 값을 반환했을 때 (콜백 호출 시) 사용됩니다.
-# 하지만 on_change 콜백으로 직접 처리하고 있으므로, 이 변수를 직접 사용할 필요는 없습니다.
-# 다만, 컴포넌트의 반환값이 필요한 경우 사용할 수 있습니다.
-# st.write(f"컴포넌트 최종 반환 값: {component_value}") # 디버깅용
 
 # 결과 계산 버튼
 if st.button("결과 계산"):
-    # st.session_state.selected_dates_list는 이미 receive_selected_dates 함수에 의해 최신화되어 있습니다.
+    # selected_dates_list는 receive_selected_dates 함수에 의해 최신화되어 있습니다.
     selected_dates = st.session_state.selected_dates_list
 
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected_dates) # 이제 이 부분이 올바르게 카운트될 것입니다.
+    worked_days = len(selected_dates)
 
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
