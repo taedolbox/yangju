@@ -25,41 +25,43 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 폼을 사용하여 데이터 동기화
-with st.form(key="calendar_form"):
-    # 숨겨진 입력 필드
-    selected_dates_input = st.text_input(
-        label="선택한 날짜 (숨김)",
-        value=",".join(st.session_state.selected_dates_list),
-        key="text_input_for_js_communication",
-        disabled=True
-    )
-    submit_button = st.form_submit_button("날짜 업데이트")
+# 세션 상태 업데이트 함수
+def update_selected_dates_from_input():
+    if st.session_state.text_input_for_js_communication:
+        st.session_state.selected_dates_list = list(
+            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
+        )
+    else:
+        st.session_state.selected_dates_list = []
+    # 디버깅 로그
+    st.write("디버깅: text_input_for_js_communication 값:", st.session_state.text_input_for_js_communication)
+    st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
-    # 폼 제출 시 세션 상태 업데이트
-    if submit_button:
-        if selected_dates_input:
-            st.session_state.selected_dates_list = list(
-                set(filter(None, selected_dates_input.split(',')))
-            )
-        else:
-            st.session_state.selected_dates_list = []
-        st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
+# Streamlit 입력 필드
+st.text_input(
+    label="선택한 날짜 (숨김)",
+    value=",".join(st.session_state.selected_dates_list),
+    key="text_input_for_js_communication",
+    on_change=update_selected_dates_from_input,
+    help="이 필드는 달력과 Python 간의 통신용입니다."
+)
 
-# CSS (입력 필드 숨김)
+# CSS로 입력 필드 숨김
 st.markdown("""
 <style>
-div[data-testid="stForm"] input {
+input[aria-label="선택한 날짜 (숨김)"] {
     display: none !important;
 }
-div[data-testid="stForm"] label {
+label[for="text_input_for_js_communication"] {
     display: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # 달력 HTML 생성
-calendar_html = ""
+calendar_html = """
+<div id="calendar-container">
+"""
 for ym, dates in calendar_groups.items():
     year = ym.split("-")[0]
     month = ym.split("-")[1]
@@ -88,6 +90,7 @@ for ym, dates in calendar_groups.items():
     calendar_html += "</div>"
 
 calendar_html += """
+</div>
 <p id="selectedDatesText"></p>
 <style>
 .calendar {
@@ -163,19 +166,19 @@ function toggleDate(element) {
     }
     // Streamlit 입력 필드 찾기
     const streamlitInput = window.parent.document.querySelector('input[aria-label="선택한 날짜 (숨김)"]');
-    const form = streamlitInput ? streamlitInput.closest('form') : null;
-    const submitButton = form ? form.querySelector('button') : null;
-    
-    if (streamlitInput && form && submitButton) {
+    if (streamlitInput) {
         streamlitInput.value = selected.join(',');
+        // input, change, blur 이벤트를 모두 트리거
+        const events = ['input', 'change', 'blur'];
+        events.forEach(eventType => {
+            const event = new Event(eventType, { bubbles: true });
+            streamlitInput.dispatchEvent(event);
+        });
         console.log("JS: Streamlit input updated to:", selected.join(','));
-        // 폼 제출 버튼 클릭
-        submitButton.click();
     } else {
-        console.error("JS: Streamlit input, form, or submit button not found!");
-        console.error("Input found:", !!streamlitInput, "Form found:", !!form, "Button found:", !!submitButton);
+        console.error("JS: Streamlit input not found!");
     }
-    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
+    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
 
 window.onload = function() {
@@ -197,8 +200,8 @@ window.onload = function() {
 </script>
 """
 
-# iframe 샌드박스 설정 명시적으로 지정
-st.components.v1.html(calendar_html, height=600, scrolling=True)
+# iframe 샌드박스 설정 조정
+st.components.v1.html(calendar_html, height=600, scrolling=True, iframe_attrs={"sandbox": "allow-scripts allow-same-origin"})
 
 # 결과 계산 버튼
 if st.button("결과 계산"):
