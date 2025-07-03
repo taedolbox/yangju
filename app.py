@@ -2,144 +2,104 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 
-st.title("달력 선택 (JS 내 선택 후 복사/붙여넣기 방식)")
+st.set_page_config(layout="centered")
 
-input_date = st.date_input("기준 날짜 선택", datetime.today())
+st.title("직관적인 달력 선택기")
 
-first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-last_day = input_date
+# 1️⃣ 기준 날짜 입력
+today = datetime.today()
+base_date = st.date_input("📅 기준 날짜 선택", today)
 
-cal_dates = []
+# 2️⃣ 달력 범위 계산
+first_day_prev_month = (base_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+last_day = base_date
+
+dates = []
 cur = first_day_prev_month
 while cur <= last_day:
-    cal_dates.append(cur)
+    dates.append(cur)
     cur += timedelta(days=1)
 
+# 3️⃣ 달력 HTML + JS
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
 calendar_html = """
 <style>
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 40px);
-  grid-gap: 5px;
-  margin-top: 20px;
-}
-.day-header {
-  font-weight: bold;
-  text-align: center;
-  background: #eee;
-  border-radius: 5px;
-  line-height: 40px;
-  height: 40px;
-}
-.day {
-  text-align: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  line-height: 40px;
-  cursor: pointer;
-  user-select: none;
-  background-color: #a0d468;
-}
-.day.selected {
-  background-color: #2196F3;
-  color: white;
-  border: 2px solid #2196F3;
-  font-weight: bold;
-}
-.empty-day {
-  border: none;
-}
-#selectedCount {
-  margin-top: 10px;
-  font-weight: bold;
-}
-#selectedDatesJson {
-  margin-top: 15px;
-  width: 100%;
-}
-button {
-  margin-top: 10px;
-  padding: 5px 10px;
-  font-weight: bold;
-}
+.calendar { display: grid; grid-template-columns: repeat(7, 40px); gap: 5px; }
+.day-header { font-weight: bold; text-align: center; background: #ddd; border-radius: 5px; height: 40px; line-height: 40px; }
+.day { text-align: center; border: 1px solid #999; border-radius: 5px; height: 40px; line-height: 40px; cursor: pointer; }
+.day.selected { background: #2c91f7; color: white; font-weight: bold; }
 </style>
 
 <div class="calendar">
 """
 
-for d in days_of_week:
-    calendar_html += f'<div class="day-header">{d}</div>'
+for day in days_of_week:
+    calendar_html += f'<div class="day-header">{day}</div>'
 
+# 빈 칸
 start_offset = (first_day_prev_month.weekday() + 1) % 7
 for _ in range(start_offset):
-    calendar_html += '<div class="empty-day"></div>'
+    calendar_html += '<div></div>'
 
-for d in cal_dates:
+for d in dates:
     date_str = d.strftime("%Y-%m-%d")
-    calendar_html += f'<div class="day" data-date="{date_str}">{d.day}</div>'
+    calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
+
+calendar_html += "</div>"
 
 calendar_html += """
-</div>
-<div id="selectedCount">선택된 날짜 수: 0</div>
-<textarea id="selectedDatesJson" rows="3" placeholder="선택된 날짜 JSON이 여기에 표시됩니다. 이 값을 복사해서 아래 입력란에 붙여넣으세요." readonly></textarea>
-<button id="copyBtn">선택 날짜 복사</button>
+<br>
+<button onclick="copyDates()">📋 선택된 날짜 복사</button>
+<pre id="resultArea">[]</pre>
 
 <script>
-const calendar = document.querySelector('.calendar');
-const selectedDates = new Set();
+let selected = [];
 
-function updateSelectedCount() {
-    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
-    document.getElementById("selectedDatesJson").value = JSON.stringify(Array.from(selectedDates));
+function toggleDate(el) {
+  const date = el.getAttribute("data-date");
+  if (selected.includes(date)) {
+    selected = selected.filter(d => d !== date);
+    el.classList.remove("selected");
+  } else {
+    selected.push(date);
+    el.classList.add("selected");
+  }
+  document.getElementById("resultArea").textContent = JSON.stringify(selected, null, 2);
 }
 
-calendar.addEventListener('click', (e) => {
-    const target = e.target;
-    if(target.classList.contains('day')) {
-        const date = target.getAttribute('data-date');
-        if(selectedDates.has(date)) {
-            selectedDates.delete(date);
-            target.classList.remove('selected');
-        } else {
-            selectedDates.add(date);
-            target.classList.add('selected');
-        }
-        updateSelectedCount();
-    }
-});
-
-document.getElementById('copyBtn').onclick = () => {
-    const textarea = document.getElementById('selectedDatesJson');
-    textarea.select();
-    document.execCommand('copy');
-    alert('선택된 날짜가 복사되었습니다. 아래 입력란에 붙여넣기 하세요.');
+function copyDates() {
+  const text = document.getElementById("resultArea").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("복사되었습니다! 붙여넣기 해주세요!");
+  });
 }
 </script>
 """
 
-import streamlit.components.v1 as components
+st.components.v1.html(calendar_html, height=600, scrolling=False)
 
-components.html(calendar_html, height=480, scrolling=False)
+# 4️⃣ 선택된 JSON 붙여넣기
+st.subheader("✅ 선택된 날짜 JSON 붙여넣기")
+selected_json = st.text_area("📋 복사한 JSON을 여기에 붙여넣기", height=100)
 
-selected_dates_input = st.text_area("선택된 날짜 JSON 붙여넣기", "", help="위에서 복사한 JSON을 여기에 붙여넣으세요.")
+if selected_json:
+    try:
+        selected_list = json.loads(selected_json)
+        st.write("🔎 선택된 날짜:", selected_list)
+        st.write("✅ 선택된 날짜 수:", len(selected_list))
 
-try:
-    selected_dates = json.loads(selected_dates_input)
-except Exception:
-    selected_dates = []
+        # 조건 계산
+        total_days = len(dates)
+        threshold = total_days / 3
+        worked_days = len(selected_list)
+        st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
 
-st.write(f"선택된 날짜: {selected_dates}")
-st.write(f"선택된 날짜 수: {len(selected_dates)}")
+        if worked_days < threshold:
+            st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
+        else:
+            st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
 
-# 조건 계산 예
-total_days = len(cal_dates)
-threshold = total_days / 3
-worked_days = len(selected_dates)
+    except Exception as e:
+        st.error(f"❌ JSON 파싱 오류: {e}")
 
-st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-if worked_days < threshold:
-    st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
-else:
-    st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
