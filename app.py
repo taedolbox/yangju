@@ -72,7 +72,6 @@ calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
 fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
 fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
-# f-string 내 # 문자를 별도 문자열로 분리
 calendar_html = """
 <div id="calendar-container">
 """
@@ -108,6 +107,11 @@ calendar_html += """
 <p id="selectedDatesText"></p>
 <div id="resultContainer"></div>
 <style>
+#calendar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .calendar {
     display: grid;
     grid-template-columns: repeat(7, 40px);
@@ -168,6 +172,8 @@ h4 {
     margin-top: 15px;
     font-size: 0.9em;
     color: #666;
+    width: 310px;
+    text-align: center;
 }
 #resultContainer {
     width: 310px;
@@ -315,8 +321,8 @@ window.addEventListener('message', function(event) {
 </script>
 """
 
-# st.components.v1.html 호출
-st.components.v1.html(calendar_html, height=800, scrolling=True)
+# st.components.v1.html 호출 (스크롤바 제거)
+st.components.v1.html(calendar_html, scrolling=False)
 
 # localStorage 폴링 (디버깅용)
 st.markdown("""
