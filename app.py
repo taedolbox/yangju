@@ -37,22 +37,28 @@ def update_selected_dates_from_input():
     st.write("디버깅: text_input_for_js_communication 값:", st.session_state.text_input_for_js_communication)
     st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
-# Streamlit 입력 필드
-st.text_input(
-    label="선택한 날짜 (숨김)",
-    value=",".join(st.session_state.selected_dates_list),
-    key="text_input_for_js_communication",
-    on_change=update_selected_dates_from_input,
-    help="이 필드는 달력과 Python 간의 통신용입니다."
-)
+# Streamlit 폼
+with st.form(key="calendar_form"):
+    st.text_input(
+        label="선택한 날짜 (숨김)",
+        value=",".join(st.session_state.selected_dates_list),
+        key="text_input_for_js_communication",
+        disabled=True,
+        help="이 필드는 달력과 Python 간의 통신용입니다."
+    )
+    submit_button = st.form_submit_button("날짜 업데이트")
 
-# CSS로 입력 필드 숨김
+    # 폼 제출 시 세션 상태 업데이트
+    if submit_button:
+        update_selected_dates_from_input()
+
+# CSS로 입력 필드와 레이블 숨김
 st.markdown("""
 <style>
-input[aria-label="선택한 날짜 (숨김)"] {
+div[data-testid="stForm"] input {
     display: none !important;
 }
-label[for="text_input_for_js_communication"] {
+div[data-testid="stForm"] label {
     display: none !important;
 }
 </style>
@@ -134,10 +140,7 @@ calendar_html += """
     color: #333;
 }
 .day:hover {
-    background-color: #f0f0f0;
-}
-.day.selected {
-    border: 2px solid #2196F3;
+    background-color: #f0f0 Ascending(1) [default]
     background-color: #2196F3;
     color: white;
     font-weight: bold;
@@ -168,7 +171,7 @@ function toggleDate(element) {
     const streamlitInput = window.parent.document.querySelector('input[aria-label="선택한 날짜 (숨김)"]');
     if (streamlitInput) {
         streamlitInput.value = selected.join(',');
-        // input, change, blur 이벤트를 모두 트리거
+        // input, change, blur 이벤트를 트리거
         const events = ['input', 'change', 'blur'];
         events.forEach(eventType => {
             const event = new Event(eventType, { bubbles: true });
@@ -178,6 +181,7 @@ function toggleDate(element) {
     } else {
         console.error("JS: Streamlit input not found!");
     }
+    // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
 
@@ -200,8 +204,8 @@ window.onload = function() {
 </script>
 """
 
-# iframe 샌드박스 설정 조정
-st.components.v1.html(calendar_html, height=600, scrolling=True, iframe_attrs={"sandbox": "allow-scripts allow-same-origin"})
+# st.components.v1.html 호출 (iframe_attrs 제거)
+st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 # 결과 계산 버튼
 if st.button("결과 계산"):
@@ -212,7 +216,8 @@ if st.button("결과 계산"):
 
     # 디버깅: 선택된 날짜 출력
     st.write("디버깅: 선택된 날짜:", selected_dates)
-    
+    st.write("디버깅: 선택된 근무일 수:", worked_days)
+
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
     fourteen_days_str = [
