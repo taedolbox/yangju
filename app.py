@@ -16,65 +16,92 @@ while cur <= input_date:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 숨긴 체크박스들을 생성 (이때 키는 날짜 문자열)
-for date in cal_dates:
-    date_str = date.strftime("%Y-%m-%d")
-    # 체크박스 숨기기 스타일 추가할 예정
-    if date_str not in st.session_state:
-        st.session_state[date_str] = False
-    st.checkbox(f"{date_str}", key=date_str, value=st.session_state[date_str], label_visibility="collapsed")
-
-# 달력 UI: 간단히 요일 + 날짜들 (기존처럼 예쁘게 바꾸셔도 됨)
-days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
-
+# 체크박스 숨김 CSS
 st.markdown("""
 <style>
-.calendar { display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px; }
-.day-header, .day { width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 5px; user-select: none; cursor: pointer; }
-.day-header { font-weight: bold; background: #eee; }
-.day { border: 1px solid #ddd; }
-.day.selected { background-color: #2196F3; color: white; font-weight: bold; border: 2px solid #2196F3; }
-.hidden-checkbox { display:none; }
+.hidden-checkbox {
+    display: none;
+}
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 40px);
+    grid-gap: 5px;
+    margin-top: 20px;
+}
+.day-header {
+    font-weight: bold;
+    text-align: center;
+    background: #eee;
+    border-radius: 5px;
+    line-height: 40px;
+    height: 40px;
+}
+.day {
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    line-height: 40px;
+    cursor: pointer;
+    user-select: none;
+}
+.day.selected {
+    background-color: #2196F3;
+    color: white;
+    border: 2px solid #2196F3;
+    font-weight: bold;
+}
+.empty-day {
+    border: none;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# 요일 출력
-cols = st.columns(7)
-for i, day in enumerate(days_of_week):
-    cols[i].markdown(f'<div class="day-header">{day}</div>', unsafe_allow_html=True)
+# 숨긴 체크박스 생성 및 상태 초기화
+for date in cal_dates:
+    date_str = date.strftime("%Y-%m-%d")
+    if date_str not in st.session_state:
+        st.session_state[date_str] = False
+    st.checkbox(label=date_str, key=date_str, value=st.session_state[date_str], label_visibility="collapsed")
 
-# 날짜 출력
+# 요일 헤더 출력
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
+st.markdown('<div class="calendar">' + "".join(f'<div class="day-header">{d}</div>' for d in days_of_week) + '</div>', unsafe_allow_html=True)
+
+# 달력 네모칸 생성
 calendar_html = '<div class="calendar">'
-start_offset = (first_day_prev_month.weekday() + 1) % 7
+start_offset = (first_day_prev_month.weekday() + 1) % 7  # 일요일 시작 기준
+
 for _ in range(start_offset):
-    calendar_html += '<div></div>'
+    calendar_html += '<div class="empty-day"></div>'
 
 for date in cal_dates:
     date_str = date.strftime("%Y-%m-%d")
-    selected = "selected" if st.session_state.get(date_str, False) else ""
-    calendar_html += f'<div class="day {selected}" onclick="toggleCheckbox(\'{date_str}\')">{date.day}</div>'
+    selected_class = "selected" if st.session_state.get(date_str, False) else ""
+    calendar_html += f'<div class="day {selected_class}" onclick="toggleCheckbox(\'{date_str}\')">{date.day}</div>'
+
 calendar_html += '</div>'
 
 st.markdown(calendar_html, unsafe_allow_html=True)
 
-# JS 스크립트: 클릭 시 해당 날짜 체크박스 토글
+# JS 스크립트: 달력 클릭 시 체크박스 상태 토글
 st.markdown("""
 <script>
-function toggleCheckbox(date_str) {
-    const cb = window.parent.document.querySelector('input[type=checkbox][data-key="' + date_str + '"]');
+function toggleCheckbox(dateStr) {
+    const cb = window.parent.document.querySelector('input[type="checkbox"][data-key="' + dateStr + '"]');
     if (cb) {
         cb.checked = !cb.checked;
         cb.dispatchEvent(new Event('change'));
-        // 화면에서 선택 표시 반영을 위해 간단히 새로고침
+        // 페이지 새로고침하여 Streamlit에 상태 반영
         window.location.reload();
     }
 }
 </script>
 """, unsafe_allow_html=True)
 
-# 선택된 날짜 카운트 및 결과 계산
+# 선택된 날짜 리스트 만들기
 selected_dates = [date.strftime("%Y-%m-%d") for date in cal_dates if st.session_state.get(date.strftime("%Y-%m-%d"), False)]
 
+# 결과 표시
 st.write(f"선택된 날짜 수: {len(selected_dates)}")
 threshold = len(cal_dates) / 3
 st.write(f"기준 (총일수의 1/3): {threshold:.1f}")
