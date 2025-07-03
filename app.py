@@ -83,15 +83,15 @@ function toggleCheckbox(dateStr) {
 
 st.components.v1.html(calendar_html, height=450, scrolling=False)
 
-# 숨겨진 체크박스들 → 파이썬 상태 연결
+st.write("🔽 체크박스 리스트 (눈에 보임)")
 selected_dates = []
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
     checked = st.checkbox(
-        label="",
+        label=date_str,
         value=False,
         key=f"cb-{date_str}",
-        label_visibility="collapsed"
+        label_visibility="visible"  # 👉 체크박스를 보이게!
     )
     if checked:
         selected_dates.append(date_str)
@@ -108,6 +108,7 @@ if st.button("결과 계산"):
         st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
     else:
         st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+
 
 
 
