@@ -4,22 +4,25 @@ import json
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
+# 세션 상태 초기화 (항상 리스트로 초기화되도록 보장)
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
 # 👉 JavaScript 컴포넌트로부터 데이터를 받을 콜백 함수
 # 이 함수는 st.components.v1.html 컴포넌트가 Python으로 값을 보낼 때 호출됩니다.
-def receive_selected_dates(new_value): # ⭐⭐ 인자를 new_value로 받도록 수정 ⭐⭐
-    if new_value:
+# Streamlit이 컴포넌트의 '새로운 값'을 첫 번째 인자로 전달합니다.
+def receive_selected_dates(new_value):
+    st.write(f"DEBUG: receive_selected_dates 콜백 호출됨. 수신 값: {new_value}") # 디버깅용
+    if new_value is not None: # None이 아닌지 명시적으로 확인
         try:
+            # JSON 문자열을 파이썬 리스트로 변환
             st.session_state.selected_dates_list = json.loads(new_value)
-        except json.JSONDecodeError:
-            st.error("날짜 데이터 형식이 올바르지 않습니다.")
+            st.write(f"DEBUG: selected_dates_list 업데이트됨: {st.session_state.selected_dates_list}") # 디버깅용
+        except json.JSONDecodeError as e:
+            st.error(f"날짜 데이터 형식이 올바르지 않습니다: {e}")
             st.session_state.selected_dates_list = []
     else:
         st.session_state.selected_dates_list = []
-    
-    # st.write(f"Python (receive_selected_dates)에서 수신: {st.session_state.selected_dates_list}") # 디버깅용
 
 # 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
@@ -71,6 +74,7 @@ for ym, dates in calendar_groups.items():
     for date in dates:
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
+        # 현재 선택된 날짜인지 확인하여 'selected' 클래스 추가 (Python 세션 상태 기반)
         is_selected = " selected" if date_str in st.session_state.selected_dates_list else ""
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
@@ -82,74 +86,16 @@ calendar_html += """
 <p id="selectedDatesText"></p>
 
 <style>
-.calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 40px);
-    grid-gap: 5px;
-    margin-bottom: 20px;
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.day-header, .empty-day {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    font-weight: bold;
-    color: #555;
-}
-
-.day-header {
-    background-color: #e0e0e0;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.empty-day {
-    background-color: transparent;
-    border: none;
-}
-
-.day {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.1s ease, border 0.1s ease;
-    font-size: 16px;
-    color: #333;
-}
-
-.day:hover {
-    background-color: #f0f0f0;
-}
-
-.day.selected {
-    border: 2px solid #2196F3;
-    background-color: #2196F3;
-    color: white;
-    font-weight: bold;
-}
-
-h4 {
-    margin: 10px 0 5px 0;
-    font-size: 1.2em;
-    color: #333;
-    text-align: center;
-}
-
-#selectedDatesText {
-    margin-top: 15px;
-    font-size: 0.9em;
-    color: #666;
-}
+/* CSS 스타일은 이전과 동일 */
+.calendar { display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px; margin-bottom: 20px; background-color: #ffffff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.day-header, .empty-day { width: 40px; height: 40px; line-height: 40px; text-align: center; font-weight: bold; color: #555; }
+.day-header { background-color: #e0e0e0; border-radius: 5px; font-size: 14px; }
+.empty-day { background-color: transparent; border: none; }
+.day { width: 40px; height: 40px; line-height: 40px; text-align: center; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none; transition: background-color 0.1s ease, border 0.1s ease; font-size: 16px; color: #333; }
+.day:hover { background-color: #f0f0f0; }
+.day.selected { border: 2px solid #2196F3; background-color: #2196F3; color: white; font-weight: bold; }
+h4 { margin: 10px 0 5px 0; font-size: 1.2em; color: #333; text-align: center; }
+#selectedDatesText { margin-top: 15px; font-size: 0.9em; color: #666; }
 </style>
 
 <script>
@@ -166,23 +112,20 @@ function toggleDate(element) {
         }
     }
 
-    // Streamlit.setComponentValue로 Python에 선택된 날짜 리스트를 JSON 문자열로 전달
+    // 선택된 날짜 리스트를 JSON 문자열로 변환하여 Python으로 직접 전달
+    // 이 호출은 Python의 receive_selected_dates 함수를 트리거합니다.
     streamlit.setComponentValue(JSON.stringify(selected));
 
-    console.log("JS: Streamlit component value updated to:", selected.join(',')); // 디버깅용
+    // 디버깅을 위해 콘솔에 로그 출력
+    console.log("JS: Streamlit component value updated to:", JSON.stringify(selected)); 
 
+    // 사용자에게 시각적으로 현재 선택된 날짜와 개수를 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }
 
 window.onload = function() {
-    // 초기 로드 시 Streamlit이 컴포넌트에 default 값을 전달했을 경우,
-    // 그 값에 따라 달력의 초기 선택 상태를 반영합니다.
-    // Streamlit 컴포넌트의 초기값을 읽어오기 위한 약간의 트릭 (Streamlit JS API에 직접 접근)
-    // 이 부분은 Streamlit 버전이나 내부 구현에 따라 작동 방식이 달라질 수 있습니다.
-    // 안정성을 위해 Python의 selected_dates_list를 기반으로 HTML을 생성하는 방식이 더 좋습니다.
-    // 현재 코드에서는 Python에서 is_selected를 통해 초기 상태를 반영하고 있으므로 이 JS 로직은 불필요할 수 있습니다.
-    // 하지만 만약을 대비해 둡니다.
-
+    // 페이지 로드 시 Streamlit 세션 상태의 초기 선택 날짜를 달력에 반영합니다.
+    // Python에서 is_selected 클래스를 이미 추가하므로 이 부분은 주로 새로고침 시 초기 상태 복원용입니다.
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     if (currentSelectedTextElement) {
         const currentSelectedText = currentSelectedTextElement.innerText;
@@ -199,25 +142,31 @@ window.onload = function() {
             }
         }
     }
+    // 페이지 로드 시 JavaScript가 초기값을 Streamlit에 보내도록 강제 (선택사항, 필요시)
+    // 이 부분을 추가하면 컴포넌트가 로드되자마자 on_change 콜백이 한 번 호출될 수 있습니다.
+    // toggleDate(null); // 모든 날짜를 재평가하므로, 초기 로드에 부적합
+    // 대신 초기 선택된 날짜들을 Streamlit에 다시 보내는 함수를 만들 수도 있습니다.
+    // 하지만 현재는 Python에서 HTML을 그릴 때 이미 selected_dates_list를 기반으로 그리고 있습니다.
 };
-
 </script>
 """
 
 # Streamlit 컴포넌트 렌더링
-# on_change 콜백을 receive_selected_dates 함수 자체로 연결
+# on_change 콜백을 receive_selected_dates 함수 자체로 연결합니다.
+# default 값은 Python의 현재 selected_dates_list를 JSON 문자열로 변환하여 전달합니다.
 component_value = st.components.v1.html(
     calendar_html,
     height=600,
     scrolling=True,
-    key="calendar_component",
-    on_change=receive_selected_dates, # ⭐⭐ 함수 이름만 전달 ⭐⭐
-    default=json.dumps(st.session_state.selected_dates_list)
+    key="calendar_component", # 이 키는 Streamlit 세션 상태에서 컴포넌트 값을 참조할 때 사용됩니다.
+    on_change=receive_selected_dates, # 컴포넌트의 값이 변경될 때 receive_selected_dates 함수가 호출됩니다.
+    default=json.dumps(st.session_state.selected_dates_list) # 컴포넌트의 초기 값으로 전달됩니다.
 )
 
 # 결과 계산 버튼
 if st.button("결과 계산"):
-    # selected_dates_list는 receive_selected_dates 함수에 의해 최신화되어 있습니다.
+    # st.session_state.selected_dates_list는 receive_selected_dates 함수에 의해 최신화되어 있습니다.
+    # 따라서 버튼 클릭 시점에는 이미 올바른 값이 반영되어 있을 것입니다.
     selected_dates = st.session_state.selected_dates_list
 
     total_days = len(cal_dates)
