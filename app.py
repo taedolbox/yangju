@@ -71,6 +71,8 @@ label[for="js_message"] {
 calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
 fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
 fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+
+# f-string 내 # 문자를 별도 문자열로 분리
 calendar_html = """
 <div id="calendar-container">
 """
@@ -101,7 +103,7 @@ for ym, dates in calendar_groups.items():
         '''
     calendar_html += "</div>"
 
-calendar_html += f"""
+calendar_html += """
 </div>
 <p id="selectedDatesText"></p>
 <div id="resultContainer"></div>
@@ -213,9 +215,9 @@ h4 {
 }
 </style>
 <script>
-const CALENDAR_DATES = {calendar_dates_json};
-const FOURTEEN_DAYS_START = "{fourteen_days_prior_start}";
-const FOURTEEN_DAYS_END = "{fourteen_days_prior_end}";
+const CALENDAR_DATES = """ + calendar_dates_json + """;
+const FOURTEEN_DAYS_START = """ + json.dumps(fourteen_days_prior_start) + """;
+const FOURTEEN_DAYS_END = """ + json.dumps(fourteen_days_prior_end) + """;
 
 // localStorage에 데이터 저장
 function saveToLocalStorage(data) {
@@ -287,7 +289,7 @@ function toggleDate(element) {
 
 window.onload = function() {
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
-    const initialDatesStr = "{','.join(st.session_state.selected_dates_list)}";
+    const initialDatesStr = """ + json.dumps(','.join(st.session_state.selected_dates_list)) + """;
     let initialSelectedArray = [];
     if (initialDatesStr && initialDatesStr.length > 0) {
         initialSelectedArray = initialDatesStr.split(',').filter(date => date);
