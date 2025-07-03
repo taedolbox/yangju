@@ -58,7 +58,7 @@ calendar_html = """
 for d in days_of_week:
     calendar_html += f'<div class="day-header">{d}</div>'
 
-# 달력 시작 공백
+# 시작 공백
 start_offset = (first_day_prev_month.weekday() + 1) % 7
 for _ in range(start_offset):
     calendar_html += '<div class="empty-day"></div>'
@@ -72,32 +72,40 @@ for d in cal_dates:
 
 calendar_html += "</div>"
 
+# JS - 체크박스 클릭 + 달력 칸 색 바꾸기
 calendar_html += """
 <script>
 function toggleCheckbox(dateStr) {
   const cb = document.getElementById("cb-" + dateStr);
-  cb.click();
+  cb.click();  // 체크박스를 클릭해서 파이썬 상태 바꿈
+
+  const dayDiv = document.getElementById("day-" + dateStr);
+  if (cb.checked) {
+    dayDiv.classList.add("selected");
+  } else {
+    dayDiv.classList.remove("selected");
+  }
 }
 </script>
 """
 
 st.components.v1.html(calendar_html, height=450, scrolling=False)
 
-st.write("🔽 체크박스 리스트 (눈에 보임)")
+# 체크박스 (숨김)
 selected_dates = []
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
     checked = st.checkbox(
-        label=date_str,
+        label="",
         value=False,
         key=f"cb-{date_str}",
-        label_visibility="visible"  # 👉 체크박스를 보이게!
+        label_visibility="collapsed"  # 👉 년월일 안 보이게
     )
     if checked:
         selected_dates.append(date_str)
 
 st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
-st.write(f"선택된 날짜 리스트: {selected_dates}")
+st.write(f"선택된 날짜: {selected_dates}")
 
 if st.button("결과 계산"):
     total_days = len(cal_dates)
@@ -105,9 +113,10 @@ if st.button("결과 계산"):
     worked_days = len(selected_dates)
     st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
     if worked_days < threshold:
-        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
+        st.success("✅ 조건 1 충족: 근무일 수 기준 미만")
     else:
-        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+        st.error("❌ 조건 1 불충족: 기준 이상")
+
 
 
 
