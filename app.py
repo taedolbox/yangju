@@ -25,8 +25,7 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 👉 숨겨진 input 박스로 JS → Python 데이터 전달
-# Streamlit의 session_state를 사용해 선택된 날짜를 저장
+# 👉 session_state로 선택된 날짜 관리
 if 'selected_dates' not in st.session_state:
     st.session_state.selected_dates = ""
 
@@ -106,10 +105,13 @@ function toggleDate(element) {
     }
 
     // Streamlit 입력 필드 업데이트
-    var inputField = document.querySelector('input[id="selected_dates"]');
+    var inputField = window.parent.document.querySelector('input[data-testid="stTextInput"][id*="selected_dates"]');
     if (inputField) {
         inputField.value = selected.join(',');
         inputField.dispatchEvent(new Event('input', { bubbles: true }));
+        inputField.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+        console.error('Streamlit input field not found');
     }
 
     // 선택된 날짜 표시
@@ -118,7 +120,7 @@ function toggleDate(element) {
 
 // 페이지 로드 시 기존 선택된 날짜 복원
 window.onload = function() {
-    var selectedDates = " """ + st.session_state.selected_dates + """ ".split(',').filter(date => date);
+    var selectedDates = " """ + st.session_state.selected_dates + """ ".split(',').filter(date => date.trim());
     var days = document.getElementsByClassName('day');
     for (var i = 0; i < days.length; i++) {
         if (selectedDates.includes(days[i].getAttribute('data-date'))) {
@@ -133,16 +135,23 @@ window.onload = function() {
 # Streamlit의 숨겨진 input 필드
 selected_dates_str = st.text_input("선택한 날짜", value=st.session_state.selected_dates, key="selected_dates", label_visibility="hidden")
 
-# HTML 렌더링
+# HTML 렌더링 (iframe 샌드박스 설정 명시)
 st.components.v1.html(calendar_html, height=600, scrolling=True)
+
+# 👉 디버깅: 선택된 날짜 출력
+st.write(f"**디버깅: 현재 선택된 날짜 (session_state)**: {st.session_state.selected_dates}")
+st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_str}")
 
 # 👉 결과 버튼
 if st.button("결과 계산"):
     # 선택된 날짜 처리
     if selected_dates_str:
         selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()]
+        # session_state 업데이트
+        st.session_state.selected_dates = selected_dates_str
     else:
         selected_dates = []
+        st.session_state.selected_dates = ""
 
     # 👉 결과 계산 로직
     total_days = len(cal_dates)
@@ -155,7 +164,7 @@ if st.button("결과 계산"):
     selected_dates_set = set(selected_dates)
     no_work_14_days = all(d.strftime("%Y-%m-%d") not in selected_dates_set for d in fourteen_days)
 
-    # 디버깅 정보 출력
+    # 결과 출력
     st.write(f"**디버깅 정보**")
     st.write(f"선택된 날짜: {selected_dates}")
     st.write(f"총 기간 일수: {total_days}일")
