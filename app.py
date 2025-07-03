@@ -15,11 +15,9 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 세션 상태 초기화
 if 'selected_dates' not in st.session_state:
     st.session_state.selected_dates = []
 
-# 달력 HTML 생성
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 calendar_html = f"""
 <style>
@@ -77,47 +75,29 @@ for d in cal_dates:
 calendar_html += "</div>"
 calendar_html += '<div id="selectedCount">선택된 날짜 수: {}</div>'.format(len(st.session_state.selected_dates))
 
-calendar_html += """
+calendar_html += f"""
 <script>
-const selectedDates = new Set(%s);
+const selectedDates = new Set({json.dumps(st.session_state.selected_dates)});
 
-function toggleDate(el) {
+function toggleDate(el) {{
     const date = el.getAttribute("data-date");
-    if(selectedDates.has(date)) {
+    if(selectedDates.has(date)) {{
         selectedDates.delete(date);
         el.classList.remove("selected");
-    } else {
+    }} else {{
         selectedDates.add(date);
         el.classList.add("selected");
-    }
+    }}
     document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
 
     // Streamlit에 선택 목록 전달
-    window.parent.postMessage({isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}, "*");
-}
+    window.parent.postMessage({{isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}}, "*");
+}}
 </script>
-""" % json.dumps(st.session_state.selected_dates)
+"""
 
-# 컴포넌트 렌더링
-st.components.v1.html(calendar_html, height=400, scrolling=False)
+st.components.v1.html(calendar_html, height=450, scrolling=False)
 
-# Streamlit 메시지 수신 (Streamlit 1.23+ 버전 필요)
-if "selectedDates" not in st.session_state:
-    st.session_state.selectedDates = []
-
-# 선택 날짜 갱신용 JS 메시지 핸들링
-def handle_js_message():
-    import streamlit.components.v1 as components
-
-    from streamlit import runtime
-    if runtime.exists():
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-        ctx = get_script_run_ctx()
-        if ctx and ctx.session_id:
-            # 아래는 Streamlit 1.23+의 message 이벤트를 처리하는 예시, 환경 따라 다를 수 있음
-            pass
-
-# 결과 계산 버튼
 if st.button("결과 계산"):
     selected = list(st.session_state.selected_dates)
     st.write(f"선택된 날짜: {selected}")
@@ -130,10 +110,3 @@ if st.button("결과 계산"):
         st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
     else:
         st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
-""" 
-
-
-
-
-
-
