@@ -5,34 +5,27 @@ import html
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
-# 세션 상태 초기화
 if "selected_dates_list" not in st.session_state:
     st.session_state.selected_dates_list = []
 
-# 기준 날짜 입력
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 직전 달 1일 계산
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 
-# 달력에 표시할 날짜 리스트 (직전 달 1일부터 input_date까지)
 cal_dates = []
 cur = first_day_prev_month
 while cur <= input_date:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 년월별 그룹화
 calendar_groups = {}
 for d in cal_dates:
     ym = d.strftime("%Y-%m")
     calendar_groups.setdefault(ym, []).append(d)
 
-# 현재 선택된 날짜 JSON 문자열 (HTML 내 삽입용으로 escape)
 selected_dates_json = json.dumps(st.session_state.selected_dates_list)
 escaped_selected_dates_json = html.escape(selected_dates_json)
 
-# 달력 HTML + CSS + JS 생성 (중괄호 이스케이프 {{}} 중요)
 calendar_html = ""
 
 for ym, dates in calendar_groups.items():
@@ -107,7 +100,6 @@ function toggleDate(element) {{{{
             selected.push(days[i].getAttribute('data-date'));
         }}}}
     }}}}
-    // Streamlit text_area에 선택 날짜 JSON 넣기
     const textarea = window.parent.document.getElementById('selected_dates_textarea');
     if (textarea) {{{{
         textarea.value = JSON.stringify(selected);
@@ -115,14 +107,13 @@ function toggleDate(element) {{{{
     }}}}
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }}}}
+
 window.onload = function() {{{{
-    // 초기 선택 날짜 텍스트 반영
     const textarea = window.parent.document.getElementById('selected_dates_textarea');
     if(textarea) {{{{
         try {{{{
             const val = JSON.parse(textarea.value || '[]');
             document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + val.join(', ') + " (총 " + val.length + "일)";
-            // 선택된 날짜 달력에 반영
             var days = document.getElementsByClassName('day');
             for (var i=0; i < days.length; i++) {{{{
                 if (val.includes(days[i].getAttribute('data-date'))) {{{{
@@ -137,10 +128,8 @@ window.onload = function() {{{{
 </script>
 """
 
-# 달력 HTML 렌더링
 st.components.v1.html(calendar_html, height=650, scrolling=True, key="calendar_component")
 
-# 선택된 날짜를 저장하는 숨겨진 텍스트 영역 (JS와 Python 간 데이터 전달 통로)
 selected_dates_json_input = st.text_area(
     label="선택된 날짜 JSON",
     value=json.dumps(st.session_state.selected_dates_list),
@@ -149,7 +138,6 @@ selected_dates_json_input = st.text_area(
     height=100,
 )
 
-# text_area의 값 파싱하여 세션 상태에 반영
 try:
     selected_dates = json.loads(selected_dates_json_input)
     if isinstance(selected_dates, list):
@@ -157,7 +145,6 @@ try:
 except Exception:
     st.session_state.selected_dates_list = []
 
-# 결과 계산 버튼과 출력
 if st.button("결과 계산"):
     total_days = len(cal_dates)
     threshold = total_days / 3
@@ -171,6 +158,7 @@ if st.button("결과 계산"):
         st.success("✅ 조건 충족: 근무일 수가 기준 미만입니다.")
     else:
         st.error("❌ 조건 불충족: 근무일 수가 기준 이상입니다.")
+
 
 
 
