@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
 # 👉 Streamlit 세션 상태 초기화: 선택된 날짜 리스트를 저장합니다.
+# 'selected_dates_list'가 세션 상태에 없으면 빈 리스트로 초기화합니다.
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
@@ -30,28 +31,31 @@ for date in cal_dates:
     calendar_groups[year_month].append(date)
 
 # 👉 JavaScript에서 전달된 문자열을 파이썬 리스트로 변환하여 세션 상태에 저장하는 콜백 함수
+# st.text_input의 값이 변경될 때마다 호출됩니다.
 def update_selected_dates_from_input():
+    # st.text_input에 설정된 key 'text_input_for_js_communication'을 통해 현재 값을 가져옵니다.
     if st.session_state.text_input_for_js_communication:
-        # 콤마로 구분된 문자열을 리스트로 변환 후 중복 제거
-        # 빈 문자열을 필터링하여 ['']과 같은 상황 방지
+        # 콤마로 구분된 문자열을 리스트로 변환 후 중복 제거 및 빈 문자열 필터링
         st.session_state.selected_dates_list = list(
             set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
         )
     else:
         st.session_state.selected_dates_list = []
 
-# 👉 숨겨진 input 박스: JavaScript가 선택한 날짜를 여기에 문자열로 씁니다.
-# key를 통해 session_state와 연결하고, on_change를 통해 리스트로 변환합니다.
-# label을 명확히 하여 data-testid 선택자가 정확히 작동하도록 합니다.
-# value는 현재 세션 상태의 날짜 리스트를 기반으로 설정하여 달력의 초기 상태와 동기화합니다.
+# 👉 숨겨진 input 박스: JavaScript가 선택한 날짜를 여기에 콤마로 구분된 문자열로 씁니다.
+# 'label'은 Streamlit이 이 input에 자동으로 'aria-label' 속성을 부여하게 합니다.
+# 'value'는 세션 상태의 현재 선택된 날짜 리스트를 기반으로 초기화됩니다.
+# 'key'는 이 위젯을 세션 상태와 연결하며, 'on_change'는 콜백 함수를 지정합니다.
 st.text_input(
-    label="선택한 날짜", # 이 라벨이 data-testid에 영향을 줍니다.
+    label="선택한 날짜", # 이 라벨이 HTML의 aria-label 속성값으로 사용됩니다.
     value=",".join(st.session_state.selected_dates_list),
     key="text_input_for_js_communication", # JavaScript에서 이 key에 해당하는 input을 찾습니다.
-    on_change=update_selected_dates_from_input,
-    # help="이 필드는 달력에서 선택된 날짜를 JavaScript에서 Python으로 전달하는 데 사용됩니다. 실제 앱에서는 숨겨집니다."
+    on_change=update_selected_dates_from_input, # 이 콜백 함수가 호출되어 selected_dates_list를 업데이트합니다.
+    help="이 필드는 달력에서 선택된 날짜를 JavaScript에서 Python으로 전달하는 데 사용됩니다. 실제 앱에서는 숨겨집니다."
 )
-# 실제 앱 배포 시에는 아래 CSS를 사용하여 이 input 박스를 숨길 수 있습니다.
+
+# 👉 CSS를 사용하여 st.text_input 위젯을 숨깁니다.
+# 개발자 도구에서 실제 data-testid와 aria-label을 확인한 후 이 주석을 해제하세요.
 st.markdown("""
 <style>
 /* Streamlit의 st.text_input 위젯을 숨깁니다 (실제 배포 시 사용) */
@@ -85,6 +89,7 @@ for ym, dates in calendar_groups.items():
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
         # 현재 선택된 날짜인지 확인하여 'selected' 클래스 추가
+        # st.session_state.selected_dates_list에 날짜 문자열이 있으면 선택된 것으로 간주합니다.
         is_selected = " selected" if date_str in st.session_state.selected_dates_list else ""
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
@@ -92,6 +97,7 @@ for ym, dates in calendar_groups.items():
 
     calendar_html += "</div>"
 
+# JavaScript 코드와 스타일 시트
 calendar_html += """
 <p id="selectedDatesText"></p>
 
@@ -146,11 +152,14 @@ function toggleDate(element) {
 
     // Streamlit hidden input으로 전달 (input box 업데이트)
     // '선택한 날짜'라는 label을 가진 input을 찾습니다.
+    // VM662 오류 발생 시, F12 개발자 도구에서 input의 실제 data-testid와 aria-label 값을 확인하여
+    // 아래 querySelector의 선택자를 정확히 수정해야 합니다. (가장 중요한 부분)
     const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInputInput"][aria-label="선택한 날짜"]');
     
     if (streamlitInput) {
         streamlitInput.value = selected.join(',');
         // input 이벤트 디스패치 (Streamlit에 변경 사항 알림)
+        // 이 이벤트를 통해 Python의 on_change 콜백이 트리거됩니다.
         streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
         console.log("JS: Streamlit input updated to:", selected.join(',')); // 디버깅용
     } else {
@@ -162,17 +171,21 @@ function toggleDate(element) {
 }
 
 // Streamlit 앱이 로드될 때 초기 선택 상태를 반영
+// (Python의 st.session_state.selected_dates_list에 기반하여 달력에 'selected' 클래스를 추가합니다)
 window.onload = function() {
-    // 초기 selectedDatesArray를 현재 텍스트에서 가져와 달력에 반영 (페이지 새로고침 시)
-    const currentSelectedText = document.getElementById('selectedDatesText').innerText;
-    if (currentSelectedText.includes("선택한 날짜:")) {
-        const initialDatesStr = currentSelectedText.split("선택한 날짜: ")[1].split(" (총")[0];
-        if (initialDatesStr.length > 0) { // 빈 문자열이 아닌 경우에만 처리
-            var initialSelectedArray = initialDatesStr.split(', ');
-            var days = document.getElementsByClassName('day');
-            for (var i = 0; i < days.length; i++) {
-                if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
-                    days[i].classList.add('selected');
+    // selectedDatesText 요소의 텍스트에서 초기 선택된 날짜 문자열을 파싱합니다.
+    const currentSelectedTextElement = document.getElementById('selectedDatesText');
+    if (currentSelectedTextElement) {
+        const currentSelectedText = currentSelectedTextElement.innerText;
+        if (currentSelectedText.includes("선택한 날짜:")) {
+            const initialDatesStr = currentSelectedText.split("선택한 날짜: ")[1]?.split(" (총")[0];
+            if (initialDatesStr && initialDatesStr.length > 0) {
+                var initialSelectedArray = initialDatesStr.split(', ');
+                var days = document.getElementsByClassName('day');
+                for (var i = 0; i < days.length; i++) {
+                    if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
+                        days[i].classList.add('selected');
+                    }
                 }
             }
         }
@@ -182,13 +195,13 @@ window.onload = function() {
 </script>
 """
 
+# Streamlit 컴포넌트 렌더링
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 # 👉 결과 버튼
 if st.button("결과 계산"):
-    # st.session_state.selected_dates_list에서 직접 값을 가져옵니다.
-    # 이 리스트는 JavaScript가 st.text_input을 업데이트하고
-    # on_change 콜백이 실행될 때마다 최신화됩니다.
+    # 이제 selected_dates는 st.session_state.selected_dates_list에서 직접 가져옵니다.
+    # 이 리스트는 JavaScript가 st.text_input을 업데이트하고 on_change 콜백이 실행될 때마다 최신화됩니다.
     selected_dates = st.session_state.selected_dates_list
 
     # 👉 결과 계산 로직
@@ -199,13 +212,14 @@ if st.button("결과 계산"):
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
     
-    # 14일 기간 내의 날짜들을 문자열 형식으로 가져옵니다.
+    # 14일 기간 내의 날짜들을 'YYYY-MM-DD' 문자열 형식으로 가져옵니다.
     fourteen_days_str = [d.strftime("%Y-%m-%d") for d in cal_dates if fourteen_days_prior_start <= d <= fourteen_days_prior_end]
     
-    # 선택된 날짜 목록을 set으로 변환하여 검색 효율성 높임
+    # 선택된 날짜 목록을 set으로 변환하여 검색 효율성을 높입니다.
     selected_dates_set = set(selected_dates)
     
     # 14일 기간 내에 선택된 근무일이 하나라도 있는지 확인합니다.
+    # 모든 14일 기간의 날짜가 selected_dates_set에 없으면 True (근무 내역 없음)
     no_work_14_days = all(d not in selected_dates_set for d in fourteen_days_str)
 
     st.write(f"총 기간 일수: {total_days}일")
