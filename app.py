@@ -1,52 +1,167 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-# 1. 기준 날짜
-base_date = st.date_input("📅 기준 날짜 선택", datetime.today())
+st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
-# 2. 달력 범위: 직전달 1일부터 기준일까지
-start = (base_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-end = base_date
+# 👉 session_state 초기화
+if "selected_dates" not in st.session_state:
+    st.session_state.selected_dates = ""
 
-dates = []
-cur = start
-while cur <= end:
-    dates.append(cur.strftime("%Y-%m-%d"))
-    cur += timedelta(days=1)
+# 👉 기준 날짜 선택
+input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 3. 연·월별 그룹화
-from collections import defaultdict
-groups = defaultdict(list)
-for d in dates:
-    ym = d[:7]  # 'YYYY-MM'
-    groups[ym].append(d)
+# 👉 달력 범위: 직전 달 초일부터 입력 날짜까지
+first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+last_day = input_date
 
-# 4. UI: multiselect로 각 그룹 선택
-st.header("📅 날짜 선택")
-selected = []
-for ym, ds in sorted(groups.items()):
-    st.subheader(f"▶ {ym}")
-    sel = st.multiselect(
-        label=f"{ym} 날짜 선택",
-        options=ds,
-        default=[],
-        key=ym  # 그룹별 고유 key
-    )
-    selected.extend(sel)
+# 👉 달력용 날짜 리스트 생성
+cal_dates = []
+current_date = first_day_prev_month
+while current_date <= last_day:
+    cal_dates.append(current_date)
+    current_date += timedelta(days=1)
 
-# 5. 결과 표시 및 계산
-st.markdown("***")
-st.write(f"✅ 선택된 날짜 수: {len(selected)}")
-st.write(selected)
+# 👉 년/월 별로 그룹화
+calendar_groups = {}
+for date in cal_dates:
+    year_month = date.strftime("%Y-%m")
+    if year_month not in calendar_groups:
+        calendar_groups[year_month] = []
+    calendar_groups[year_month].append(date)
 
-total_days = len(dates)
-threshold = total_days / 3
-worked_days = len(selected)
+# 👉 HTML + JS 달력 생성
+calendar_html = """
+<style>
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 40px);
+    grid-gap: 5px;
+    margin-bottom: 20px;
+}
 
-st.write(f"총 기간 일수: {total_days}일, 기준(1/3): {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-if worked_days < threshold:
-    st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
-else:
-    st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+.day {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+}
 
+.day:hover {
+    background-color: #eee;
+}
 
+.day.selected {
+    border: 2px solid #2196F3;
+    background-color: #2196F3;
+    color: white;
+}
+
+h4 {
+    margin: 10px 0 5px 0;
+    font-size: 18px;
+}
+</style>
+"""
+
+for ym, dates in calendar_groups.items():
+    year = ym.split("-")[0]
+    month = ym.split("-")[1]
+    calendar_html += f"""
+    <h4>{year}년 {month}월</h4>
+    <div class="calendar">
+    """
+    for date in dates:
+        day_num = date.day
+        date_str = date.strftime("%Y-%m-%d")
+        calendar_html += f'''
+        <div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
+        '''
+    calendar_html += "</div>"
+
+calendar_html += """
+<p id="selectedDatesText"></p>
+
+<script>
+function toggleDate(element) {
+    element.classList.toggle('selected');
+    var selected = [];
+    var days = document.getElementsByClassName('day');
+    for (var i = 0; i < days.length; i++) {
+        if (days[i].classList.contains('selected')) {
+            selected.push(days[i].getAttribute('data-date'));
+        }
+    }
+    // Streamlit Cloud iframe 환경 고려
+    function trySetInputValue() {
+        var inputFields = document.querySelectorAll('input[data-testid="stTextInput"], input[name="selected_dates"]') || 
+                         window.parent.document.querySelectorAll('input[data-testid="stTextInput"], input[name="selected_dates"]') || 
+                         window.top.document.querySelectorAll('input[data-testid="stTextInput"], input[name="selected_dates"]');
+        var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('name') === 'selected_dates' || input.getAttribute('data-testid') === 'stTextInput');
+        if (inputField) {
+            console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'), inputField.getAttribute('name'));
+            console.log('Setting input value to:', selected.join(','));
+            inputField.value = selected.join(',');
+            inputField.dispatchEvent(new Event('input', { bubbles: true }));
+            inputField.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log('Input field value after setting:', inputField.value);
+            return true;
+        } else {
+            console.error('Streamlit input field not found. Available inputs in current document:', Array.from(document.querySelectorAll('input')).map(input => ({
+                id: input.id,
+                dataTestid: input.getAttribute('data-testid'),
+                name: input.getAttribute('name'),
+                value: input.value
+            })));
+            console.error('Available inputs in parent document:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
+                id: input.id,
+                dataTestid: input.getAttribute('data-testid'),
+                name: input.getAttribute('name'),
+                value: input.value
+            })));
+            console.error('Available inputs in top document:', Array.from(window.top.document.querySelectorAll('input')).map(input => ({
+                id: input.id,
+                dataTestid: input.getAttribute('data-testid'),
+                name: input.getAttribute('name'),
+                value: input.value
+            })));
+            return false;
+        }
+    }
+    // 렌더링 지연 고려해 100ms 후 재시도
+    trySetInputValue() || setTimeout(trySetInputValue, 100);
+    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
+}
+
+window.onload = function() {
+    var selectedDates = " """ + st.session_state.selected_dates + """ ".split(',').filter(date => date.trim());
+    console.log('Restoring selected dates:', selectedDates);
+    var days = document.getElementsByClassName('day');
+    for (var i = 0; i < days.length; i++) {
+        if (selectedDates.includes(days[i].getAttribute('data-date'))) {
+            days[i].classList.add('selected');
+        }
+    }
+    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selectedDates.length > 0 ? selectedDates.join(', ') : "없음") + " (총 " + selectedDates.length + "일)";
+};
+</script>
+"""
+
+# HTML 렌더링
+st.components.v1.html(calendar_html, height=600, scrolling=True)
+
+# Streamlit의 숨겨진 input 필드
+selected_dates_str = st.text_input("선택한 날짜", value=st.session_state.selected_dates, key="selected_dates", placeholder="선택한 날짜를 입력하세요", label_visibility="hidden")
+
+# 👉 디버깅: 선택된 날짜 출력
+st.write(f"**디버깅: 현재 선택된 날짜 (session_state)**: {st.session_state.selected_dates}")
+st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_str}")
+
+# 👉 선택된 날짜 카운트 확인
+if st.button("선택된 날짜 확인"):
+    selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()] if selected_dates_str else []
+    st.write(f"**선택된 날짜**: {selected_dates}")
+    st.write(f"**선택한 일수**: {len(selected_dates)}일")
