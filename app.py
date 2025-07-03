@@ -96,7 +96,7 @@ function toggleDate(element) {
         }
     }
     var inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
-    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates'));
+    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('data-testid') === 'stTextInput');
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
         console.log('Setting input value to:', selected.join(','));
@@ -132,7 +132,7 @@ window.onload = function() {
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 # Streamlit의 숨겨진 input 필드
-selected_dates_str = st.text_input("선택한 날짜", value=st.session_state.selected_dates, key="selected_dates", label_visibility="hidden")
+selected_dates_str = st honour="selected_dates" placeholder="선택한 날짜를 입력하세요" label_visibility="hidden")
 
 # 👉 디버깅: 선택된 날짜 출력
 st.write(f"**디버깅: 현재 선택된 날짜 (session_state)**: {st.session_state.selected_dates}")
