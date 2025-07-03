@@ -214,39 +214,31 @@ function calculateAndDisplayResult(selected) {{
     );
     const noWork14Days = fourteenDays.every(date => !selected.includes(date));
 
-    // 조건 1 - 근무일 수가 기준 미만
     const condition1Text = workedDays < threshold 
-        ? `✅ 조건 1 충족: 근무일 수가 기준 미만입니다. (총 ${workedDays}일 / 기간 ${totalDays}일, 기준 ${threshold.toFixed(1)}일)`
-        : `❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.`;
-
-    // 조건 2 - 신청일 직전 14일간 근무내역 없음
+        ? '✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' 
+        : '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.';
     const condition2Text = noWork14Days 
-        ? `✅ 조건 2 충족: 신청일 직전 14일간 근무 기록이 없습니다.`
-        : `❌ 조건 2 불충족: 신청일 직전 14일간 근무 기록이 존재합니다.`;
-
-    // 일반일용근로자 결과: 두 조건이 모두 충족되어야 신청 가능
-    const generalWorkerText = (workedDays < threshold && noWork14Days) 
-        ? `✅ 신청 가능 수급자격 인정신청일이 속한 달의 직전 달 초일부터 신청일까지(${FOURTEEN_DAYS_START} ~ ${FOURTEEN_DAYS_END}) 근무일 수의 합이 같은 기간 총 일수의 1/3 미만으로 신청 가능합니다.`
-        : `❌ 신청 불가능`;
-
-    // 건설일용근로자 결과: 한 가지 조건만 충족해도 신청 가능
-    const constructionWorkerText = (workedDays < threshold || noWork14Days) 
-        ? `✅ 신청 가능 조건 1과 조건 2 모두 충족하여 신청 가능합니다.`
-        : `❌ 신청 불가능`;
+        ? '✅ 조건 2 충족: 신청일 직전 14일간(' + FOURTEEN_DAYS_START + ' ~ ' + FOURTEEN_DAYS_END + ') 근무내역이 없습니다.' 
+        : '❌ 조건 2 불충족: 신청일 직전 14일간(' + FOURTEEN_DAYS_START + ' ~ ' + FOURTEEN_DAYS_END + ') 내 근무기록이 존재합니다.';
+    const generalWorkerText = workedDays < threshold 
+        ? '✅ 신청 가능' 
+        : '❌ 신청 불가능';
+    const constructionWorkerText = (workedDays < threshold && noWork14Days) 
+        ? '✅ 신청 가능' 
+        : '❌ 신청 불가능';
 
     const resultHtml = [
-        `<p>총 기간 일수: ${totalDays}일</p>`,
-        `<p>기준 (총일수의 1/3): ${threshold.toFixed(1)}일</p>`,
-        `<p>선택한 근무일 수: ${workedDays}일</p>`,
-        `<p>${condition1Text}</p>`,
-        `<p>${condition2Text}</p>`,
-        `<h3>📌 최종 판단</h3>`,
-        `<p>일반일용근로자: ${generalWorkerText}</p>`,
-        `<p>건설일용근로자: ${constructionWorkerText}</p>`
+        '<p>총 기간 일수: ' + totalDays + '일</p>',
+        '<p>기준 (총일수의 1/3): ' + threshold.toFixed(1) + '일</p>',
+        '<p>선택한 근무일 수: ' + workedDays + '일</p>',
+        '<p>' + condition1Text + '</p>',
+        '<p>' + condition2Text + '</p>',
+        '<h3>📌 최종 판단</h3>',
+        '<p>일반일용근로자: ' + generalWorkerText + '</p>',
+        '<p>건설일용근로자: ' + constructionWorkerText + '</p>'
     ].join('');
-    
     document.getElementById('resultContainer').innerHTML = resultHtml;
-}
+}}
 
 function toggleDate(element) {{
     element.classList.toggle('selected');
@@ -295,5 +287,3 @@ window.addEventListener('message', function(event) {{
 
 # st.components.v1.html 호출
 st.components.v1.html(calendar_html, height=800, scrolling=False)
-
-
