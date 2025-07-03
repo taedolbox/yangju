@@ -47,8 +47,7 @@ for ym, dates in calendar_groups.items():
 
     first_day_of_month = dates[0]
     # 요일 계산 (일=0 ... 토=6)
-    start_day_offset = first_day_of_month.weekday() + 1
-    start_day_offset %= 7
+    start_day_offset = (first_day_of_month.weekday() + 1) % 7
 
     for _ in range(start_day_offset):
         calendar_html += '<div class="empty-day"></div>'
@@ -61,14 +60,16 @@ for ym, dates in calendar_groups.items():
 
     calendar_html += "</div>"
 
-# 숨겨진 input 추가 및 스타일, JS 스크립트
-calendar_html += """
-<p id="selectedDatesText">선택한 날짜: """ + ", ".join(st.session_state.selected_dates_list) + """ (총 """ + str(len(st.session_state.selected_dates_list)) + """일)</p>
+selected_dates_json = json.dumps(st.session_state.selected_dates_list)
+selected_dates_text = ", ".join(st.session_state.selected_dates_list)
+selected_dates_count = len(st.session_state.selected_dates_list)
 
-<input type="hidden" id="selectedDatesInput" name="selectedDatesInput" value='""" + json.dumps(st.session_state.selected_dates_list) + """' />
+calendar_html += f"""
+<p id="selectedDatesText">선택한 날짜: {selected_dates_text} (총 {selected_dates_count}일)</p>
+<input type="hidden" id="selectedDatesInput" name="selectedDatesInput" value='{selected_dates_json}' />
 
 <style>
-.calendar { 
+.calendar {{ 
     display: grid; 
     grid-template-columns: repeat(7, 40px); 
     grid-gap: 5px; 
@@ -77,47 +78,53 @@ calendar_html += """
     padding: 10px; 
     border-radius: 8px; 
     box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-}
-.day-header, .empty-day { 
+}}
+.day-header, .empty-day {{ 
     width: 40px; height: 40px; line-height: 40px; text-align: center; font-weight: bold; color: #555;
-}
-.day-header { background-color: #e0e0e0; border-radius: 5px; font-size: 14px;}
-.empty-day { background-color: transparent; border: none; }
-.day { 
+}}
+.day-header {{ background-color: #e0e0e0; border-radius: 5px; font-size: 14px;}}
+.empty-day {{ background-color: transparent; border: none; }}
+.day {{ 
     width: 40px; height: 40px; line-height: 40px; text-align: center; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none; transition: background-color 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
-}
-.day:hover { background-color: #f0f0f0; }
-.day.selected { border: 2px solid #2196F3; background-color: #2196F3; color: white; font-weight: bold; }
-h4 { margin: 10px 0 5px 0; font-size: 1.2em; color: #333; text-align: center; }
-#selectedDatesText { margin-top: 15px; font-size: 0.9em; color: #666; }
+}}
+.day:hover {{ background-color: #f0f0f0; }}
+.day.selected {{ border: 2px solid #2196F3; background-color: #2196F3; color: white; font-weight: bold; }}
+h4 {{ margin: 10px 0 5px 0; font-size: 1.2em; color: #333; text-align: center; }}
+#selectedDatesText {{ margin-top: 15px; font-size: 0.9em; color: #666; }}
 </style>
 
 <script>
-function toggleDate(element) {
+function toggleDate(element) {{
     element.classList.toggle('selected');
     var selected = [];
     var days = document.getElementsByClassName('day');
-    for (var i=0; i < days.length; i++) {
-        if (days[i].classList.contains('selected')) {
+    for (var i=0; i < days.length; i++) {{
+        if (days[i].classList.contains('selected')) {{
             selected.push(days[i].getAttribute('data-date'));
-        }
-    }
+        }}
+    }}
     document.getElementById('selectedDatesInput').value = JSON.stringify(selected);
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
-}
+}}
 </script>
 """
 
 # Streamlit에 HTML 렌더링
-st.components.v1.html(calendar_html, height=600, scrolling=True, key="calendar_component")
+st.components.v1.html(calendar_html, height=700, scrolling=True, key="calendar_component")
 
 # 숨겨진 input 값을 Streamlit 텍스트 입력으로 받아 세션 상태 업데이트
-selected_dates_json = st.text_input("hidden_selected_dates", value=json.dumps(st.session_state.selected_dates_list), key="hidden_selected_dates", label_visibility="collapsed")
+selected_dates_json_input = st.text_input(
+    "hidden_selected_dates",
+    value=json.dumps(st.session_state.selected_dates_list),
+    key="hidden_selected_dates",
+    label_visibility="collapsed"
+)
+
 try:
-    selected_dates = json.loads(selected_dates_json)
+    selected_dates = json.loads(selected_dates_json_input)
     if isinstance(selected_dates, list):
         st.session_state.selected_dates_list = selected_dates
-except:
+except Exception:
     st.session_state.selected_dates_list = []
 
 # 결과 계산 버튼
@@ -147,11 +154,11 @@ if st.button("결과 계산"):
 
     st.markdown("### 📌 최종 판단")
     if worked_days < threshold:
-        st.write(f"✅ 일반일용근로자: 신청 가능")
+        st.write("✅ 일반일용근로자: 신청 가능")
     else:
-        st.write(f"❌ 일반일용근로자: 신청 불가능")
+        st.write("❌ 일반일용근로자: 신청 불가능")
 
     if worked_days < threshold and no_work_14_days:
-        st.write(f"✅ 건설일용근로자: 신청 가능")
+        st.write("✅ 건설일용근로자: 신청 가능")
     else:
-        st.write(f"❌ 건설일용근로자: 신청 불가능")
+        st.write("❌ 건설일용근로자: 신청 불가능")
