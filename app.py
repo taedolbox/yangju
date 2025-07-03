@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-st.set_page_config(layout="centered")
+st.title("달력 날짜 선택 테스트")
 
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
@@ -13,89 +13,19 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-if 'selected_dates' not in st.session_state:
-    st.session_state.selected_dates = []
+# 선택 상태를 체크박스로 관리
+selected_days = []
+cols = st.columns(7)
 
-days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
+for idx, d in enumerate(cal_dates):
+    key = f"chk_{d.strftime('%Y%m%d')}"
+    # 숨김 체크박스 (실제로는 보이지만 CSS로 감출 수도 있음)
+    checked = st.checkbox(str(d.day), key=key, value=False, label_visibility="hidden")
+    if checked:
+        selected_days.append(d.strftime('%Y-%m-%d'))
+    # 달력 숫자는 그냥 표시
+    cols[idx % 7].write(d.day)
 
-calendar_html = """
-<style>
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 40px);
-  grid-gap: 5px;
-  margin-top: 20px;
-}
-.day-header {
-  font-weight: bold;
-  text-align: center;
-  background: #eee;
-  border-radius: 5px;
-  line-height: 40px;
-  height: 40px;
-}
-.day {
-  text-align: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  line-height: 40px;
-  cursor: pointer;
-  user-select: none;
-}
-.day.selected {
-  background-color: #2196F3;
-  color: white;
-  border: 2px solid #2196F3;
-  font-weight: bold;
-}
-.empty-day {
-  border: none;
-}
-#selectedCount {
-  margin-top: 10px;
-  font-weight: bold;
-}
-</style>
+st.write(f"선택된 날짜 수: {len(selected_days)}")
+st.write("선택된 날짜:", selected_days)
 
-<div class="calendar">
-"""
-
-for d in days_of_week:
-    calendar_html += f'<div class="day-header">{d}</div>'
-
-start_offset = (first_day_prev_month.weekday() + 1) % 7
-for _ in range(start_offset):
-    calendar_html += '<div class="empty-day"></div>'
-
-for d in cal_dates:
-    date_str = d.strftime("%Y-%m-%d")
-    selected_class = "selected" if date_str in st.session_state.selected_dates else ""
-    calendar_html += f'<div class="day {selected_class}" data-date="{date_str}" onclick="toggleDate(this)">{d.day}</div>'
-
-calendar_html += "</div>"
-calendar_html += f'<div id="selectedCount">선택된 날짜 수: {len(st.session_state.selected_dates)}</div>'
-
-calendar_html += f"""
-<script>
-const selectedDates = new Set({list(st.session_state.selected_dates)});
-
-function toggleDate(el) {{
-    const date = el.getAttribute("data-date");
-    if(selectedDates.has(date)) {{
-        selectedDates.delete(date);
-        el.classList.remove("selected");
-    }} else {{
-        selectedDates.add(date);
-        el.classList.add("selected");
-    }}
-    document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
-
-    // 여기에 Streamlit에 값을 전달하는 코드를 넣어야 하지만,
-    // 스트림릿에서는 직접 JS → Python 변수 전달이 제한적이라 별도 방법 필요
-}}
-</script>
-"""
-
-st.components.v1.html(calendar_html, height=450, scrolling=False)
-
-st.write(f"선택된 날짜 수 (세션 상태): {len(st.session_state.selected_dates)}")
