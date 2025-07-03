@@ -33,8 +33,9 @@ def update_selected_dates_from_input():
         )
     else:
         st.session_state.selected_dates_list = []
-    # 디버깅 로그 추가
-    st.write("디버깅: 선택된 날짜 리스트", st.session_state.selected_dates_list)
+    # 디버깅 로그: 세션 상태 확인
+    st.write("디버깅: text_input_for_js_communication 값:", st.session_state.text_input_for_js_communication)
+    st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
 # Streamlit 입력 필드
 st.text_input(
@@ -45,7 +46,7 @@ st.text_input(
     help="이 필드는 달력과 Python 간의 통신용입니다. 값이 변경되는지 확인하세요."
 )
 
-# CSS로 입력 필드 숨기기 (필요 시 주석 해제)
+# CSS (입력 필드 숨김은 주석 처리 유지)
 st.markdown("""
 <style>
 /* input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"] {
@@ -157,11 +158,13 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    // Streamlit 입력 필드 찾기 (ID가 아닌 더 안정적인 방법)
+    // Streamlit 입력 필드 찾기
     const streamlitInput = window.parent.document.querySelector('input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"]');
     if (streamlitInput) {
         streamlitInput.value = selected.join(',');
+        // input과 change 이벤트 모두 트리거
         streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
+        streamlitInput.dispatchEvent(new Event('change', { bubbles: true }));
         console.log("JS: Streamlit input updated to:", selected.join(','));
     } else {
         console.error("JS: Streamlit input element not found!");
@@ -173,7 +176,7 @@ window.onload = function() {
     const currentSelectedTextElement = document.getElementById('selectedDatesText');
     const initialDatesStr = "''' + ','.join(st.session_state.selected_dates_list) + '''";
     if (initialDatesStr && initialDatesStr.length > 0) {
-        var initialSelectedArray = initialDatesStr.split(',');
+        var initialSelectedArray = initialDatesStr.split(',').filter(date => date);
         var days = document.getElementsByClassName('day');
         for (var i = 0; i < days.length; i++) {
             if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
@@ -197,6 +200,9 @@ if st.button("결과 계산"):
     threshold = total_days / 3
     worked_days = len(selected_dates)
 
+    # 디버깅: 선택된 날짜 출력
+    st.write("디버깅: 선택된 날짜:", selected_dates)
+    
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
     fourteen_days_str = [
