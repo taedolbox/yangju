@@ -8,6 +8,7 @@ if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
 def receive_selected_dates(new_value):
+    # 이 함수는 이 테스트 단계에서는 사용되지 않지만, 정의는 유지합니다.
     st.write(f"DEBUG: receive_selected_dates 콜백 호출됨. 수신 값: {new_value}")
     if new_value is not None:
         try:
@@ -24,7 +25,7 @@ def receive_selected_dates(new_value):
         st.session_state.selected_dates_list = []
     st.write(f"DEBUG: selected_dates_list 업데이트됨: {st.session_state.selected_dates_list}")
 
-# --- (달력 데이터 준비 및 HTML 생성 로직은 이전과 동일) ---
+# --- (이전과 동일한 달력 데이터 준비 및 HTML 생성 로직) ---
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
@@ -56,7 +57,8 @@ for ym, dates in calendar_groups.items():
     for date in dates:
         day_num = date.day
         date_str = date.strftime("%Y-%m-%d")
-        is_selected = " selected" if date_str in st.session_state.selected_dates_list else "" 
+        # 이 단계에서는 is_selected 로직이 작동하지 않습니다. (default 인자가 없으므로)
+        is_selected = "" 
         calendar_html += f'''
         <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
         '''
@@ -87,90 +89,35 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    streamlit.setComponentValue(JSON.stringify(selected)); 
-    console.log("JS: Streamlit component value updated to:", JSON.stringify(selected)); 
+    // 이 단계에서는 Streamlit.setComponentValue가 작동하지 않습니다 (on_change 없음)
+    // streamlit.setComponentValue(JSON.stringify(selected)); 
+    console.log("JS: Streamlit component value (TEST) updated to:", JSON.stringify(selected)); 
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }
-window.onload = function() {
-    const currentSelectedTextElement = document.getElementById('selectedDatesText');
-    if (currentSelectedTextElement) {
-        const currentSelectedText = currentSelectedTextElement.innerText;
-        if (currentSelectedText.includes("선택한 날짜:")) {
-            const initialDatesStr = currentSelectedText.split("선택한 날짜: ")[1]?.split(" (총")[0];
-            if (initialDatesStr && initialDatesStr.length > 0) {
-                var initialSelectedArray = initialDatesStr.split(', ');
-                var days = document.getElementsByClassName('day');
-                for (var i = 0; i < days.length; i++) {
-                    if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
-                        days[i].classList.add('selected');
-                    }
-                }
-            }
-        }
-    }
-};
+window.onload = function() { /* (생략) */ }; // 초기 로드 로직은 이 단계에서 중요하지 않습니다.
 </script>
 """
 
-st.write("### 3단계: `on_change` 인자 추가 테스트 (최종)")
-st.write("이 단계에서 `TypeError`가 발생한다면, `on_change` 콜백 함수나 JavaScript의 `setComponentValue` 호출 과정에 문제가 있을 수 있습니다.")
-
-component_default_value = json.dumps(st.session_state.selected_dates_list)
+st.write("### 1단계: 최소한의 `st.components.v1.html` 호출 테스트")
+st.write("이 단계에서 `TypeError`가 발생한다면, HTML 내용 자체나 Streamlit 핵심 컴포넌트 문제일 가능성이 높습니다.")
 
 try:
-    # 모든 인자 포함 (원래 코드)
+    # `on_change`와 `default` 인자 제거
     component_value = st.components.v1.html(
         calendar_html,
         height=600,
         scrolling=True,
-        key="calendar_component", # 원래 키 사용
-        default=component_default_value,
-        on_change=receive_selected_dates # on_change 콜백 함수 추가
+        key="calendar_component_minimal" # 테스트용 새 키 사용
     )
-    st.write("✅ 최종 컴포넌트 렌더링 성공! (TypeError 없음)")
-    st.write("이제 날짜를 클릭하고 '결과 계산' 버튼을 눌러보세요.")
+    st.write("✅ 최소한의 컴포넌트 렌더링 성공! (TypeError 없음)")
+    st.write("이제 '결과 계산' 버튼을 눌러도 동작하지 않을 것입니다. 다음 단계로 진행해주세요.")
 except TypeError as e:
-    st.error(f"❌ 3단계 테스트 실패: TypeError 발생 - {e}")
-    st.stop()
+    st.error(f"❌ 1단계 테스트 실패: TypeError 발생 - {e}")
+    st.stop() # 에러 발생 시 앱 중단
 except Exception as e:
-    st.error(f"❌ 3단계 테스트 실패: 알 수 없는 에러 발생 - {e}")
+    st.error(f"❌ 1단계 테스트 실패: 알 수 없는 에러 발생 - {e}")
     st.stop()
 
-
-# --- 결과 계산 버튼 (모든 단계에서 동일) ---
-if st.button("결과 계산"):
-    selected_dates = st.session_state.selected_dates_list
-
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(selected_dates)
-
-    fourteen_days_prior_end = input_date - timedelta(days=1)
-    fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
-    
-    fourteen_days_str = [
-        d.strftime("%Y-%m-%d") for d in cal_dates
-        if fourteen_days_prior_start <= d <= fourteen_days_prior_end
-    ]
-    
-    selected_dates_set = set(selected_dates)
-    
-    no_work_14_days = all(d not in selected_dates_set for d in fourteen_days_str)
-
-    st.write(f"총 기간 일수: {total_days}일")
-    st.write(f"기준 (총일수의 1/3): {threshold:.1f}일")
-    st.write(f"선택한 근무일 수: {worked_days}일")
-
-    st.write(f"{'✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' if worked_days < threshold else '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}")
-    st.write(f"{'✅ 조건 2 충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 근무내역이 없습니다.' if no_work_14_days else '❌ 조건 2 불충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 내 근무기록이 존재합니다.'}")
-
-    st.markdown("### 📌 최종 판단")
-    if worked_days < threshold:
-        st.write(f"✅ 일반일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 일반일용근로자: 신청 불가능")
-
-    if worked_days < threshold and no_work_14_days:
-        st.write(f"✅ 건설일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 건설일용근로자: 신청 불가능")
+# --- 결과 계산 버튼 (이 단계에서는 동작하지 않음) ---
+if st.button("결과 계산 (1단계 테스트 중)"):
+    st.write("이 버튼은 1단계 테스트 중에는 동작하지 않습니다. 2단계로 진행해주세요.")
