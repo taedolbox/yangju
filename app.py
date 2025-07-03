@@ -1,12 +1,16 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
 # 세션 상태 초기화
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
+if 'js_message' not in st.session_state:
+    st.session_state.js_message = ""
 
+# 기준 날짜 입력
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
 # 달력 날짜 생성
@@ -25,17 +29,22 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 세션 상태 업데이트 및 결과 계산 함수
-def update_selected_dates_from_input():
-    if st.session_state.text_input_for_js_communication:
-        st.session_state.selected_dates_list = list(
-            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
-        )
+# JavaScript 메시지 처리 및 결과 계산 함수
+def handle_js_message():
+    if st.session_state.js_message:
+        try:
+            data = json.loads(st.session_state.js_message)
+            if isinstance(data, list):
+                st.session_state.selected_dates_list = list(set(data))
+            else:
+                st.session_state.selected_dates_list = []
+        except json.JSONDecodeError:
+            st.session_state.selected_dates_list = []
     else:
         st.session_state.selected_dates_list = []
     
     # 디버깅 로그
-    st.write("디버깅: text_input_for_js_communication 값:", st.session_state.text_input_for_js_communication)
+    st.write("디버깅: JavaScript 메시지:", st.session_state.js_message)
     st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
     # 결과 계산
@@ -66,14 +75,14 @@ def update_selected_dates_from_input():
     st.write(f"일반일용근로자: {'✅ 신청 가능' if worked_days < threshold else '❌ 신청 불가능'}")
     st.write(f"건설일용근로자: {'✅ 신청 가능' if worked_days < threshold and no_work_14_days else '❌ 신청 불가능'}")
 
-# Streamlit 입력 필드
+# JavaScript 메시지 수신용 입력 필드 (숨김)
 st.text_input(
-    label="선택한 날짜 (숨김)",
-    value=",".join(st.session_state.selected_dates_list),
-    key="text_input_for_js_communication",
-    on_change=update_selected_dates_from_input,
+    label="JavaScript 메시지 (숨김)",
+    value="",
+    key="js_message",
+    on_change=handle_js_message,
     disabled=True,
-    help="이 필드는 달력과 Python 간의 통신용입니다."
+    help="이 필드는 JavaScript와 Python 간의 통신용입니다."
 )
 
 # CSS로 입력 필드와 레이블 숨김
@@ -82,7 +91,7 @@ st.markdown("""
 input[data-testid="stTextInput"] {
     display: none !important;
 }
-label[for="text_input_for_js_communication"] {
+label[for="js_message"] {
     display: none !important;
 }
 </style>
@@ -185,6 +194,33 @@ h4 {
 }
 </style>
 <script>
+// 부모 창으로 메시지 전송
+function sendMessageToParent(data) {
+    window.parent.postMessage(JSON.stringify(data), '*');
+}
+
+// Streamlit 입력 필드 찾기 시도
+function tryUpdateInput(selected, attempts = 5, delay = 100) {
+    if (attempts <= 0) {
+        console.error("JS: Streamlit input not found after multiple attempts! Falling back to postMessage.");
+        sendMessageToParent(selected);
+        return;
+    }
+    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"][aria-label="JavaScript 메시지 (숨김)"]');
+    if (streamlitInput) {
+        streamlitInput.value = JSON.stringify(selected);
+        const events = ['input', 'change', 'blur'];
+        events.forEach(eventType => {
+            const event = new Event(eventType, { bubbles: true });
+            streamlitInput.dispatchEvent(event);
+        });
+        console.log("JS: Streamlit input updated to:", JSON.stringify(selected));
+    } else {
+        console.warn("JS: Streamlit input not found, retrying...");
+        setTimeout(() => tryUpdateInput(selected, attempts - 1, delay), delay);
+    }
+}
+
 function toggleDate(element) {
     element.classList.toggle('selected');
     var selected = [];
@@ -194,28 +230,8 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    // Streamlit 입력 필드 찾기 (타이밍 문제 해결)
-    function tryUpdateInput(attempts = 5, delay = 100) {
-        if (attempts <= 0) {
-            console.error("JS: Streamlit input not found after multiple attempts!");
-            return;
-        }
-        const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-        if (streamlitInput) {
-            streamlitInput.value = selected.join(',');
-            // input, change, blur 이벤트를 트리거
-            const events = ['input', 'change', 'blur'];
-            events.forEach(eventType => {
-                const event = new Event(eventType, { bubbles: true });
-                streamlitInput.dispatchEvent(event);
-            });
-            console.log("JS: Streamlit input updated to:", selected.join(','));
-        } else {
-            console.warn("JS: Streamlit input not found, retrying...");
-            setTimeout(() => tryUpdateInput(attempts - 1, delay), delay);
-        }
-    }
-    tryUpdateInput();
+    // 입력 필드 업데이트 시도
+    tryUpdateInput(selected);
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
@@ -236,6 +252,11 @@ window.onload = function() {
         currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
     }
 };
+
+// 부모 창으로부터 메시지 수신 (디버깅용)
+window.addEventListener('message', function(event) {
+    console.log("JS: Received message from parent:", event.data);
+});
 </script>
 """
 
