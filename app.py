@@ -25,33 +25,36 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 세션 상태 업데이트 함수
-def update_selected_dates_from_input():
-    if st.session_state.text_input_for_js_communication:
-        st.session_state.selected_dates_list = list(
-            set(filter(None, st.session_state.text_input_for_js_communication.split(',')))
-        )
-    else:
-        st.session_state.selected_dates_list = []
-    # 디버깅 로그: 세션 상태 확인
-    st.write("디버깅: text_input_for_js_communication 값:", st.session_state.text_input_for_js_communication)
-    st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
+# 폼을 사용하여 데이터 동기화
+with st.form(key="calendar_form"):
+    # 숨겨진 입력 필드
+    selected_dates_input = st.text_input(
+        label="선택한 날짜 (숨김)",
+        value=",".join(st.session_state.selected_dates_list),
+        key="text_input_for_js_communication",
+        disabled=True
+    )
+    submit_button = st.form_submit_button("날짜 업데이트")
 
-# Streamlit 입력 필드
-st.text_input(
-    label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)",
-    value=",".join(st.session_state.selected_dates_list),
-    key="text_input_for_js_communication",
-    on_change=update_selected_dates_from_input,
-    help="이 필드는 달력과 Python 간의 통신용입니다. 값이 변경되는지 확인하세요."
-)
+    # 폼 제출 시 세션 상태 업데이트
+    if submit_button:
+        if selected_dates_input:
+            st.session_state.selected_dates_list = list(
+                set(filter(None, selected_dates_input.split(',')))
+            )
+        else:
+            st.session_state.selected_dates_list = []
+        st.write("디버깅: 선택된 날짜 리스트:", st.session_state.selected_dates_list)
 
-# CSS (입력 필드 숨김은 주석 처리 유지)
+# CSS (입력 필드 숨김)
 st.markdown("""
 <style>
-/* input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"] {
+div[data-testid="stForm"] input {
     display: none !important;
-} */
+}
+div[data-testid="stForm"] label {
+    display: none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -159,15 +162,18 @@ function toggleDate(element) {
         }
     }
     // Streamlit 입력 필드 찾기
-    const streamlitInput = window.parent.document.querySelector('input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"]');
-    if (streamlitInput) {
+    const streamlitInput = window.parent.document.querySelector('input[aria-label="선택한 날짜 (숨김)"]');
+    const form = streamlitInput ? streamlitInput.closest('form') : null;
+    const submitButton = form ? form.querySelector('button') : null;
+    
+    if (streamlitInput && form && submitButton) {
         streamlitInput.value = selected.join(',');
-        // input과 change 이벤트 모두 트리거
-        streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
-        streamlitInput.dispatchEvent(new Event('change', { bubbles: true }));
         console.log("JS: Streamlit input updated to:", selected.join(','));
+        // 폼 제출 버튼 클릭
+        submitButton.click();
     } else {
-        console.error("JS: Streamlit input element not found!");
+        console.error("JS: Streamlit input, form, or submit button not found!");
+        console.error("Input found:", !!streamlitInput, "Form found:", !!form, "Button found:", !!submitButton);
     }
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
 }
@@ -183,14 +189,15 @@ window.onload = function() {
                 days[i].classList.add('selected');
             }
         }
-    }
-    if (currentSelectedTextElement) {
         currentSelectedTextElement.innerText = "선택한 날짜: " + initialDatesStr.replace(/,/g, ', ') + " (총 " + initialSelectedArray.length + "일)";
+    } else {
+        currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
     }
 };
 </script>
 """
 
+# iframe 샌드박스 설정 명시적으로 지정
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 # 결과 계산 버튼
