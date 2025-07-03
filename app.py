@@ -4,12 +4,10 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
 # 👉 session_state 초기화 (안전하게)
-# 앱 실행 초기에 session_state를 초기화하지 않고, 필요한 시점에 처리
 def initialize_session_state():
     if "selected_dates" not in st.session_state:
         st.session_state["selected_dates"] = ""
 
-# 초기화 호출 (Streamlit 렌더링 사이클 내에서 실행)
 initialize_session_state()
 
 # 👉 기준 날짜 선택
@@ -19,7 +17,7 @@ input_date = st.date_input("기준 날짜 선택", datetime.today())
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
-# 👉 달력용 날짜 리스트 생성 (년/월 구분)
+# 👉 달력용 날짜 리스트 생성
 cal_dates = []
 current_date = first_day_prev_month
 while current_date <= last_day:
@@ -50,7 +48,7 @@ calendar_html = """
     line-height: 40px;
     text-align: center;
     border: 1px solid #ddd;
-    border-plradius: 5px;
+    border-radius: 5px;
     cursor: pointer;
     user-select: none;
 }
@@ -117,10 +115,12 @@ function toggleDate(element) {
         inputField.value = selected.join(',');
         inputField.dispatchEvent(new Event('input', { bubbles: true }));
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('Input field value after setting:', inputField.value);
     } else {
         console.error('Streamlit input field not found. Available inputs:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
             id: input.id,
-            dataTestid: input.getAttribute('data-testid')
+            dataTestid: input.getAttribute('data-testid'),
+            value: input.value
         })));
     }
 
@@ -143,58 +143,23 @@ window.onload = function() {
 </script>
 """
 
-# Streamlit의 숨겨진 input 필드
-selected_dates_str = st.text_input("선택한 날짜", value=st.session_state["selected_dates"], key="selected_dates", label_visibility="hidden")
-
 # HTML 렌더링
 st.components.v1.html(calendar_html, height=600, scrolling=True)
+
+# Streamlit의 숨겨진 input 필드
+selected_dates_str = st.text_input("선택한 날짜", value=st.session_state["selected_dates"], key="selected_dates", label_visibility="hidden")
 
 # 👉 디버깅: 선택된 날짜 출력
 st.write(f"**디버깅: 현재 선택된 날짜 (session_state)**: {st.session_state['selected_dates']}")
 st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_str}")
 
-# 👉 결과 버튼
-if st.button("결과 계산"):
-    # 선택된 날짜 처리
+# 👉 선택된 날짜 카운트 확인
+if st.button("선택된 날짜 확인"):
     if selected_dates_str:
         selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()]
-        # session_state 업데이트
         st.session_state["selected_dates"] = selected_dates_str
     else:
         selected_dates = []
         st.session_state["selected_dates"] = ""
-
-    # 👉 결과 계산 로직
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(selected_dates)
-
-    fourteen_days_prior_end = input_date - timedelta(days=1)
-    fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
-    fourteen_days = [d for d in cal_dates if fourteen_days_prior_start <= d <= fourteen_days_prior_end]
-    selected_dates_set = set(selected_dates)
-    no_work_14_days = all(d.strftime("%Y-%m-%d") not in selected_dates_set for d in fourteen_days)
-
-    # 결과 출력
-    st.write(f"**디버깅 정보**")
-    st.write(f"선택된 날짜: {selected_dates}")
-    st.write(f"총 기간 일수: {total_days}일")
-    st.write(f"기준 (총일수의 1/3): {threshold:.1f}일")
-    st.write(f"선택한 근무일 수: {worked_days}일")
-    st.write(f"직전 14일간 ({fourteen_days_prior_start.strftime('%Y-%m-%d')} ~ {fourteen_days_prior_end.strftime('%Y-%m-%d')}): {'근무 없음' if no_work_14_days else '근무 있음'}")
-
-    # 조건 출력
-    st.write(f"{'✅ 조건 1 충족: 근무일 수가 기준 미만입니다.' if worked_days < threshold else '❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.'}")
-    st.write(f"{'✅ 조건 2 충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 근무내역이 없습니다.' if no_work_14_days else '❌ 조건 2 불충족: 신청일 직전 14일간(' + fourteen_days_prior_start.strftime('%Y-%m-%d') + ' ~ ' + fourteen_days_prior_end.strftime('%Y-%m-%d') + ') 내 근무기록이 존재합니다.'}")
-
-    # 최종 판단
-    st.markdown("### 📌 최종 판단")
-    if worked_days < threshold:
-        st.write(f"✅ 일반일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 일반일용근로자: 신청 불가능")
-
-    if worked_days < threshold and no_work_14_days:
-        st.write(f"✅ 건설일용근로자: 신청 가능")
-    else:
-        st.write(f"❌ 건설일용근로자: 신청 불가능")
+    st.write(f"**선택된 날짜**: {selected_dates}")
+    st.write(f"**선택한 일수**: {len(selected_dates)}일")
