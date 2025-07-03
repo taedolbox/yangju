@@ -4,11 +4,8 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
 # 👉 session_state 초기화
-def initialize_session_state():
-    if "selected_dates" not in st.session_state:
-        st.session_state.selected_dates = ""
-
-initialize_session_state()
+if "selected_dates" not in st.session_state:
+    st.session_state.selected_dates = ""
 
 # 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
@@ -98,7 +95,8 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    var inputField = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+    var inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
+    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates'));
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
         console.log('Setting input value to:', selected.join(','));
