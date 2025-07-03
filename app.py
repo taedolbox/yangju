@@ -69,6 +69,3 @@ def update_selected_dates_from_input():
         st.write(f"❌ 일반일용근로자: 신청 불가능")
     if worked_days < threshold and no_work_14_days:
         st.write(f"✅ 건설일용근로자: 신청 가능")
-ુ
-
-System: * Today's date and time is 06:12 AM KST on Friday, July 04, 2025.
