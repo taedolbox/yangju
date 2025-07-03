@@ -3,25 +3,20 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="년월 구분 다중선택 달력", layout="centered")
 
-# 👉 Streamlit 세션 상태 초기화: 선택된 날짜 리스트를 저장합니다.
 if 'selected_dates_list' not in st.session_state:
     st.session_state.selected_dates_list = []
 
-# 👉 기준 날짜 선택
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
-# 👉 달력 범위: 직전 달 초일부터 입력 날짜까지
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
-# 👉 달력용 날짜 리스트 생성 (년/월 구분)
 cal_dates = []
 current_date = first_day_prev_month
 while current_date <= last_day:
     cal_dates.append(current_date)
     current_date += timedelta(days=1)
 
-# 👉 년/월 별로 그룹화
 calendar_groups = {}
 for date in cal_dates:
     year_month = date.strftime("%Y-%m")
@@ -29,7 +24,6 @@ for date in cal_dates:
         calendar_groups[year_month] = []
     calendar_groups[year_month].append(date)
 
-# 👉 JavaScript에서 전달된 문자열을 파이썬 리스트로 변환하여 세션 상태에 저장하는 콜백 함수
 def update_selected_dates_from_input():
     if st.session_state.text_input_for_js_communication:
         st.session_state.selected_dates_list = list(
@@ -38,8 +32,9 @@ def update_selected_dates_from_input():
     else:
         st.session_state.selected_dates_list = []
 
-# 👉 이 필드가 달력 클릭 시 실시간으로 업데이트되는지 확인해야 합니다!
-# 확인 후에는 아래 CSS 주석을 해제하여 숨길 수 있습니다.
+# id="text_input_1"은 Streamlit이 이 위젯에 자동으로 부여한 ID입니다.
+# 만약 나중에 다른 st.text_input을 추가한다면 id가 변경될 수 있습니다 (예: text_input_2).
+# 이 경우 JavaScript의 getElementById 값도 함께 수정해야 합니다.
 st.text_input(
     label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)",
     value=",".join(st.session_state.selected_dates_list),
@@ -48,21 +43,19 @@ st.text_input(
     help="이 필드는 달력과 Python 간의 통신용입니다. 값이 변경되는지 확인하세요."
 )
 
-# 👉 이 CSS 주석은 모든 것이 작동하는지 확인 후 해제하세요.
 st.markdown("""
 <style>
-/* input[data-testid="stTextInputInput"][aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"] {
+/* 이 CSS는 모든 것이 작동하는지 확인 후 주석을 해제하여 숨길 수 있습니다. */
+/* input[aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"] {
     display: none !important;
 }
 div[data-testid="stTextInput"] {
     display: none !important;
-}
-*/
+} */
 </style>
 """, unsafe_allow_html=True)
 
 
-# 👉 HTML + JS 달력 생성
 calendar_html = ""
 
 for ym, dates in calendar_groups.items():
@@ -141,7 +134,7 @@ calendar_html += """
     border-radius: 5px;
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.1s ease;
+    transition: background-color 0.1s ease, border 0.1s ease;
     font-size: 16px;
     color: #333;
 }
@@ -183,27 +176,18 @@ function toggleDate(element) {
         }
     }
 
-    // ⭐⭐⭐ 이 부분을 수정해야 합니다! ⭐⭐⭐
-    // 1. Streamlit 앱 실행 후 브라우저에서 F12 (개발자 도구)를 엽니다.
-    // 2. 앱 화면의 '선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)'라는 입력 필드를 찾습니다.
-    // 3. 해당 입력 필드 위에서 마우스 오른쪽 클릭 -> '검사' (Inspect)를 선택합니다.
-    // 4. 개발자 도구의 'Elements' 탭에서 파란색으로 강조된 <input> 태그를 확인합니다.
-    // 5. 그 <input> 태그에 'data-testid="값"' 과 'aria-label="값"' 속성이 있을 것입니다.
-    // 6. 확인된 정확한 'data-testid'와 'aria-label' 값을 아래 querySelector 안의 따옴표 안에 넣어주세요.
-    //    예시: data-testid가 "stTextInputInput"이고 aria-label이 "선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"라면,
-    //    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInputInput"][aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"]');
-    //    만약 aria-label이 없는 경우, data-testid만으로도 시도해볼 수 있습니다:
-    //    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInputInput"]');
-    
-    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInputInput"][aria-label="선택한 날짜 (이 필드가 제대로 동작하는지 확인하세요)"]');
-    // ⭐⭐⭐ 여기까지 수정해야 합니다! ⭐⭐⭐
+    // ⭐⭐⭐ 여기를 `getElementById`로 수정했습니다. ⭐⭐⭐
+    // 이제 data-testid 대신 <input> 태그에 직접 붙은 id="text_input_1"을 사용합니다.
+    const streamlitInput = window.parent.document.getElementById('text_input_1'); 
+    // 만약 이 페이지에 다른 st.text_input 위젯이 추가되어 id가 'text_input_2' 등으로 바뀌면,
+    // 이 코드도 그에 맞춰 수정해야 합니다.
 
     if (streamlitInput) {
         streamlitInput.value = selected.join(',');
         streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
         console.log("JS: Streamlit input updated to:", selected.join(','));
     } else {
-        console.error("JS: Streamlit hidden input element not found! Please check data-testid and aria-label in querySelector.");
+        console.error("JS: Streamlit input element with ID 'text_input_1' not found!");
     }
 
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (총 " + selected.length + "일)";
@@ -233,15 +217,12 @@ window.onload = function() {
 
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
-# 👉 결과 버튼
 if st.button("결과 계산"):
-    # Python 코드에서는 이미 selected_dates_list를 사용하여 카운트합니다.
-    # JavaScript에서 이 리스트가 정확히 업데이트되면 카운트는 자동으로 올바르게 됩니다.
     selected_dates = st.session_state.selected_dates_list
 
     total_days = len(cal_dates)
     threshold = total_days / 3
-    worked_days = len(selected_dates) # 이 부분이 정확히 카운트됩니다.
+    worked_days = len(selected_dates)
 
     fourteen_days_prior_end = input_date - timedelta(days=1)
     fourteen_days_prior_start = fourteen_days_prior_end - timedelta(days=13)
