@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 
-st.title("달력 선택 + JS에서 날짜 관리 후 Python으로 전달")
+st.title("달력 선택 (JS 내 선택 후 복사/붙여넣기 방식)")
 
 input_date = st.date_input("기준 날짜 선택", datetime.today())
 
@@ -17,11 +17,6 @@ while cur <= last_day:
 
 days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
-# 초기 선택 날짜 상태는 빈 배열로 시작
-if "selected_dates" not in st.session_state:
-    st.session_state.selected_dates = []
-
-# 달력 HTML + JS (선택 토글 및 파란색 하이라이트)
 calendar_html = """
 <style>
 .calendar {
@@ -45,7 +40,7 @@ calendar_html = """
   line-height: 40px;
   cursor: pointer;
   user-select: none;
-  background-color: #a0d468; /* 연두색 */
+  background-color: #a0d468;
 }
 .day.selected {
   background-color: #2196F3;
@@ -60,9 +55,13 @@ calendar_html = """
   margin-top: 10px;
   font-weight: bold;
 }
-button {
+#selectedDatesJson {
   margin-top: 15px;
-  padding: 6px 12px;
+  width: 100%;
+}
+button {
+  margin-top: 10px;
+  padding: 5px 10px;
   font-weight: bold;
 }
 </style>
@@ -70,7 +69,6 @@ button {
 <div class="calendar">
 """
 
-# 요일 헤더
 for d in days_of_week:
     calendar_html += f'<div class="day-header">{d}</div>'
 
@@ -85,7 +83,8 @@ for d in cal_dates:
 calendar_html += """
 </div>
 <div id="selectedCount">선택된 날짜 수: 0</div>
-<button id="sendSelectionBtn">선택완료</button>
+<textarea id="selectedDatesJson" rows="3" placeholder="선택된 날짜 JSON이 여기에 표시됩니다. 이 값을 복사해서 아래 입력란에 붙여넣으세요." readonly></textarea>
+<button id="copyBtn">선택 날짜 복사</button>
 
 <script>
 const calendar = document.querySelector('.calendar');
@@ -93,11 +92,12 @@ const selectedDates = new Set();
 
 function updateSelectedCount() {
     document.getElementById("selectedCount").innerText = "선택된 날짜 수: " + selectedDates.size;
+    document.getElementById("selectedDatesJson").value = JSON.stringify(Array.from(selectedDates));
 }
 
 calendar.addEventListener('click', (e) => {
     const target = e.target;
-    if (target.classList.contains('day') && !target.classList.contains('day-header') && !target.classList.contains('empty-day')) {
+    if(target.classList.contains('day')) {
         const date = target.getAttribute('data-date');
         if(selectedDates.has(date)) {
             selectedDates.delete(date);
@@ -110,34 +110,35 @@ calendar.addEventListener('click', (e) => {
     }
 });
 
-document.getElementById("sendSelectionBtn").onclick = () => {
-    const selectedArray = Array.from(selectedDates);
-    // Streamlit 으로 선택된 날짜 리스트 전달
-    window.parent.postMessage({isStreamlitMessage:true, type:"selectedDates", value:selectedArray}, "*");
+document.getElementById('copyBtn').onclick = () => {
+    const textarea = document.getElementById('selectedDatesJson');
+    textarea.select();
+    document.execCommand('copy');
+    alert('선택된 날짜가 복사되었습니다. 아래 입력란에 붙여넣기 하세요.');
 }
 </script>
 """
 
 import streamlit.components.v1 as components
 
-# 달력 컴포넌트 렌더링, on_message 콜백으로 JS에서 보낸 메시지 받음
-def receive_selected_dates(msg):
-    if msg["type"] == "selectedDates":
-        st.session_state.selected_dates = msg["value"]
+components.html(calendar_html, height=480, scrolling=False)
 
-components.html(calendar_html, height=450, scrolling=False, key="calendar_component", on_message=receive_selected_dates)
+selected_dates_input = st.text_area("선택된 날짜 JSON 붙여넣기", "", help="위에서 복사한 JSON을 여기에 붙여넣으세요.")
 
-# 선택완료 버튼 클릭 후 선택된 날짜 출력
-st.write(f"선택된 날짜 (세션 상태): {st.session_state.selected_dates}")
-st.write(f"선택된 날짜 수: {len(st.session_state.selected_dates)}")
+try:
+    selected_dates = json.loads(selected_dates_input)
+except Exception:
+    selected_dates = []
 
-# 기준일수, 조건 계산 예시
+st.write(f"선택된 날짜: {selected_dates}")
+st.write(f"선택된 날짜 수: {len(selected_dates)}")
+
+# 조건 계산 예
 total_days = len(cal_dates)
 threshold = total_days / 3
-worked_days = len(st.session_state.selected_dates)
+worked_days = len(selected_dates)
 
 st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-
 if worked_days < threshold:
     st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
 else:
