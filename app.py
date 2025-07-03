@@ -13,55 +13,49 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-# 체크박스 키 생성 함수
-def checkbox_key(date):
-    return f"chk_{date.strftime('%Y%m%d')}"
+if 'selected_dates' not in st.session_state:
+    st.session_state.selected_dates = set()
 
-# CSS로 체크박스 숨기기 (모든 체크박스)
-hide_checkbox_style = """
-<style>
-    div[data-testid="stCheckbox"] > div > input[type="checkbox"] {
-        display: none;
-    }
-</style>
-"""
-st.markdown(hide_checkbox_style, unsafe_allow_html=True)
+# 클릭 시 날짜 선택/해제 처리 함수
+def toggle_date(date_str):
+    if date_str in st.session_state.selected_dates:
+        st.session_state.selected_dates.remove(date_str)
+    else:
+        st.session_state.selected_dates.add(date_str)
+
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
 # 요일 표시
-days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 cols = st.columns(7)
-for i, day in enumerate(days_of_week):
-    cols[i].markdown(f"**{day}**")
+for i, d in enumerate(days_of_week):
+    cols[i].write(f"**{d}**")
 
-# 빈 칸 처리
+# 빈칸 표시
 start_offset = (first_day_prev_month.weekday() + 1) % 7
 for _ in range(start_offset):
     st.write(" ")
 
-# 달력과 체크박스 그리기
+# 날짜 출력 및 선택 상태 표시
 cols = st.columns(7)
-selected_dates = []
-
 for idx, d in enumerate(cal_dates):
     col = cols[idx % 7]
-    key = checkbox_key(d)
-    checked = col.checkbox(str(d.day), key=key)
-    if checked:
-        selected_dates.append(d.strftime("%Y-%m-%d"))
+    date_str = d.strftime("%Y-%m-%d")
+    selected = date_str in st.session_state.selected_dates
+    style = (
+        "background-color: #2196F3; color: white; font-weight: bold; border-radius: 5px; "
+        if selected else
+        "border: 1px solid #ddd; border-radius: 5px; cursor: pointer;"
+    )
 
-st.write(f"✅ 선택된 날짜: {selected_dates}")
-st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
+    # 버튼 대신 streamlit 버튼으로 처리 (버튼 누르면 선택 토글)
+    if col.button(str(d.day), key=date_str):
+        toggle_date(date_str)
+        st.experimental_rerun()  # 즉시 UI 갱신
 
-if st.button("결과 계산"):
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(selected_dates)
-    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-    if worked_days < threshold:
-        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
-    else:
-        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
+    # 하지만 버튼 스타일 제어가 제한되어 있어
+    # 스타일을 바로 적용하려면 st.markdown + HTML + JS가 필요함
 
-
-
+# 선택된 날짜 출력
+st.write(f"✅ 선택된 날짜: {sorted(st.session_state.selected_dates)}")
+st.write(f"✅ 선택된 날짜 수: {len(st.session_state.selected_dates)}")
 
