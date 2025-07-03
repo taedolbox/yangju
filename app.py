@@ -69,3 +69,173 @@ def update_selected_dates_from_input():
         st.write(f"❌ 일반일용근로자: 신청 불가능")
     if worked_days < threshold and no_work_14_days:
         st.write(f"✅ 건설일용근로자: 신청 가능")
+    else:
+        st.write(f"❌ 건설일용근로자: 신청 불가능")
+
+# Streamlit 입력 필드
+st.text_input(
+    label="선택한 날짜 (숨김)",
+    value=",".join(st.session_state.selected_dates_list),
+    key="text_input_for_js_communication",
+    on_change=update_selected_dates_from_input,
+    disabled=True,
+    help="이 필드는 달력과 Python 간의 통신용입니다."
+)
+
+# CSS로 입력 필드와 레이블 숨김
+st.markdown("""
+<style>
+input[aria-label="선택한 날짜 (숨김)"] {
+    display: none !important;
+}
+label[for="text_input_for_js_communication"] {
+    display: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# 달력 HTML 생성
+calendar_html = """
+<div id="calendar-container">
+"""
+for ym, dates in calendar_groups.items():
+    year = ym.split("-")[0]
+    month = ym.split("-")[1]
+    calendar_html += f"""
+    <h4>{year}년 {month}월</h4>
+    <div class="calendar">
+        <div class="day-header">일</div>
+        <div class="day-header">월</div>
+        <div class="day-header">화</div>
+        <div class="day-header">수</div>
+        <div class="day-header">목</div>
+        <div class="day-header">금</div>
+        <div class="day-header">토</div>
+    """
+    first_day_of_month = dates[0]
+    start_day_offset = (first_day_of_month.weekday() + 1) % 7
+    for _ in range(start_day_offset):
+        calendar_html += '<div class="empty-day"></div>'
+    for date in dates:
+        day_num = date.day
+        date_str = date.strftime("%Y-%m-%d")
+        is_selected = " selected" if date_str in st.session_state.selected_dates_list else ""
+        calendar_html += f'''
+        <div class="day{is_selected}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>
+        '''
+    calendar_html += "</div>"
+
+calendar_html += """
+</div>
+<p id="selectedDatesText"></p>
+<style>
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 40px);
+    grid-gap: 5px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.day-header, .empty-day {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-weight: bold;
+    color: #555;
+}
+.day-header {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+}
+.empty-day {
+    background-color: transparent;
+    border: none;
+}
+.day {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.1s ease, border 0.1s ease;
+    font-size: 16px;
+    color: #333;
+}
+.day:hover {
+    background-color: #f0f0f0;
+}
+.day.selected {
+    border: 2px solid #2196F3;
+    background-color: #2196F3;
+    color: white;
+    font-weight: bold;
+}
+h4 {
+    margin: 10px 0 5px 0;
+    font-size: 1.2em;
+    color: #333;
+    text-align: center;
+}
+#selectedDatesText {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #666;
+}
+</style>
+<script>
+function toggleDate(element) {
+    element.classList.toggle('selected');
+    var selected = [];
+    var days = document.getElementsByClassName('day');
+    for (var i = 0; i < days.length; i++) {
+        if (days[i].classList.contains('selected')) {
+            selected.push(days[i].getAttribute('data-date'));
+        }
+    }
+    // Streamlit 입력 필드 찾기 (쿼리 최적화)
+    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"][aria-label="선택한 날짜 (숨김)"]');
+    if (streamlitInput) {
+        streamlitInput.value = selected.join(',');
+        // input, change, blur 이벤트를 트리거
+        const events = ['input', 'change', 'blur'];
+        events.forEach(eventType => {
+            const event = new Event(eventType, { bubbles: true });
+            streamlitInput.dispatchEvent(event);
+        });
+        console.log("JS: Streamlit input updated to:", selected.join(','));
+    } else {
+        console.error("JS: Streamlit input not found!");
+    }
+    // 하단에 선택된 날짜와 카운트 표시
+    document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
+}
+
+window.onload = function() {
+    const currentSelectedTextElement = document.getElementById('selectedDatesText');
+    const initialDatesStr = "''' + ','.join(st.session_state.selected_dates_list) + '''";
+    if (initialDatesStr && initialDatesStr.length > 0) {
+        var initialSelectedArray = initialDatesStr.split(',').filter(date => date);
+        var days = document.getElementsByClassName('day');
+        for (var i = 0; i < days.length; i++) {
+            if (initialSelectedArray.includes(days[i].getAttribute('data-date'))) {
+                days[i].classList.add('selected');
+            }
+        }
+        currentSelectedTextElement.innerText = "선택한 날짜: " + initialDatesStr.replace(/,/g, ', ') + " (총 " + initialSelectedArray.length + "일)";
+    } else {
+        currentSelectedTextElement.innerText = "선택한 날짜: 없음 (총 0일)";
+    }
+};
+</script>
+"""
+
+# st.components.v1.html 호출
+st.components.v1.html(calendar_html, height=600, scrolling=True)
