@@ -95,7 +95,8 @@ function toggleDate(element) {
             selected.push(days[i].getAttribute('data-date'));
         }
     }
-    var inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
+    // Streamlit Cloud의 iframe 환경 고려
+    var inputFields = document.querySelectorAll('input[data-testid="stTextInput"]') || window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
     var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('data-testid') === 'stTextInput');
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
@@ -105,7 +106,12 @@ function toggleDate(element) {
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
         console.log('Input field value after setting:', inputField.value);
     } else {
-        console.error('Streamlit input field not found. Available inputs:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
+        console.error('Streamlit input field not found. Available inputs:', Array.from(document.querySelectorAll('input')).map(input => ({
+            id: input.id,
+            dataTestid: input.getAttribute('data-testid'),
+            value: input.value
+        })));
+        console.error('Parent document inputs:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
             id: input.id,
             dataTestid: input.getAttribute('data-testid'),
             value: input.value
@@ -132,7 +138,7 @@ window.onload = function() {
 st.components.v1.html(calendar_html, height=600, scrolling=True)
 
 # Streamlit의 숨겨진 input 필드
-selected_dates_str = st honour="selected_dates" placeholder="선택한 날짜를 입력하세요" label_visibility="hidden")
+selected_dates_str = st.text_input("선택한 날짜", value=st.session_state.selected_dates, key="selected_dates", placeholder="선택한 날짜를 입력하세요", label_visibility="hidden")
 
 # 👉 디버깅: 선택된 날짜 출력
 st.write(f"**디버깅: 현재 선택된 날짜 (session_state)**: {st.session_state.selected_dates}")
