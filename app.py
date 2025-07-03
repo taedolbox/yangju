@@ -196,17 +196,18 @@ h4 {
 <script>
 // 부모 창으로 메시지 전송
 function sendMessageToParent(data) {
+    console.log("JS: Sending message to parent:", JSON.stringify(data));
     window.parent.postMessage(JSON.stringify(data), '*');
 }
 
 // Streamlit 입력 필드 찾기 시도
-function tryUpdateInput(selected, attempts = 5, delay = 100) {
+function tryUpdateInput(selected, attempts = 10, delay = 200) {
     if (attempts <= 0) {
         console.error("JS: Streamlit input not found after multiple attempts! Falling back to postMessage.");
         sendMessageToParent(selected);
         return;
     }
-    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"][aria-label="JavaScript 메시지 (숨김)"]');
+    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
     if (streamlitInput) {
         streamlitInput.value = JSON.stringify(selected);
         const events = ['input', 'change', 'blur'];
@@ -232,6 +233,8 @@ function toggleDate(element) {
     }
     // 입력 필드 업데이트 시도
     tryUpdateInput(selected);
+    // 항상 postMessage로 데이터 전송
+    sendMessageToParent(selected);
     // 하단에 선택된 날짜와 카운트 표시
     document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + (selected.length > 0 ? selected.join(', ') : "없음") + " (총 " + selected.length + "일)";
 }
@@ -262,3 +265,28 @@ window.addEventListener('message', function(event) {
 
 # st.components.v1.html 호출
 st.components.v1.html(calendar_html, height=600, scrolling=True)
+
+# JavaScript 메시지 수신 처리
+st.markdown("""
+<script>
+window.addEventListener('message', function(event) {
+    try {
+        const data = JSON.parse(event.data);
+        const input = document.querySelector('input[data-testid="stTextInput"]');
+        if (input) {
+            input.value = JSON.stringify(data);
+            const events = ['input', 'change', 'blur'];
+            events.forEach(eventType => {
+                const event = new Event(eventType, { bubbles: true });
+                input.dispatchEvent(event);
+            });
+            console.log("Python: Streamlit input updated from message:", JSON.stringify(data));
+        } else {
+            console.error("Python: Streamlit input not found for message!");
+        }
+    } catch (e) {
+        console.error("Python: Failed to parse message:", event.data);
+    }
+});
+</script>
+""", unsafe_allow_html=True)
