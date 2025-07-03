@@ -1,13 +1,10 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json
 
 st.set_page_config(layout="centered")
 
-if 'selected_dates' not in st.session_state:
-    st.session_state.selected_dates = []
-
 input_date = st.date_input("기준 날짜 선택", datetime.today())
+
 first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
 last_day = input_date
 
@@ -17,21 +14,16 @@ while cur <= last_day:
     cal_dates.append(cur)
     cur += timedelta(days=1)
 
-calendar_groups = {}
-for date in cal_dates:
-    ym = date.strftime("%Y-%m")
-    calendar_groups.setdefault(ym, []).append(date)
+days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
 
-calendar_html = """
+# CSS 스타일
+st.markdown("""
 <style>
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 40px);
   grid-gap: 5px;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  user-select: none;
+  margin-top: 20px;
 }
 .day-header {
   font-weight: bold;
@@ -47,9 +39,9 @@ calendar_html = """
   border-radius: 5px;
   line-height: 40px;
   cursor: pointer;
-  color: #333;
-  font-size: 16px;
-  transition: background-color 0.2s, border 0.2s;
+  user-select: none;
+  font-weight: normal;
+  color: black;
 }
 .day.selected {
   background-color: #2196F3;
@@ -60,61 +52,75 @@ calendar_html = """
 .empty-day {
   border: none;
 }
-h4 {
-  text-align: center;
-  margin: 10px 0 5px 0;
-  color: #444;
+input[type="checkbox"] {
+  display: none;
 }
 </style>
+""", unsafe_allow_html=True)
 
+# 달력 그리기 시작
+st.markdown('<div class="calendar">', unsafe_allow_html=True)
+
+# 요일 헤더
+for d in days_of_week:
+    st.markdown(f'<div class="day-header">{d}</div>', unsafe_allow_html=True)
+
+# 빈 칸
+start_offset = (first_day_prev_month.weekday() + 1) % 7
+for _ in range(start_offset):
+    st.markdown('<div class="empty-day"></div>', unsafe_allow_html=True)
+
+# 날짜별 체크박스와 달력 숫자 출력
+for d in cal_dates:
+    date_str = d.strftime("%Y-%m-%d")
+    key = f"chk_{date_str}"
+
+    # 체크박스 위젯 생성 (숨김 처리됨)
+    checked = st.checkbox(label=date_str, key=key, value=False)
+
+    # 체크박스 상태에 따라 CSS class 지정
+    selected_class = "selected" if st.session_state[key] else ""
+
+    # 체크박스 id = key로 지정하여 JS에서 제어할 수 있게 함
+    st.markdown(
+        f'''
+        <label for="{key}" class="day {selected_class}" onclick="toggleCheckbox('{key}', this)">{d.day}</label>
+        ''',
+        unsafe_allow_html=True
+    )
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# JS 스크립트로 클릭 시 체크박스 토글, 선택 상태에 따라 스타일 바꾸기
+st.markdown("""
 <script>
-const selectedDates = new Set(JSON.parse('""" + json.dumps(st.session_state.selected_dates) + """'));
+function toggleCheckbox(id, el) {
+    const checkbox = document.getElementById(id);
+    if (!checkbox) return;
 
-function toggleDate(el) {
-    const date = el.getAttribute('data-date');
-    if(selectedDates.has(date)) {
-        selectedDates.delete(date);
-        el.classList.remove('selected');
+    checkbox.checked = !checkbox.checked;
+    if(checkbox.checked) {
+        el.classList.add("selected");
     } else {
-        selectedDates.add(date);
-        el.classList.add('selected');
+        el.classList.remove("selected");
     }
-    document.getElementById('selectedCount').innerText = '선택된 날짜 수: ' + selectedDates.size;
-
-    // Python 쪽으로 선택값 전달
-    window.parent.postMessage({isStreamlitMessage: true, type: 'selectedDates', value: Array.from(selectedDates)}, '*');
-}
-
-window.onload = () => {
-    document.querySelectorAll('.day').forEach(el => {
-        if(selectedDates.has(el.getAttribute('data-date'))) {
-            el.classList.add('selected');
-        }
-    });
-    document.getElementById('selectedCount').innerText = '선택된 날짜 수: ' + selectedDates.size;
 }
 </script>
-"""
+""", unsafe_allow_html=True)
 
-for ym, dates in calendar_groups.items():
-    year, month = ym.split("-")
-    calendar_html += f"<h4>{year}년 {month}월</h4><div class='calendar'>"
-    first_day = dates[0]
-    start_offset = (first_day.weekday() + 1) % 7
-    for _ in range(start_offset):
-        calendar_html += "<div class='empty-day'></div>"
-    for d in dates:
-        date_str = d.strftime("%Y-%m-%d")
-        selected_class = "selected" if date_str in st.session_state.selected_dates else ""
-        calendar_html += f"<div class='day {selected_class}' data-date='{date_str}' onclick='toggleDate(this)'>{d.day}</div>"
-    calendar_html += "</div>"
+# 선택된 날짜 개수 계산
+selected_dates = [d.strftime("%Y-%m-%d") for d in cal_dates if st.session_state.get(f"chk_{d.strftime('%Y-%m-%d')}", False)]
+st.write(f"선택된 날짜 수: {len(selected_dates)}")
 
-calendar_html += "<div id='selectedCount' style='text-align:center; margin-top:10px;'>선택된 날짜 수: 0</div>"
+if st.button("결과 계산"):
+    total_days = len(cal_dates)
+    threshold = total_days / 3
+    worked_days = len(selected_dates)
 
-def receive_dates(msg):
-    if msg is not None and isinstance(msg, dict) and msg.get('type') == 'selectedDates':
-        st.session_state.selected_dates = msg.get('value', [])
-        st.experimental_rerun()
+    st.write(f"총 기간 일수: {total_days}일, 기준(1/3): {threshold:.1f}일, 선택된 근무일 수: {worked_days}일")
 
-st.components.v1.html(calendar_html, height=600, scrolling=True, key="cal", on_message=receive_dates)
+    if worked_days < threshold:
+        st.success("✅ 조건 1 충족: 근무일 수가 기준 미만입니다.")
+    else:
+        st.error("❌ 조건 1 불충족: 근무일 수가 기준 이상입니다.")
 
