@@ -67,55 +67,40 @@ for _ in range(start_offset):
 for d in cal_dates:
     date_str = d.strftime("%Y-%m-%d")
     calendar_html += f'''
-    <div class="day" id="day-{date_str}" onclick="toggleCheckbox('{date_str}')">{d.day}</div>
+    <div class="day" id="day-{date_str}" onclick="toggleDay('{date_str}')">{d.day}</div>
     '''
 
 calendar_html += "</div>"
 
-# JS - 체크박스 클릭 + 달력 칸 색 바꾸기
 calendar_html += """
 <script>
-function toggleCheckbox(dateStr) {
-  const cb = document.getElementById("cb-" + dateStr);
-  cb.click();  // 체크박스를 클릭해서 파이썬 상태 바꿈
+const selectedDates = new Set();
 
+function toggleDay(dateStr) {
   const dayDiv = document.getElementById("day-" + dateStr);
-  if (cb.checked) {
-    dayDiv.classList.add("selected");
-  } else {
+  if (selectedDates.has(dateStr)) {
+    selectedDates.delete(dateStr);
     dayDiv.classList.remove("selected");
+  } else {
+    selectedDates.add(dateStr);
+    dayDiv.classList.add("selected");
   }
+  // Streamlit으로 전달
+  window.parent.postMessage({isStreamlitMessage: true, type: "selectedDates", value: Array.from(selectedDates)}, "*");
 }
 </script>
 """
 
-st.components.v1.html(calendar_html, height=450, scrolling=False)
+st.components.v1.html(calendar_html, height=500, scrolling=False)
 
-# 체크박스 (숨김)
-selected_dates = []
-for d in cal_dates:
-    date_str = d.strftime("%Y-%m-%d")
-    checked = st.checkbox(
-        label="",
-        value=False,
-        key=f"cb-{date_str}",
-        label_visibility="collapsed"  # 👉 년월일 안 보이게
-    )
-    if checked:
-        selected_dates.append(date_str)
+# 선택된 날짜 받아오기
+selected_dates = st.experimental_get_query_params().get("selectedDates", [])
 
-st.write(f"✅ 선택된 날짜 수: {len(selected_dates)}")
-st.write(f"선택된 날짜: {selected_dates}")
+st.write(f"선택된 날짜 (실제는 JS → Py 연결 아직 직접 전달 못함): {selected_dates}")
 
 if st.button("결과 계산"):
-    total_days = len(cal_dates)
-    threshold = total_days / 3
-    worked_days = len(selected_dates)
-    st.write(f"총 기간 일수: {total_days}일, 기준: {threshold:.1f}일, 선택 근무일 수: {worked_days}일")
-    if worked_days < threshold:
-        st.success("✅ 조건 1 충족: 근무일 수 기준 미만")
-    else:
-        st.error("❌ 조건 1 불충족: 기준 이상")
+    st.write(f"선택된 날짜 개수: {len(selected_dates)}")
+
 
 
 
