@@ -96,26 +96,22 @@ function toggleDate(element) {
         }
     }
     // Streamlit Cloud의 iframe 환경 고려
-    var inputFields = document.querySelectorAll('input[data-testid="stTextInput"]');
-    if (!inputFields.length) {
-        inputFields = window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
-    }
-    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates'));
+    var inputFields = document.querySelectorAll('input[data-testid="stTextInput"]') || window.parent.document.querySelectorAll('input[data-testid="stTextInput"]');
+    var inputField = Array.from(inputFields).find(input => input.id.includes('selected_dates') || input.getAttribute('data-testid') === 'stTextInput');
     if (inputField) {
         console.log('Input field found:', inputField.id, inputField.getAttribute('data-testid'));
         console.log('Setting input value to:', selected.join(','));
         inputField.value = selected.join(',');
-        // Streamlit이 값을 감지하도록 이벤트 트리거
         inputField.dispatchEvent(new Event('input', { bubbles: true }));
         inputField.dispatchEvent(new Event('change', { bubbles: true }));
         console.log('Input field value after setting:', inputField.value);
     } else {
-        console.error('Streamlit input field not found. Available inputs (current document):', Array.from(document.querySelectorAll('input')).map(input => ({
+        console.error('Streamlit input field not found. Available inputs in current document:', Array.from(document.querySelectorAll('input')).map(input => ({
             id: input.id,
             dataTestid: input.getAttribute('data-testid'),
             value: input.value
         })));
-        console.error('Available inputs (parent document):', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
+        console.error('Available inputs in parent document:', Array.from(window.parent.document.querySelectorAll('input')).map(input => ({
             id: input.id,
             dataTestid: input.getAttribute('data-testid'),
             value: input.value
@@ -151,6 +147,6 @@ st.write(f"**디버깅: 현재 선택된 날짜 (text_input)**: {selected_dates_
 # 👉 선택된 날짜 카운트 확인
 if st.button("선택된 날짜 확인"):
     selected_dates = [d.strip() for d in selected_dates_str.split(",") if d.strip()] if selected_dates_str else []
-    # session_state는 st.text_input을 통해 이미 동기화됨
+    # session_state는 text_input의 value로 동기화되므로 별도 업데이트 불필요
     st.write(f"**선택된 날짜**: {selected_dates}")
     st.write(f"**선택한 일수**: {len(selected_dates)}일")
