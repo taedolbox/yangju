@@ -2,24 +2,32 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 
-def daily_worker_eligibility_app_original_ui(): # 함수명 변경
+# --- 일용직 신청 가능 시점 판단 UI 함수 ---
+def daily_worker_eligibility_app_original_ui():
+    """
+    일용직 근로자를 위한 실업급여 신청 가능 시점 판단 UI를 렌더링합니다.
+    사용자가 근무일을 선택하면 조건 충족 여부를 계산하여 표시합니다.
+    """
     st.markdown(
         "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
+    # --- 날짜 계산 및 초기화 ---
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # 지난달 첫날부터 오늘까지의 기간 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-    last_day = input_date # 이 변수 이름을 calculation_end_date로 바꾸는 것을 권장합니다.
+    calculation_end_date = input_date # 명확한 변수명으로 변경 권장
 
     cal_dates = []
     current_date = first_day_prev_month
-    while current_date <= last_day: # 여기도 last_day 사용
+    while current_date <= calculation_end_date:
         cal_dates.append(current_date)
         current_date += timedelta(days=1)
 
+    # 월별로 날짜 그룹화
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
@@ -27,13 +35,17 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
             calendar_groups[ym] = []
         calendar_groups[ym].append(date)
 
+    # JavaScript에서 사용할 JSON 데이터 준비
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
-    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+    # 조건 1 충족을 위한 다음 가능일 (예상)
+    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1) # 다음달 1일로 설정하는 간단한 예시
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
+    # --- HTML 및 JavaScript 코드 (캘린더 UI) ---
+    # 이 긴 HTML 문자열은 캘린더의 디자인과 동작을 정의합니다.
     calendar_html = f"""
     <!DOCTYPE html>
     <html>
@@ -222,6 +234,7 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
             <div class="day-header">목</div>
             <div class="day-header">금</div>
             <div class="day-header">토</div>
+        </div>
         """
         start_day_offset = (dates[0].weekday() + 1) % 7
         for _ in range(start_day_offset):
@@ -231,7 +244,7 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
             date_str = date.strftime("%m/%d")
             full_date_str = date.strftime("%Y-%m-%d")
             calendar_html += f'<div class="day" data-date="{date_str}" data-full-date="{full_date_str}" onclick="toggleDate(this)">{day_num}</div>'
-        calendar_html += "</div>"
+        calendar_html += "</div>" # 이 닫는 태그는 div.calendar에 대한 것으로 보입니다.
 
     calendar_html += f"""
     </div>
@@ -362,7 +375,7 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
             const dateAttr = days[i].getAttribute('data-date');
             if (storedSelectedDates.includes(dateAttr)) {{
                 days[i].classList.add('selected');
-            }
+            }}
         }}
         updateSelectedDatesText(storedSelectedDates);
         calculateAndDisplayResult(storedSelectedDates);
