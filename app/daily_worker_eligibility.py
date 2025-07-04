@@ -192,7 +192,7 @@ def daily_worker_eligibility_app():
     """
 
     # height는 너무 크지 않게 적당히 주고, 내부 내용은 늘어날 수 있도록 설정
-    st.components.v1.html(calendar_html, height=1300, scrolling=False)
+    st.components.v1.html(calendar_html, height=1200, scrolling=False)
 
     # 페이지 하단 고용센터 찾기 포함 푸터 출력
     render_footer()
