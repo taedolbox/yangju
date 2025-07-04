@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
@@ -42,7 +41,7 @@ def main():
     # 함수 이름을 정확히 daily_worker_eligibility_app_original_ui 로 변경합니다.
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui # <-- 여기를 수정!
+        "일용직(건설일용포함)": daily_worker_eligibility_app
     }
 
     all_questions = {
