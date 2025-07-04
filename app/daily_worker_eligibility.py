@@ -35,8 +35,8 @@ def daily_worker_eligibility_app():
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     calendar_html = """
-    <div id="main-wrapper">
-        <div id="calendar-container">
+    <div id="wrapper">
+        <div id="calendar-area">
     """
 
     for ym, dates in calendar_groups.items():
@@ -63,7 +63,7 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
         </div>
-        <div id="result-container">
+        <div id="result-area">
             <p id="selectedDatesText"></p>
             <div id="resultContainer"></div>
         </div>
@@ -71,35 +71,34 @@ def daily_worker_eligibility_app():
 
     <style>
     /* 전체 래퍼 */
-    #main-wrapper {
+    #wrapper {
         display: flex;
+        gap: 20px;
         max-width: 100%;
         margin: 0 auto;
-        gap: 2%;
         box-sizing: border-box;
     }
 
     /* 달력 영역 */
-    #calendar-container {
-        width: 60%;
+    #calendar-area {
+        width: 55%;
         background: #fff;
-        padding: 20px;
+        padding: 15px 20px;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
         box-sizing: border-box;
     }
 
     /* 결과 영역 */
-    #result-container {
-        width: 38%;
+    #result-area {
+        width: 40%;
         background: #fff;
-        padding: 20px;
+        padding: 15px 20px;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
         color: #111;
         box-sizing: border-box;
-        overflow-y: auto;
-        max-height: 800px;
+        min-height: 300px;
     }
 
     body {
@@ -110,7 +109,7 @@ def daily_worker_eligibility_app():
     .calendar {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
+        gap: 6px;
         margin-bottom: 20px;
         background: #fff;
         padding: 10px;
@@ -121,12 +120,13 @@ def daily_worker_eligibility_app():
     }
 
     .day-header, .empty-day, .day {
-        aspect-ratio: 1/1;
+        aspect-ratio: 1 / 1;
         display: flex;
         justify-content: center;
         align-items: center;
         text-align: center;
     }
+
     .day-header {
         background: #444;
         color: #fff;
@@ -134,10 +134,12 @@ def daily_worker_eligibility_app():
         font-weight: bold;
         font-size: 14px;
     }
+
     .empty-day {
         background: transparent;
         border: none;
     }
+
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -149,9 +151,11 @@ def daily_worker_eligibility_app():
         background: #fdfdfd;
         padding: 6px;
     }
+
     .day:hover {
         background: #eee;
     }
+
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
@@ -169,13 +173,9 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        #result-container {
+        #calendar-area, #result-area {
             background: #222;
-            color: #eee;
-        }
-        .calendar {
-            background: #1a1a1a;
-            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
         .day {
             background: #2a2a2a;
@@ -190,29 +190,24 @@ def daily_worker_eligibility_app():
         }
     }
 
-    /* 모바일 대응 */
     @media (max-width: 768px) {
-        #main-wrapper {
+        #wrapper {
             flex-direction: column;
         }
-        #calendar-container, #result-container {
+        #calendar-area, #result-area {
             width: 100%;
-            margin: 0 0 20px 0;
-            max-height: none;
             box-shadow: none;
             border-radius: 0;
             padding: 10px 5px;
         }
         .calendar {
-            max-width: 100%;
-            padding: 5px;
-            gap: 3px;
+            gap: 4px;
+            padding: 8px;
         }
         .day-header, .day {
-            padding: 6px;
+            padding: 5px;
         }
     }
-
     </style>
 
     <script>
@@ -297,8 +292,7 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=850, scrolling=True)
+    st.components.v1.html(calendar_html, height=850, scrolling=False)
 
 daily_worker_eligibility_app()
-
 
