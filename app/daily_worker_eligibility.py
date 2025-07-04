@@ -60,7 +60,7 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <!-- 선택한 날짜 텍스트 제거 -->
+    <!-- 선택한 날짜 텍스트 부분 주석 처리 -->
     <!-- <p id="selectedDatesText"></p> -->
     <div id="resultContainer"></div>
 
@@ -176,7 +176,7 @@ def daily_worker_eligibility_app():
         }
         saveToLocalStorage(selected);
         calculateAndDisplayResult(selected);
-        // 선택한 날짜 텍스트 제거
+        // 선택한 날짜 텍스트 표시 부분 주석 처리
         // document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
@@ -188,5 +188,6 @@ def daily_worker_eligibility_app():
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
 
-    # 페이지 맨 아래 푸터 출력 (고용센터 찾기)
+    # 페이지 하단 고용센터 찾기 포함 푸터 출력
     render_footer()
+
