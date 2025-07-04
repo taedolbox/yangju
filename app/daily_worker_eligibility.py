@@ -66,18 +66,22 @@ def daily_worker_eligibility_app():
     <style>
     body {
         color: #111;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     }
 
     .calendar {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
+        gap: 3px;
         margin-bottom: 20px;
         background: #fff;
         padding: 10px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
         box-sizing: border-box;
     }
 
@@ -87,40 +91,68 @@ def daily_worker_eligibility_app():
         justify-content: center;
         align-items: center;
         text-align: center;
+        font-size: clamp(12px, 3vw, 14px);
     }
+
     .day-header {
         background: #444;
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
-        font-size: 14px;
+        padding: 8px;
     }
+
     .empty-day {
         background: transparent;
         border: none;
     }
+
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
         cursor: pointer;
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
-        font-size: 16px;
-        color: #222;
         background: #fdfdfd;
+        color: #222;
+        padding: 8px;
     }
+
     .day:hover {
         background: #eee;
     }
+
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important; /* ✅ 다크모드 대비 강제 */
+        color: #fff !important;
         font-weight: bold;
+    }
+
+    #calendar-container {
+        max-width: 100%;
+        overflow-x: auto;
+        padding: 10px;
     }
 
     #resultContainer {
         color: #111;
+        font-size: clamp(14px, 3.5vw, 16px);
+        padding: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    h4 {
+        font-size: clamp(16px, 4vw, 18px);
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    #selectedDatesText {
+        font-size: clamp(14px, 3.5vw, 16px);
+        margin: 10px 0;
+        text-align: center;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -128,14 +160,70 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
+        .calendar {
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+        }
+        .day {
+            background: #2a2a2a;
+            color: #ddd;
+            border-color: #444;
+        }
+        .day:hover {
+            background: #3a3a3a;
+        }
         #resultContainer {
-            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
+            color: #eee;
         }
     }
 
     @media (max-width: 768px) {
         .calendar {
+            gap: 2px;
+            padding: 8px;
+        }
+        .day-header, .day {
+            padding: 6px;
+            font-size: clamp(10px, 2.5vw, 12px);
+        }
+        #calendar-container {
+            padding: 5px;
+        }
+        #resultContainer {
+            padding: 8px;
+            font-size: clamp(12px, 3vw, 14px);
+        }
+        h4 {
+            font-size: clamp(14px, 3.5vw, 16px);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calendar {
             grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            padding: 5px;
+        }
+        .day-header, .day {
+            padding: 4px;
+            font-size: clamp(8px, 2.2vw, 10px);
+        }
+        #resultContainer {
+            font-size: clamp(10px, 2.8vw, 12px);
+        }
+        h4 {
+            font-size: clamp(12px, 3vw, 14px);
+        }
+    }
+
+    @media (orientation: landscape) and (max-width: 768px) {
+        .calendar {
+            max-width: 90vw;
+            gap: 2px;
+        }
+        .day-header, .day {
+            font-size: clamp(10px, 1.8vw, 12px);
+            padding: 5px;
         }
     }
     </style>
@@ -222,4 +310,6 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+    st.components.v1.html(calendar_html, height=1800, scrolling=True)
+
+daily_worker_eligibility_app()
