@@ -1,9 +1,4 @@
-# main.py 파일 (수정된 최종 버전)
-
 import streamlit as st
-
-# 필요한 모든 앱 함수와 질문 함수를 임포트합니다.
-# daily_worker_eligibility_app_original_ui 함수를 정확히 이 이름으로 임포트합니다.
 from app.daily_worker_eligibility import daily_worker_eligibility_app_original_ui
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
@@ -12,7 +7,6 @@ from app.questions import (
     get_self_employment_questions
 )
 
-# 메뉴 선택 시 세션 상태를 업데이트하고 쿼리 파라미터를 설정하는 함수
 def update_selected_menu(filtered_menus, all_menus):
     selected_menu = st.session_state.menu_selector
     if selected_menu in filtered_menus:
@@ -20,7 +14,6 @@ def update_selected_menu(filtered_menus, all_menus):
         menu_id = all_menus.index(selected_menu) + 1
         st.query_params["menu"] = str(menu_id)
 
-# Streamlit 앱의 메인 로직을 담는 함수
 def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
@@ -28,8 +21,6 @@ def main():
         layout="centered"
     )
 
-    # CSS 적용
-    # 'static/styles.css' 파일이 프로젝트 루트 폴더에 있는지 확인하세요.
     try:
         with open("static/styles.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -41,10 +32,9 @@ def main():
         "일용직(건설일용포함)"
     ]
 
-    # 여기! daily_worker_eligibility_app_original_ui 로 함수 이름을 변경합니다.
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui # <-- 이 부분을 수정하세요!
+        "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui
     }
 
     all_questions = {
@@ -65,7 +55,6 @@ def main():
                 any(search_query in q.lower() for q in all_questions.get(menu, []))
             ]
 
-        # 세션 초기화
         if "selected_menu" not in st.session_state:
             query_params = st.query_params
             url_menu_id = query_params.get("menu", [None])[0]
@@ -95,7 +84,6 @@ def main():
     st.markdown("---")
 
     if st.session_state.selected_menu:
-        # 선택된 메뉴에 해당하는 함수를 호출합니다.
         menu_functions.get(
             st.session_state.selected_menu,
             lambda: st.info("메뉴를 선택하세요.")
@@ -107,6 +95,5 @@ def main():
     st.caption("ⓒ 2025 실업급여 도우미는 도움을 드리기 위한 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.")
     st.markdown("[📌 고용센터 찾기](https://www.work24.go.kr/cm/c/d/0190/retrieveInstSrchLst.do)")
 
-# 스크립트가 직접 실행될 때만 main() 함수를 호출합니다.
 if __name__ == "__main__":
     main()
