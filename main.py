@@ -4,8 +4,8 @@ from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
-    get_daily_worker_eligibility_questions
-    get_self_employment_questions
+    get_daily_worker_eligibility_questions,
+    get_self_employment_questions  # 이거 추가!
 )
 
 def update_selected_menu(filtered_menus, all_menus):
