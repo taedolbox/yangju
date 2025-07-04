@@ -34,7 +34,10 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = "<div id='calendar-container'>"
+    calendar_html = """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <div id='calendar-container'>
+    """
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
@@ -72,7 +75,7 @@ def daily_worker_eligibility_app():
     .calendar {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
+        gap: 5px;
         margin-bottom: 20px;
         background: #fff;
         padding: 10px;
@@ -91,7 +94,6 @@ def daily_worker_eligibility_app():
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: 16px; /* 원본의 .day 폰트 크기 복원 */
     }
 
     .day-header {
@@ -99,8 +101,8 @@ def daily_worker_eligibility_app():
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
+        font-size: 14px; /* 원본 크기 유지 */
         padding: 8px;
-        font-size: 14px; /* 원본의 .day-header 폰트 크기 복원 */
     }
 
     .empty-day {
@@ -114,8 +116,9 @@ def daily_worker_eligibility_app():
         cursor: pointer;
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
-        background: #fdfdfd;
+        font-size: 16px; /* 원본 크기 유지 */
         color: #222;
+        background: #fdfdfd;
         padding: 8px;
     }
 
@@ -138,22 +141,20 @@ def daily_worker_eligibility_app():
 
     #resultContainer {
         color: #111;
-        font-size: clamp(14px, 3.5vw, 16px);
+        font-size: 16px; /* 원본 크기 유지 */
         padding: 10px;
         max-width: 600px;
         margin: 0 auto;
     }
 
     h4 {
-        font-size: clamp(16px, 4vw, 18px);
+        font-size: 18px; /* 원본에 명시적 크기 없음, 기본값 유지 */
         margin: 10px 0;
-        text-align: center;
     }
 
     #selectedDatesText {
-        font-size: clamp(14px, 3.5vw, 16px);
+        font-size: 16px; /* 원본에 명시적 크기 없음, 기본값 유지 */
         margin: 10px 0;
-        text-align: center;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -180,62 +181,44 @@ def daily_worker_eligibility_app():
 
     @media (max-width: 768px) {
         .calendar {
-            gap: 2px;
+            gap: 3px;
             padding: 8px;
+            max-width: 90vw; /* 모바일에서 화면 너비에 맞게 조정 */
         }
-        .day-header {
-            font-size: clamp(12px, 3vw, 13px); /* 모바일에서 약간 축소 */
-            padding: 6px;
-        }
-        .day {
-            font-size: clamp(13px, 3.5vw, 15px); /* 원본에 가까운 크기 유지 */
-            padding: 6px;
+        .day-header, .day {
+            padding: 6px; /* 작은 화면에서 셀 크기 축소 */
         }
         #calendar-container {
             padding: 5px;
         }
         #resultContainer {
             padding: 8px;
-            font-size: clamp(12px, 3vw, 14px);
         }
         h4 {
-            font-size: clamp(14px, 3.5vw, 16px);
+            margin: 8px 0;
         }
     }
 
     @media (max-width: 480px) {
         .calendar {
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            padding: 5px;
+            gap: 2px;
+            padding: 6px;
+            max-width: 95vw; /* 매우 작은 화면에서 더 조정 */
         }
-        .day-header {
-            font-size: clamp(11px, 2.8vw, 12px); /* 작은 화면에서도 가독성 유지 */
-            padding: 4px;
-        }
-        .day {
-            font-size: clamp(12px, 3.2vw, 14px); /* 원본에 가까운 크기 유지 */
-            padding: 4px;
+        .day-header, .day {
+            padding: 4px; /* 셀 크기 더 축소 */
         }
         #resultContainer {
-            font-size: clamp(10px, 2.8vw, 12px);
-        }
-        h4 {
-            font-size: clamp(12px, 3vw, 14px);
+            padding: 6px;
         }
     }
 
     @media (orientation: landscape) and (max-width: 768px) {
         .calendar {
-            max-width: 90vw;
-            gap: 2px;
+            max-width: 85vw; /* 가로 모드에서 약간 더 넓게 */
+            gap: 3px;
         }
-        .day-header {
-            font-size: clamp(12px, 2vw, 13px);
-            padding: 5px;
-        }
-        .day {
-            font-size: clamp(13px, 2.5vw, 15px);
+        .day-header, .day {
             padding: 5px;
         }
     }
