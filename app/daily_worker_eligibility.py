@@ -8,12 +8,6 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    # 모바일 줌 비활성화를 위한 meta 태그 추가 (Streamlit 외부 헤더용)
-    st.markdown(
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
-        unsafe_allow_html=True
-    )
-
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -41,6 +35,7 @@ def daily_worker_eligibility_app():
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     calendar_html = """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <div id='calendar-container'>
     """
 
@@ -75,7 +70,6 @@ def daily_worker_eligibility_app():
     body {
         color: #111;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
-        touch-action: none; /* 모바일 터치 줌 비활성화 */
     }
 
     .calendar {
@@ -92,7 +86,6 @@ def daily_worker_eligibility_app():
         margin-left: auto;
         margin-right: auto;
         box-sizing: border-box;
-        touch-action: none; /* 캘린더 내 터치 줌 비활성화 */
     }
 
     .day-header, .empty-day, .day {
@@ -108,7 +101,7 @@ def daily_worker_eligibility_app():
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
-        font-size: 14px; /* 원본 크기 유지 */
+        font-size: 14px;
         padding: 8px;
     }
 
@@ -123,7 +116,7 @@ def daily_worker_eligibility_app():
         cursor: pointer;
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
-        font-size: 16px; /* 원본 크기 유지 */
+        font-size: 16px;
         color: #222;
         background: #fdfdfd;
         padding: 8px;
@@ -144,24 +137,23 @@ def daily_worker_eligibility_app():
         max-width: 100%;
         overflow-x: auto;
         padding: 10px;
-        touch-action: none; /* 캘린더 컨테이너 내 터치 줌 비활성화 */
     }
 
     #resultContainer {
         color: #111;
-        font-size: 16px; /* 원본 크기 유지 */
+        font-size: 16px;
         padding: 10px;
         max-width: 600px;
         margin: 0 auto;
     }
 
     h4 {
-        font-size: 18px; /* 원본에 명시적 크기 없음, 기본값 유지 */
+        font-size: 18px;
         margin: 10px 0;
     }
 
     #selectedDatesText {
-        font-size: 16px; /* 원본에 명시적 크기 없음, 기본값 유지 */
+        font-size: 16px;
         margin: 10px 0;
     }
 
@@ -191,10 +183,10 @@ def daily_worker_eligibility_app():
         .calendar {
             gap: 3px;
             padding: 8px;
-            max-width: 90vw; /* 모바일에서 화면 너비에 맞게 조정 */
+            max-width: 90vw;
         }
         .day-header, .day {
-            padding: 6px; /* 작은 화면에서 셀 크기 축소 */
+            padding: 6px;
         }
         #calendar-container {
             padding: 5px;
@@ -211,10 +203,10 @@ def daily_worker_eligibility_app():
         .calendar {
             gap: 2px;
             padding: 6px;
-            max-width: 95vw; /* 매우 작은 화면에서 더 조정 */
+            max-width: 95vw;
         }
         .day-header, .day {
-            padding: 4px; /* 셀 크기 더 축소 */
+            padding: 4px;
         }
         #resultContainer {
             padding: 6px;
@@ -223,7 +215,7 @@ def daily_worker_eligibility_app():
 
     @media (orientation: landscape) and (max-width: 768px) {
         .calendar {
-            max-width: 85vw; /* 가로 모드에서 약간 더 넓게 */
+            max-width: 85vw;
             gap: 3px;
         }
         .day-header, .day {
