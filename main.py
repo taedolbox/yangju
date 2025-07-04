@@ -1,9 +1,5 @@
 import streamlit as st
-
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.questions import (
-    get_daily_worker_eligibility_questions
-)
 
 def update_selected_menu(filtered_menus, all_menus):
     selected_menu = st.session_state.menu_selector
