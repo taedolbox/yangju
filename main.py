@@ -35,7 +35,6 @@ def main():
     )
 
     # --- CSS 적용 ---
-    # 'static/styles.css' 파일이 프로젝트 루트 폴더에 있는지 확인하고 적용합니다.
     try:
         with open("static/styles.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -49,7 +48,7 @@ def main():
     ]
 
     # --- 각 메뉴에 연결될 함수 매핑 ---
-    # 여기서 '일용직(건설일용포함)' 메뉴에 'daily_worker_eligibility_app_original_ui' 함수를 연결합니다.
+    # 이 부분이 중요합니다: '일용직(건설일용포함)' 메뉴에 'daily_worker_eligibility_app_original_ui' 함수를 연결합니다.
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
         "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui # <-- 이 함수 이름이 정확히 일치해야 합니다!
@@ -121,6 +120,5 @@ def main():
     st.markdown("[📌 고용센터 찾기](https://www.work24.go.kr/cm/c/d/0190/retrieveInstSrchLst.do)")
 
 # --- 스크립트 실행 진입점 ---
-# 이 파일이 직접 실행될 때만 'main()' 함수를 호출합니다.
 if __name__ == "__main__":
     main()
