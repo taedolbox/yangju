@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 import json
 
 # --- 일용직 신청 가능 시점 판단 UI 함수 ---
-# 이 함수 정의가 이 파일에 온전히 있어야 합니다!
-def daily_worker_eligibility_app_original_ui():
+def daily_worker_eligibility_app(): # 함수 이름이 daily_worker_eligibility_app 입니다.
     """
     일용직 근로자를 위한 실업급여 신청 가능 시점 판단 UI를 렌더링합니다.
     기존 달력 디자인을 유지하며 모바일 반응형을 지원합니다.
@@ -20,7 +19,7 @@ def daily_worker_eligibility_app_original_ui():
 
     # 지난달 첫날부터 오늘까지의 기간 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-    calculation_end_date = input_date
+    calculation_end_date = input_date # 사용자님의 코드에서는 last_day 였으나, 의미상 calculation_end_date로 변경
 
     cal_dates = []
     current_date = first_day_prev_month
@@ -46,6 +45,7 @@ def daily_worker_eligibility_app_original_ui():
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     # --- HTML 및 JavaScript 코드 (캘린더 UI) ---
+    # 중요: <head> 태그와 <meta name="viewport"> 를 추가하고, 스타일/스크립트 위치를 적절히 조정했습니다.
     calendar_html = f"""
     <!DOCTYPE html>
     <html>
@@ -65,10 +65,7 @@ def daily_worker_eligibility_app_original_ui():
         display: flex;
         flex-direction: column;
         align-items: center;
-    }}
-
-    html {{
-        background-color: transparent;
+        background-color: transparent; /* Streamlit 배경이 비치도록 */
     }}
 
     #calendar-container {{
@@ -133,7 +130,7 @@ def daily_worker_eligibility_app_original_ui():
         font-weight: bold;
     }}
 
-    #selectedDatesText, #resultContainer, h3, p {{
+    #selectedDatesText, #resultContainer, h3, p, h4 {{
         width: 100%;
         max-width: 680px;
         box-sizing: border-box;
@@ -142,7 +139,7 @@ def daily_worker_eligibility_app_original_ui():
         margin-right: auto;
     }}
     #selectedDatesText, h4 {{
-        color:#fff;
+        color:#fff; /* Streamlit 배경색에 맞춤 */
         margin-top: 10px;
         margin-bottom: 10px;
     }}
@@ -154,7 +151,7 @@ def daily_worker_eligibility_app_original_ui():
         color: #111;
     }}
 
-    /* 다크 모드 지원 (기존 포함된 내용) */
+    /* 다크 모드 지원 */
     @media (prefers-color-scheme: dark) {{
         body {{
             color: #ddd;
@@ -185,7 +182,7 @@ def daily_worker_eligibility_app_original_ui():
         }}
     }}
 
-    /* --- 모바일 반응형 미디어 쿼리 (새롭게 추가된 부분) --- */
+    /* --- 모바일 반응형 미디어 쿼리 (추가된 부분) --- */
     /* 작은 스마트폰 (세로) */
     @media (max-width: 480px) {{
         .day-header, .empty-day, .day {{
@@ -243,7 +240,7 @@ def daily_worker_eligibility_app_original_ui():
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            full_date_str = date.strftime("%Y-%m-%d")
+            full_date_str = date.strftime("%Y-%m-%d") # JS에서 비교하기 위해 전체 날짜 문자열 추가
             calendar_html += f'<div class="day" data-date="{date_str}" data-full-date="{full_date_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
@@ -268,7 +265,11 @@ def daily_worker_eligibility_app_original_ui():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        const fourteenDaysFullDates = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
+        // full_date_str을 사용하여 정확한 날짜 비교
+        const allFullDates = Array.from(document.querySelectorAll('.day'))
+                                   .map(el => el.getAttribute('data-full-date'));
+
+        const fourteenDaysFullDates = allFullDates.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
         const selectedFullDates = Array.from(document.querySelectorAll('.day.selected'))
                                        .map(el => el.getAttribute('data-full-date'));
 
@@ -329,7 +330,7 @@ def daily_worker_eligibility_app_original_ui():
         saveToLocalStorage(selected);
         updateSelectedDatesText(selected);
         calculateAndDisplayResult(selected);
-        adjustStreamlitFrameSizeDebounced();
+        adjustStreamlitFrameSizeDebounced(); // 높이 조절 함수 호출
     }}
 
     function updateSelectedDatesText(selected) {{
@@ -356,7 +357,7 @@ def daily_worker_eligibility_app_original_ui():
         if (window.parent) {{
             window.parent.postMessage({{
                 type: 'streamlit:setFrameHeight',
-                height: contentHeight + 50,
+                height: contentHeight + 50, // 여유 공간 추가
                 width: contentWidth
             }}, '*');
         }}
@@ -373,7 +374,7 @@ def daily_worker_eligibility_app_original_ui():
         }}
         updateSelectedDatesText(storedSelectedDates);
         calculateAndDisplayResult(storedSelectedDates);
-        adjustStreamlitFrameSizeDebounced();
+        adjustStreamlitFrameSizeDebounced(); // 페이지 로드 시 높이 조절
     }};
 
     window.addEventListener("orientationchange", adjustStreamlitFrameSizeDebounced);
@@ -385,4 +386,5 @@ def daily_worker_eligibility_app_original_ui():
     </html>
     """
 
-    st.components.v1.html(calendar_html, height=1000, scrolling=True)
+    # height는 처음 로드될 때의 대략적인 높이로, 이후 JS가 동적으로 조절
+    st.components.v1.html(calendar_html, height=1000, scrolling=True) # scrolling=True로 변경하여 혹시 모를 상황 대비
