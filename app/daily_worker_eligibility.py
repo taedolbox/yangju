@@ -60,8 +60,7 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <!-- 선택한 날짜 텍스트 부분 주석 처리 -->
-    <!-- <p id="selectedDatesText"></p> -->
+    <p id="selectedDatesText" style="display:none;"></p>  <!-- 숨김 처리 -->
     <div id="resultContainer"></div>
 
     <style>
@@ -84,6 +83,12 @@ def daily_worker_eligibility_app():
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
 
+    #selectedDatesText {
+        color: #121212;
+        font-weight: 600;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
     #resultContainer {
         color: #121212;
         background: #fff;
@@ -176,8 +181,8 @@ def daily_worker_eligibility_app():
         }
         saveToLocalStorage(selected);
         calculateAndDisplayResult(selected);
-        // 선택한 날짜 텍스트 표시 부분 주석 처리
-        // document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
+        // 선택한 날짜 텍스트 숨김 처리 중이라 업데이트는 하지만 화면에는 안 보임
+        document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
     window.onload = function() {
@@ -186,8 +191,8 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+    # height는 너무 크지 않게 적당히 주고, 내부 내용은 늘어날 수 있도록 설정
+    st.components.v1.html(calendar_html, height=1200, scrolling=False)
 
     # 페이지 하단 고용센터 찾기 포함 푸터 출력
     render_footer()
-
