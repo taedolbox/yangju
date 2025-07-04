@@ -1,7 +1,9 @@
+# main.py 파일 (수정된 최종 버전)
+
 import streamlit as st
 
 # 필요한 모든 앱 함수와 질문 함수를 임포트합니다.
-# 함수 이름이 daily_worker_eligibility_app_original_ui 이므로 정확히 이 이름으로 임포트합니다.
+# daily_worker_eligibility_app_original_ui 함수를 정확히 이 이름으로 임포트합니다.
 from app.daily_worker_eligibility import daily_worker_eligibility_app_original_ui
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
@@ -34,16 +36,15 @@ def main():
     except FileNotFoundError:
         st.warning("경고: 'static/styles.css' 파일을 찾을 수 없습니다. CSS 스타일이 적용되지 않을 수 있습니다.")
 
-
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
     ]
 
-    # 함수 이름을 정확히 daily_worker_eligibility_app_original_ui 로 변경합니다.
+    # 여기! daily_worker_eligibility_app_original_ui 로 함수 이름을 변경합니다.
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui # <-- 여기를 수정!
+        "일용직(건설일용포함)": daily_worker_eligibility_app_original_ui # <-- 이 부분을 수정하세요!
     }
 
     all_questions = {
@@ -87,11 +88,6 @@ def main():
                 key="menu_selector",
                 on_change=lambda: update_selected_menu(filtered_menus, all_menus)
             )
-            # st.radio는 선택 시 바로 값을 변경하므로, 이 조건문은 필요 없을 수 있습니다.
-            # if selected_menu != st.session_state.selected_menu:
-            #     st.session_state.selected_menu = selected_menu
-            #     menu_id = all_menus.index(selected_menu) + 1
-            #     st.query_params["menu"] = str(menu_id)
         else:
             st.warning("검색 결과에 해당하는 메뉴가 없습니다.")
             st.session_state.selected_menu = None
@@ -113,4 +109,4 @@ def main():
 
 # 스크립트가 직접 실행될 때만 main() 함수를 호출합니다.
 if __name__ == "__main__":
-    main() # <-- 여기만 남겨둡니다.
+    main()
