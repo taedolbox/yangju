@@ -2,8 +2,9 @@ import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app_original_ui
 
+# Streamlit 앱의 메인 함수를 실행하는 부분
 if __name__ == "__main__":
-    # 변경된 함수 이름을 호출합니다.
+    # 가져온 daily_worker_eligibility_app_original_ui 함수를 호출합니다.
     daily_worker_eligibility_app_original_ui()
     
 from app.early_reemployment import early_reemployment_app
