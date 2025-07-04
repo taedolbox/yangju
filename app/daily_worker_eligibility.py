@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 
+# --- 일용직 신청 가능 시점 판단 UI 함수 ---
+# 이 함수 정의가 이 파일에 온전히 있어야 합니다!
 def daily_worker_eligibility_app_original_ui():
     """
     일용직 근로자를 위한 실업급여 신청 가능 시점 판단 UI를 렌더링합니다.
@@ -183,7 +185,7 @@ def daily_worker_eligibility_app_original_ui():
         }}
     }}
 
-    /* --- 모바일 반응형 미디어 쿼리 (추가/조정된 부분) --- */
+    /* --- 모바일 반응형 미디어 쿼리 (새롭게 추가된 부분) --- */
     /* 작은 스마트폰 (세로) */
     @media (max-width: 480px) {{
         .day-header, .empty-day, .day {{
@@ -243,7 +245,7 @@ def daily_worker_eligibility_app_original_ui():
             date_str = date.strftime("%m/%d")
             full_date_str = date.strftime("%Y-%m-%d")
             calendar_html += f'<div class="day" data-date="{date_str}" data-full-date="{full_date_str}" onclick="toggleDate(this)">{day_num}</div>'
-        calendar_html += "</div>" # 이 닫는 태그는 div.calendar에 대한 것으로 보입니다.
+        calendar_html += "</div>"
 
     calendar_html += f"""
     </div>
