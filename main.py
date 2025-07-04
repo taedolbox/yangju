@@ -3,7 +3,7 @@ import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
-    get_employment_questions,
+    get_self_employment_questions,
     get_daily_worker_eligibility_questions
 )
 
