@@ -190,7 +190,7 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=3000, scrolling=False)
+    st.components.v1.html(calendar_html, height=1800, scrolling=False)
     # 페이지 맨 아래 푸터 출력
     render_footer()
 
