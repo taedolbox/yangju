@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -60,16 +60,10 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText" style="color:#fff;"></p>
-    <div id="resultContainer" style="color:#fff;"></div>
+    <p id="selectedDatesText" style="color: #111;"></p>
+    <div id="resultContainer" style="color: #111;"></div>
 
     <style>
-    body {
-        color: #111;
-        margin: 0; /* Remove default body margin */
-        padding: 0; /* Remove default body padding */
-    }
-
     .calendar {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -78,11 +72,7 @@ def daily_worker_eligibility_app():
         background: #fff;
         padding: 10px;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        width: 100%;
-        box-sizing: border-box;
     }
-
     .day-header, .empty-day, .day {
         aspect-ratio: 1/1;
         display: flex;
@@ -95,25 +85,18 @@ def daily_worker_eligibility_app():
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
-        font-size: 14px;
     }
     .empty-day {
         background: transparent;
-        border: none;
     }
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
         cursor: pointer;
-        user-select: none;
-        transition: background 0.1s ease, border 0.1s ease;
         font-size: 16px;
-        color: #222;
         background: #fdfdfd;
     }
-    .day:hover {
-        background: #eee;
-    }
+    .day:hover { background: #eee; }
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
@@ -121,26 +104,8 @@ def daily_worker_eligibility_app():
         font-weight: bold;
     }
 
-    #resultContainer {
-        color: #111;
-        padding-bottom: 20px; /* Add some padding at the bottom */
-    }
-
     @media (prefers-color-scheme: dark) {
-        body {
-            color: #ddd;
-            background: #000;
-        }
-        #resultContainer {
-            color: #eee;
-        }
-    }
-
-    /* Original media query for calendar grid, remains useful */
-    @media (max-width: 768px) {
-        .calendar {
-            grid-template-columns: repeat(7, 1fr);
-        }
+        body { background: #000; }
     }
     </style>
 
@@ -160,110 +125,62 @@ def daily_worker_eligibility_app():
         const workedDays = selected.length;
 
         const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        // Ensure selected dates are in YYYY-MM-DD format for comparison with CALENDAR_DATES
-        const selectedFormatted = selected.map(date => {
-            const parts = date.split('/');
-            return new Date(new Date().getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1])).toISOString().split('T')[0];
-        });
-
-        const noWork14Days = fourteenDays.every(date => !selectedFormatted.includes(date));
+        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
+            nextPossible1 = "📅 조건 1: 오늘 이후 근로제공 없으면 " + NEXT_POSSIBLE1_DATE + " 이후 신청 가능.";
         }
 
         let nextPossible2 = "";
         if (!noWork14Days) {
-            const nextPossibleDate = new Date(new Date(FOURTEEN_DAYS_END).getTime() + (14 * 24 * 60 * 60 * 1000));
+            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
+            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
+            nextPossible2 = "📅 조건 2: 오늘 이후 근로제공 없으면 " + nextDateStr + " 이후 신청 가능.";
         }
 
-        const condition1Text = workedDays < threshold
-            ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
-
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
-
-        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
-
-        const finalHtml = `
+        const html = `
             <h3>📌 조건 기준</h3>
-            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
-            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>
-            <p>총 기간 일수: ` + totalDays + `일</p>
-            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
-            <p>근무일 수: ` + workedDays + `일</p>
+            <p>조건 1: 직전 달 첫날부터 신청일까지 근무일 수 1/3 미만</p>
+            <p>조건 2: 건설일용, 직전 14일간 무근무</p>
+            <p>총 기간: ` + totalDays + `일 / 1/3 기준: ` + threshold.toFixed(1) + `일 / 근무일수: ` + workedDays + `일</p>
             <h3>📌 조건 판단</h3>
-            <p>` + condition1Text + `</p>
-            <p>` + condition2Text + `</p>
-            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
-            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
-            <h3>📌 최종 판단</h3>
-            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
-            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+            <p>` + (workedDays < threshold ? "✅ 조건 1 충족" : "❌ 조건 1 불충족") + `</p>
+            <p>` + (noWork14Days ? "✅ 조건 2 충족" : "❌ 조건 2 불충족") + `</p>
+            <p>` + nextPossible1 + `</p>
+            <p>` + nextPossible2 + `</p>
         `;
-
-        document.getElementById('resultContainer').innerHTML = finalHtml;
+        const rc = document.getElementById("resultContainer");
+        rc.innerHTML = html;
+        rc.style.color = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#fff' : '#111';
+        document.getElementById("selectedDatesText").style.color = rc.style.color;
     }
 
-    function toggleDate(element) {
-        element.classList.toggle('selected');
-        const selected = [];
-        const days = document.getElementsByClassName('day');
-        for (let i = 0; i < days.length; i++) {
-            if (days[i].classList.contains('selected')) {
-                selected.push(days[i].getAttribute('data-date'));
-            }
-        }
+    function toggleDate(e) {
+        e.classList.toggle('selected');
+        const selected = Array.from(document.querySelectorAll('.day.selected')).map(el => el.getAttribute('data-date'));
         saveToLocalStorage(selected);
-        updateSelectedDatesText(selected); // Update selected dates text
         calculateAndDisplayResult(selected);
+        document.getElementById("selectedDatesText").innerText = "선택한 날짜: " + selected.join(", ");
     }
 
-    function updateSelectedDatesText(selected) {
-        document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
+    function adjustGrid() {
+        const cals = document.querySelectorAll('.calendar');
+        cals.forEach(cal => {
+            cal.style.gridTemplateColumns = 'repeat(7, 1fr)';
+        });
     }
 
-    function adjustStreamlitHeight() {
-        const body = document.body;
-        const html = document.documentElement;
-        // Get the maximum height between body and html elements
-        const height = Math.max( body.scrollHeight, body.offsetHeight, 
-                                html.clientHeight, html.scrollHeight, html.offsetHeight );
-        // Send the height back to Streamlit
-        if (window.parent) {
-            window.parent.postMessage({ type: 'streamlit:setFrameHeight', height: height + 50 }, '*'); // Add some buffer
-        }
-    }
+    window.addEventListener("orientationchange", adjustGrid);
+    window.addEventListener("resize", adjustGrid);
 
-    window.onload = function() {
-        const storedSelectedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
-        // Re-apply selections from localStorage
-        const days = document.getElementsByClassName('day');
-        for (let i = 0; i < days.length; i++) {
-            const dateAttr = days[i].getAttribute('data-date');
-            if (storedSelectedDates.includes(dateAttr)) {
-                days[i].classList.add('selected');
-            }
-        }
-        updateSelectedDatesText(storedSelectedDates);
-        calculateAndDisplayResult(storedSelectedDates);
-        adjustStreamlitHeight(); // Adjust height on load
+    window.onload = () => {
+        calculateAndDisplayResult([]);
+        adjustGrid();
     };
-
-    // Listen for orientation change and resize events to adjust height
-    window.addEventListener("orientationchange", adjustStreamlitHeight);
-    window.addEventListener("resize", adjustStreamlitHeight);
-
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=True) # Set scrolling to True to allow for content overflow and scrolling
+    st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
