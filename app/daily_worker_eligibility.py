@@ -11,9 +11,9 @@ def daily_worker_eligibility_app():
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    # 기준 기간 날짜 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
+
     cal_dates = []
     current_date = first_day_prev_month
     while current_date <= last_day:
@@ -63,7 +63,6 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
-    /* 달력은 라이트 모드 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -83,7 +82,6 @@ def daily_worker_eligibility_app():
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
 
-    /* 선택한 날짜 텍스트 및 결과 영역: 다크모드 텍스트 (배경은 흰색 유지) */
     #selectedDatesText {
         color: #121212;
         font-weight: 600;
@@ -191,5 +189,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1600, scrolling=False)
+    st.components.v1.html(calendar_html, height=3000, scrolling=False)
 
