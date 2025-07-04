@@ -11,9 +11,9 @@ def daily_worker_eligibility_app():
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # 기준 기간 날짜 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
-
     cal_dates = []
     current_date = first_day_prev_month
     while current_date <= last_day:
@@ -30,7 +30,6 @@ def daily_worker_eligibility_app():
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
-
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
@@ -64,7 +63,7 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
-    /* 달력 라이트 모드 유지 */
+    /* 달력은 라이트 모드 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -84,27 +83,29 @@ def daily_worker_eligibility_app():
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
 
-    /* 조건 출력 영역: 배경은 흰색, 텍스트만 다크톤 */
-    #resultContainer {
-        background: none;
+    /* 선택한 날짜 텍스트 및 결과 영역: 다크모드 텍스트 (배경은 흰색 유지) */
+    #selectedDatesText {
         color: #121212;
-        padding: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+    #resultContainer {
+        color: #121212;
+        background: #fff;
+        padding: 15px 20px;
         border-radius: 8px;
-        overflow: visible;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-size: 15px;
+        line-height: 1.6;
     }
     #resultContainer h3 {
         color: #0d47a1;
+        margin-top: 20px;
+        margin-bottom: 10px;
     }
     #resultContainer p {
-        color: #333;
-        line-height: 1.6;
-    }
-
-    /* 선택한 날짜 텍스트 */
-    #selectedDatesText {
-        color: #121212;
-        font-weight: bold;
-        margin-bottom: 15px;
+        margin: 6px 0;
     }
     </style>
 
@@ -168,8 +169,6 @@ def daily_worker_eligibility_app():
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
-
-        sendHeight();  // 높이 갱신!
     }
 
     function toggleDate(element) {
@@ -186,19 +185,11 @@ def daily_worker_eligibility_app():
         document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
-    function sendHeight() {
-        const height = document.body.scrollHeight;
-        window.parent.postMessage({ type: 'streamlit:resize', height: height }, '*');
-    }
-
     window.onload = function() {
         calculateAndDisplayResult([]);
-        sendHeight();
     };
-
-    new ResizeObserver(sendHeight).observe(document.body);
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=600, scrolling=False)
+    st.components.v1.html(calendar_html, height=1600, scrolling=False)
 
