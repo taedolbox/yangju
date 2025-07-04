@@ -63,7 +63,7 @@ def daily_worker_eligibility_app():
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num + '</div>'
+            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num) + '</div>'
         calendar_html += "</div>"
 
     calendar_html += """
@@ -128,9 +128,7 @@ def daily_worker_eligibility_app():
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
         font-size: 16px;
-        color: #222
-
-;
+        color: #222;
         background: #fdfdfd;
         padding: 8px;
     }
@@ -333,6 +331,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
-
-daily_worker_eligibility_app()
-
