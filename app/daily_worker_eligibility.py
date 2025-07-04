@@ -34,11 +34,14 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = "<div id='calendar-wrapper'><div id='calendar-container'>"
+    calendar_html = """
+    <div id="main-wrapper">
+        <div id="calendar-container">
+    """
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -59,20 +62,49 @@ def daily_worker_eligibility_app():
         calendar_html += "</div>"
 
     calendar_html += """
-    </div></div>
-    <p id="selectedDatesText"></p>
-    <div id="resultContainer"></div>
+        </div>
+        <div id="result-container">
+            <p id="selectedDatesText"></p>
+            <div id="resultContainer"></div>
+        </div>
+    </div>
 
     <style>
-    #calendar-wrapper {
-        width: 50%;
+    /* 전체 래퍼 */
+    #main-wrapper {
+        display: flex;
+        max-width: 100%;
         margin: 0 auto;
+        gap: 2%;
+        box-sizing: border-box;
     }
+
+    /* 달력 영역 */
     #calendar-container {
+        width: 60%;
         background: #fff;
         padding: 20px;
         border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+    }
+
+    /* 결과 영역 */
+    #result-container {
+        width: 38%;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        color: #111;
+        box-sizing: border-box;
+        overflow-y: auto;
+        max-height: 800px;
+    }
+
+    body {
+        color: #111;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     }
 
     .calendar {
@@ -80,6 +112,12 @@ def daily_worker_eligibility_app():
         grid-template-columns: repeat(7, 1fr);
         gap: 5px;
         margin-bottom: 20px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .day-header, .empty-day, .day {
@@ -89,7 +127,6 @@ def daily_worker_eligibility_app():
         align-items: center;
         text-align: center;
     }
-
     .day-header {
         background: #444;
         color: #fff;
@@ -97,11 +134,10 @@ def daily_worker_eligibility_app():
         font-weight: bold;
         font-size: 14px;
     }
-
     .empty-day {
         background: transparent;
+        border: none;
     }
-
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -111,12 +147,11 @@ def daily_worker_eligibility_app():
         font-size: 16px;
         color: #222;
         background: #fdfdfd;
+        padding: 6px;
     }
-
     .day:hover {
         background: #eee;
     }
-
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
@@ -125,24 +160,27 @@ def daily_worker_eligibility_app():
     }
 
     #resultContainer {
-        margin-top: 20px;
         color: #111;
+        font-size: 16px;
     }
 
     @media (prefers-color-scheme: dark) {
         body {
-            background: #000;
             color: #ddd;
+            background: #000;
         }
-        #calendar-container {
-            background: #1a1a1a;
+        #result-container {
+            background: #222;
+            color: #eee;
         }
         .calendar {
-            background: transparent;
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
         }
         .day {
             background: #2a2a2a;
             color: #ddd;
+            border-color: #444;
         }
         .day:hover {
             background: #3a3a3a;
@@ -152,14 +190,29 @@ def daily_worker_eligibility_app():
         }
     }
 
+    /* 모바일 대응 */
     @media (max-width: 768px) {
-        #calendar-wrapper {
-            width: 100%;
+        #main-wrapper {
+            flex-direction: column;
         }
-        #calendar-container {
+        #calendar-container, #result-container {
+            width: 100%;
+            margin: 0 0 20px 0;
+            max-height: none;
+            box-shadow: none;
             border-radius: 0;
+            padding: 10px 5px;
+        }
+        .calendar {
+            max-width: 100%;
+            padding: 5px;
+            gap: 3px;
+        }
+        .day-header, .day {
+            padding: 6px;
         }
     }
+
     </style>
 
     <script>
@@ -182,7 +235,7 @@ def daily_worker_eligibility_app():
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후 근로가 없으면 " + NEXT_POSSIBLE1_DATE + " 이후 신청 가능.";
+            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
         }
 
         let nextPossible2 = "";
@@ -190,23 +243,35 @@ def daily_worker_eligibility_app():
             const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
             nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2 충족은 " + nextDateStr + " 이후 신청 가능.";
+            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
         }
 
         const condition1Text = workedDays < threshold
             ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족";
+            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
         const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 직전 14일 무근무"
-            : "❌ 조건 2 불충족";
+            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
+            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
+
+        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
 
         const finalHtml = `
-            <h3>📌 판단 결과</h3>
-            <p>${condition1Text}</p>
-            <p>${condition2Text}</p>
-            ${nextPossible1 ? `<p>${nextPossible1}</p>` : ""}
-            ${nextPossible2 ? `<p>${nextPossible2}</p>` : ""}
+            <h3>📌 조건 기준</h3>
+            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
+            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>
+            <p>총 기간 일수: ` + totalDays + `일</p>
+            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
+            <p>근무일 수: ` + workedDays + `일</p>
+            <h3>📌 조건 판단</h3>
+            <p>` + condition1Text + `</p>
+            <p>` + condition2Text + `</p>
+            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
+            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
+            <h3>📌 최종 판단</h3>
+            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
+            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
@@ -232,5 +297,8 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+    st.components.v1.html(calendar_html, height=850, scrolling=True)
+
+daily_worker_eligibility_app()
+
 
