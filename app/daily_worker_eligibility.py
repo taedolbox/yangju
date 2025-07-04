@@ -64,7 +64,7 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
-    /* 달력 영역: 라이트 테마 유지 */
+    /* 달력 라이트 모드 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -84,19 +84,27 @@ def daily_worker_eligibility_app():
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
 
-    /* 조건 결과: 다크모드 적용 */
+    /* 조건 출력 영역: 배경은 흰색, 텍스트만 다크톤 */
     #resultContainer {
-        background-color: #121212;
-        color: #f0f0f0;
+        background: none;
+        color: #121212;
         padding: 20px;
         border-radius: 8px;
+        overflow: visible;
     }
     #resultContainer h3 {
-        color: #90caf9;
+        color: #0d47a1;
     }
     #resultContainer p {
-        color: #e0e0e0;
+        color: #333;
         line-height: 1.6;
+    }
+
+    /* 선택한 날짜 텍스트 */
+    #selectedDatesText {
+        color: #121212;
+        font-weight: bold;
+        margin-bottom: 15px;
     }
     </style>
 
@@ -160,6 +168,8 @@ def daily_worker_eligibility_app():
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
+
+        sendHeight();  // 높이 갱신!
     }
 
     function toggleDate(element) {
@@ -176,11 +186,19 @@ def daily_worker_eligibility_app():
         document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
+    function sendHeight() {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ type: 'streamlit:resize', height: height }, '*');
+    }
+
     window.onload = function() {
         calculateAndDisplayResult([]);
+        sendHeight();
     };
+
+    new ResizeObserver(sendHeight).observe(document.body);
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1600, scrolling=False)
+    st.components.v1.html(calendar_html, height=600, scrolling=False)
 
