@@ -8,12 +8,6 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    # 모바일 줌 비활성화를 위한 meta 태그
-    st.markdown(
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
-        unsafe_allow_html=True
-    )
-
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -40,13 +34,11 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = """
-    <div id='calendar-container'>
-    """
+    calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -63,7 +55,7 @@ def daily_worker_eligibility_app():
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggle cửa này)">' + str(day_num) + '</div>'
+            calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
     calendar_html += """
@@ -74,7 +66,6 @@ def daily_worker_eligibility_app():
     <style>
     body {
         color: #111;
-        touch-action: none; /* 터치 줌 비활성화 */
     }
 
     .calendar {
@@ -86,12 +77,10 @@ def daily_worker_eligibility_app():
         padding: 10px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        width: 100%;
-        box-sizing: border-box;
-        max-width: 600px;
+        width: 50%;           /* ✅ PC에서 절반 폭 */
         margin-left: auto;
         margin-right: auto;
-        touch-action: none; /* 캘린더 내 터치 줌 비활성화 */
+        box-sizing: border-box;
     }
 
     .day-header, .empty-day, .day {
@@ -101,21 +90,17 @@ def daily_worker_eligibility_app():
         align-items: center;
         text-align: center;
     }
-
     .day-header {
         background: #444;
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
         font-size: 14px;
-        padding: 8px;
     }
-
     .empty-day {
         background: transparent;
         border: none;
     }
-
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -125,13 +110,10 @@ def daily_worker_eligibility_app():
         font-size: 16px;
         color: #222;
         background: #fdfdfd;
-        padding: 8px;
     }
-
     .day:hover {
         background: #eee;
     }
-
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
@@ -139,27 +121,8 @@ def daily_worker_eligibility_app():
         font-weight: bold;
     }
 
-    #calendar-container {
-        max-width: 100%;
-        padding: 10px;
-    }
-
     #resultContainer {
         color: #111;
-        font-size: 16px;
-        padding: 10px;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    h4 {
-        font-size: 18px;
-        margin: 10px 0;
-    }
-
-    #selectedDatesText {
-        font-size: 16px;
-        margin: 10px 0;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -186,77 +149,7 @@ def daily_worker_eligibility_app():
 
     @media (max-width: 768px) {
         .calendar {
-            gap: 3px;
-            padding: 8px;
-            max-width: 90vw;
-        }
-        .day-header, .day {
-            padding: 6px;
-            font-size: 14px; /* 모바일에서 폰트 크기 약간 축소 */
-        }
-        #calendar-container {
-            padding: 5px;
-        }
-        #resultContainer {
-            padding: 8px;
-            font-size: 14px; /* 모바일에서 결과 텍스트 축소 */
-        }
-        h4 {
-            font-size: 16px; /* 모바일에서 제목 축소 */
-            margin: 8px 0;
-        }
-        #selectedDatesText {
-            font-size: 14px; /* 모바일에서 선택된 날짜 텍스트 축소 */
-        }
-    }
-
-    @media (max-width: 480px) {
-        .calendar {
-            gap: 2px;
-            padding: 6px;
-            max-width: 95vw;
-        }
-        .day-header, .day {
-            padding: 4px;
-            font-size: 12px; /* 작은 화면에서 더 축소 */
-        }
-        #resultContainer {
-            padding: 6px;
-            font-size: 12px;
-        }
-        h4 {
-            font-size: 14px;
-        }
-        #selectedDatesText {
-            font-size: 12px;
-        }
-    }
-
-    @media (orientation: landscape) and (max-width: 768px) {
-        .calendar {
-            max-width: 95vw; /* 가로 모드에서 화면 너비에 맞춤 */
-            gap: 2px;
-            padding: 6px;
-        }
-        .day-header, .day {
-            padding: 4px;
-            font-size: 12px; /* 가로 모드에서 폰트 축소 */
-        }
-        #calendar-container {
-            padding: 5px;
-            overflow-x: hidden; /* 가로 스크롤 방지 */
-        }
-        #resultContainer {
-            padding: 6px;
-            font-size: 12px;
-            max-width: 95vw;
-        }
-        h4 {
-            font-size: 14px;
-            margin: 8px 0;
-        }
-        #selectedDatesText {
-            font-size: 12px;
+            width: 100%;       /* ✅ 모바일은 풀폭 */
         }
     }
     </style>
@@ -267,7 +160,7 @@ def daily_worker_eligibility_app():
     const FOURTEEN_DAYS_END = '""" + fourteen_days_prior_end + """';
     const NEXT_POSSIBLE1_DATE = '""" + next_possible1_str + """';
 
-    function savewartToLocalStorage(data) {
+    function saveToLocalStorage(data) {
         localStorage.setItem('selectedDates', JSON.stringify(data));
     }
 
@@ -344,4 +237,6 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
+daily_worker_eligibility_app()
 
