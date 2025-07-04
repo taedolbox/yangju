@@ -335,18 +335,18 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
     function adjustStreamlitFrameSize() {{
         const body = document.body;
         const html = document.documentElement;
-        
+
         // 스크롤 높이, 오프셋 높이 등 여러 값을 비교하여 실제 콘텐츠 높이를 정확히 측정
         const contentHeight = Math.max(
             body.scrollHeight, body.offsetHeight,
             html.clientHeight, html.scrollHeight, html.offsetHeight
         );
         // iframe 내부의 실제 너비를 측정 (뷰포트 너비)
-        const contentWidth = window.innerWidth; 
+        const contentWidth = window.innerWidth;
 
         if (window.parent) {{
-            window.parent.postMessage({{ 
-                type: 'streamlit:setFrameHeight', 
+            window.parent.postMessage({{
+                type: 'streamlit:setFrameHeight',
                 height: contentHeight + 50, // 높이에 버퍼 추가
                 width: contentWidth // 너비 정보도 함께 전송
             }}, '*');
@@ -372,7 +372,7 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
     // orientationchange와 resize 이벤트 리스너
     window.addEventListener("orientationchange", adjustStreamlitFrameSizeDebounced);
     window.addEventListener("resize", adjustStreamlitFrameSizeDebounced);
-    
+
     // 추가적으로 DOMContentLoaded도 포함 (일부 환경에서 onload보다 먼저 발생)
     document.addEventListener('DOMContentLoaded', adjustStreamlitFrameSizeDebounced);
 
@@ -383,8 +383,4 @@ def daily_worker_eligibility_app_original_ui(): # 함수명 변경
 
     # Streamlit 컴포넌트 설정
     # width는 Streamlit의 컬럼 너비를 따르므로 height만 유동적으로 관리
-    st.components.v1.html(calendar_html, height=1000, scrolling=True) 
-
-if __name__ == "__main__":
-    # main.py에서 이 함수를 호출하도록 변경하세요.
-    daily_worker_eligibility_app_original_ui()
+    st.components.v1.html(calendar_html, height=1000, scrolling=True)
