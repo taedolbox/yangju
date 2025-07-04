@@ -31,7 +31,6 @@ def daily_worker_eligibility_app():
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
-    # 조건 1 충족 기준 날짜 계산
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
@@ -65,6 +64,7 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
+    /* 달력 영역: 라이트 테마 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -83,6 +83,21 @@ def daily_worker_eligibility_app():
     }
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
+
+    /* 조건 결과: 다크모드 적용 */
+    #resultContainer {
+        background-color: #121212;
+        color: #f0f0f0;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    #resultContainer h3 {
+        color: #90caf9;
+    }
+    #resultContainer p {
+        color: #e0e0e0;
+        line-height: 1.6;
+    }
     </style>
 
     <script>
@@ -168,3 +183,4 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1600, scrolling=False)
+
