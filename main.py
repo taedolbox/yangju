@@ -1,5 +1,17 @@
 import streamlit as st
+
 from app.daily_worker_eligibility import daily_worker_eligibility_app
+from app.early_reemployment import early_reemployment_app
+from app.remote_assignment import remote_assignment_app
+from app.wage_delay import wage_delay_app
+from app.unemployment_recognition import unemployment_recognition_app
+from app.questions import (
+    get_employment_questions,
+    get_self_employment_questions,
+    get_remote_assignment_questions,
+    get_wage_delay_questions,
+    get_daily_worker_eligibility_questions
+)
 
 def update_selected_menu(filtered_menus, all_menus):
     selected_menu = st.session_state.menu_selector
@@ -106,3 +118,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
