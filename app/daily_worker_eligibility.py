@@ -1,218 +1,215 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json
+import calendar
 
-def daily_worker_eligibility_app():
+def get_korean_day_name(weekday):
+    """요일 숫자를 한국어 요일 이름으로 변환"""
+    days = ["월", "화", "수", "목", "금", "토", "일"]
+    # calendar.weekday는 월요일=0, 일요일=6
+    # 우리의 달력은 일요일부터 시작하므로 인덱스 조정 (일=0, 월=1, ..., 토=6)
+    return days[(weekday + 6) % 7]
+
+def daily_worker_eligibility_app_native():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600; color: white;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
+    
+    # 세션 상태에서 선택된 날짜를 관리합니다.
+    if 'selected_dates' not in st.session_state:
+        st.session_state.selected_dates = []
+
+    # 기준 날짜 선택
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # 계산 기간 설정
+    # 신청일이 속한 달의 직전 달 첫날부터 신청일까지
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-    last_day = input_date
+    calculation_end_date = input_date
+    
+    # 달력 표시를 위한 기간 (직전 달 첫날부터 현재 선택된 날짜까지)
+    current_display_date = first_day_prev_month
+    
+    st.markdown("---")
+    st.markdown("### 📆 근무일 선택")
 
-    cal_dates = []
-    current_date = first_day_prev_month
-    while current_date <= last_day:
-        cal_dates.append(current_date)
-        current_date += timedelta(days=1)
+    # 월별로 달력 표시
+    while current_display_date <= calculation_end_date:
+        year = current_display_date.year
+        month = current_display_date.month
 
-    calendar_groups = {}
-    for date in cal_dates:
-        ym = date.strftime("%Y-%m")
-        if ym not in calendar_groups:
-            calendar_groups[ym] = []
-        calendar_groups[ym].append(date)
+        st.subheader(f"{year}년 {month}월")
 
-    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
-    fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
-    fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+        # 달력 헤더 (요일)
+        col_headers = st.columns(7)
+        day_names = ["일", "월", "화", "수", "목", "금", "토"]
+        for i, day_name in enumerate(day_names):
+            # 일요일은 빨간색, 토요일은 파란색
+            color = "red" if i == 0 else ("blue" if i == 6 else "white")
+            col_headers[i].markdown(f"<p style='text-align:center; color:{color}; font-weight:bold;'>{day_name}</p>", unsafe_allow_html=True)
 
-    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
-    next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
+        # 달력 일자 표시
+        cal = calendar.Calendar(firstweekday=6) # 일요일을 주의 시작으로 설정 (0=월, 6=일)
+        month_days = cal.monthdayscalendar(year, month)
 
-    calendar_html = "<div id='calendar-container'>"
+        for week in month_days:
+            cols = st.columns(7)
+            for i, day_num in enumerate(week):
+                if day_num == 0: # 해당 월이 아닌 날짜
+                    cols[i].empty()
+                else:
+                    current_day_date = datetime(year, month, day_num).date()
+                    
+                    # 계산 범위 내에 있는 날짜만 활성화
+                    is_active_day = first_day_prev_month <= current_day_date <= calculation_end_date
 
-    for ym, dates in calendar_groups.items():
-        year, month = ym.split("-")
-        calendar_html += "<h4 style='color:white;'>" + year + "년 " + month + "월</h4>"
-        calendar_html += """
-        <div class="calendar">
-            <div class="day-header">일</div>
-            <div class="day-header">월</div>
-            <div class="day-header">화</div>
-            <div class="day-header">수</div>
-            <div class="day-header">목</div>
-            <div class="day-header">금</div>
-            <div class="day-header">토</div>
-        """
-        start_day_offset = (dates[0].weekday() + 1) % 7
-        for _ in range(start_day_offset):
-            calendar_html += '<div class="empty-day"></div>'
-        for date in dates:
-            day_num = date.day
-            date_str = date.strftime("%m/%d")
-            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num) + '</div>'
-        calendar_html += "</div>"
+                    date_str = current_day_date.strftime("%Y-%m-%d")
+                    is_selected = date_str in st.session_state.selected_dates
 
-    calendar_html += """
-    </div>
-    <p id="selectedDatesText" style="color:white;"></p>
-    <div id="resultContainer"></div>
+                    # 날짜 버튼 스타일 (CSS 직접 삽입)
+                    button_style = f"""
+                        width: 100%;
+                        height: 100%;
+                        aspect-ratio: 1 / 1; /* 정사각형 유지 */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        border: 1px solid {'#2196F3' if is_selected else '#ddd'};
+                        border-radius: 5px;
+                        background-color: {'#2196F3' if is_selected else ('#fdfdfd' if is_active_day else '#eee')};
+                        color: {'#fff' if is_selected else ('#222' if is_active_day else '#aaa')} !important;
+                        cursor: {'pointer' if is_active_day else 'default'};
+                        font-weight: {'bold' if is_selected else 'normal'};
+                        font-size: 16px;
+                        user-select: none;
+                        transition: background-color 0.1s ease, border 0.1s ease;
+                    """
+                    # 비활성 날짜는 클릭 불가
+                    button_key = f"day_button_{date_str}"
+                    if is_active_day:
+                        if cols[i].button(str(day_num), key=button_key, help=f"{date_str} 선택/해제"):
+                            if is_selected:
+                                st.session_state.selected_dates.remove(date_str)
+                            else:
+                                st.session_state.selected_dates.append(date_str)
+                            st.rerun() # 선택 상태 변경 시 앱 다시 실행하여 UI 업데이트
+                    else:
+                        # 비활성 날짜는 단순히 텍스트로 표시
+                        cols[i].markdown(f"<div style='{button_style}'>{day_num}</div>", unsafe_allow_html=True)
+                    
+                    # 다크 모드 스타일
+                    st.markdown("""
+                    <style>
+                    @media (prefers-color-scheme: dark) {
+                        div[data-testid*="stButton"] > button {
+                            background-color: #444 !important;
+                            border-color: #555 !important;
+                            color: #eee !important;
+                        }
+                        div[data-testid*="stButton"] > button:hover {
+                            background-color: #555 !important;
+                        }
+                        div[data-testid*="stButton"] > button[data-selected="true"] { /* Streamlit 내부적으로 selected 상태가 없으므로 CSS 셀렉터가 작동 안 할 수 있음 */
+                            background-color: #2196F3 !important;
+                            border-color: #2196F3 !important;
+                            color: #fff !important;
+                        }
+                        /* 직접 삽입된 div 스타일은 prefers-color-scheme에서 직접 수정해야 함 */
+                        div[style*="background-color: rgb(253, 253, 253);"] { /* #fdfdfd */
+                            background-color: #444 !important;
+                            border-color: #555 !important;
+                            color: #eee !important;
+                        }
+                        div[style*="background-color: rgb(238, 238, 238);"] { /* #eee */
+                            background-color: #333 !important;
+                            border-color: #444 !important;
+                            color: #aaa !important;
+                        }
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    
+                    # 각 버튼에 인라인 스타일 적용 (Streamlit 버튼 위젯의 스타일을 직접 조작)
+                    st.markdown(f"""
+                        <style>
+                            div[data-testid="stColumn"] > div > div[data-testid*="stButton"] > button[key="{button_key}"] {{
+                                {button_style}
+                            }}
+                        </style>
+                    """, unsafe_allow_html=True)
 
-    <style>
-    body {
-        color: #fff;
-    }
+        current_display_date = current_display_date.replace(day=1) + timedelta(days=32)
+        current_display_date = current_display_date.replace(day=1) # 다음 달의 첫째 날
 
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-        gap: 5px;
-        margin-bottom: 20px;
-        background: #111;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        width: 100%;
-        box-sizing: border-box;
-    }
+    # 선택된 날짜 출력 (UI 업데이트용)
+    selected_count = len(st.session_state.selected_dates)
+    st.markdown(f"<p style='color:#fff;'>선택한 날짜: {', '.join(sorted(st.session_state.selected_dates))} ({selected_count}일)</p>", unsafe_allow_html=True)
 
-    .day-header, .empty-day, .day {
-        aspect-ratio: 1/1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
-    .day-header {
-        background: #444;
-        color: #fff;
-        border-radius: 5px;
-        font-weight: bold;
-        font-size: 14px;
-    }
-    .empty-day {
-        background: transparent;
-        border: none;
-    }
-    .day {
-        border: 1px solid #555;
-        border-radius: 5px;
-        cursor: pointer;
-        user-select: none;
-        transition: background 0.1s ease, border 0.1s ease;
-        font-size: 16px;
-        color: #fff;
-        background: #222;
-    }
-    .day:hover {
-        background: #333;
-    }
-    .day.selected {
-        border: 2px solid #2196F3;
-        background: #2196F3;
-        color: #fff !important;
-        font-weight: bold;
-    }
+    st.markdown("---")
+    st.markdown("### 📌 조건 판단")
 
-    #resultContainer {
-        color: #fff;
-    }
+    # 계산 로직 (이전과 동일)
+    total_days = (calculation_end_date - first_day_prev_month).days + 1
+    threshold = total_days / 3
+    worked_days = len(st.session_state.selected_dates)
 
-    @media (prefers-color-scheme: light) {
-        body { color: #000; background: #fff; }
-        .calendar { background: #fff; }
-        .day { color: #000; background: #fdfdfd; }
-        .day-header { background: #e0e0e0; color: #000; }
-        #resultContainer { color: #000; }
-    }
-    </style>
+    fourteen_days_prior_end_dt = calculation_end_date - timedelta(days=1)
+    fourteen_days_prior_start_dt = calculation_end_date - timedelta(days=14)
 
-    <script>
-    const CALENDAR_DATES = """ + calendar_dates_json + """;
-    const FOURTEEN_DAYS_START = '""" + fourteen_days_prior_start + """';
-    const FOURTEEN_DAYS_END = '""" + fourteen_days_prior_end + """';
-    const NEXT_POSSIBLE1_DATE = '""" + next_possible1_str + """';
+    # 선택된 날짜 중 14일 기간 내 근무 여부 확인
+    no_work_14_days = True
+    for selected_date_str in st.session_state.selected_dates:
+        selected_date_dt = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+        if fourteen_days_prior_start_dt <= selected_date_dt <= fourteen_days_prior_end_dt:
+            no_work_14_days = False
+            break
 
-    function saveToLocalStorage(data) {
-        localStorage.setItem('selectedDates', JSON.stringify(data));
-    }
+    condition1_text = f"근무일 수({worked_days}) < 기준({threshold:.1f})"
+    condition2_text = f"신청일 직전 14일간({fourteen_days_prior_start_dt} ~ {fourteen_days_prior_end_dt}) 무근무"
 
-    function calculateAndDisplayResult(selected) {
-        const totalDays = CALENDAR_DATES.length;
-        const threshold = totalDays / 3;
-        const workedDays = selected.length;
+    st.markdown("### 📌 조건 기준")
+    st.markdown(f"<p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>", unsafe_allow_html=True)
+    st.markdown(f"<p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>", unsafe_allow_html=True)
+    st.markdown(f"<p>총 기간 일수: {total_days}일</p>", unsafe_allow_html=True)
+    st.markdown(f"<p>1/3 기준: {threshold:.1f}일</p>", unsafe_allow_html=True)
+    st.markdown(f"<p>근무일 수: {worked_days}일</p>", unsafe_allow_html=True)
 
-        const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
+    st.markdown("---")
+    st.markdown("### 📌 조건 판단")
+    if worked_days < threshold:
+        st.success(f"✅ 조건 1 충족: {condition1_text}")
+    else:
+        st.error(f"❌ 조건 1 불충족: {condition1_text}")
+        # 다음 신청 가능일 계산
+        next_possible1_date = (calculation_end_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+        st.info(f"📅 조건 1을 충족하려면 오늘({calculation_end_date}) 이후 근로제공이 없는 경우 **{next_possible1_date.strftime('%Y-%m-%d')}** 이후에 신청하면 조건 1을 충족할 수 있습니다.")
 
-        let nextPossible1 = "";
-        if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
-        }
 
-        let nextPossible2 = "";
-        if (!noWork14Days) {
-            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
-            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
-            const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
-        }
+    if no_work_14_days:
+        st.success(f"✅ 조건 2 충족: {condition2_text}")
+    else:
+        st.error(f"❌ 조건 2 불충족: {condition2_text}")
+        # 다음 신청 가능일 계산
+        next_possible2_date = fourteen_days_prior_end_dt + timedelta(days=14)
+        st.info(f"📅 조건 2를 충족하려면 오늘({calculation_end_date}) 이후 근로제공이 없는 경우 **{next_possible2_date.strftime('%Y-%m-%d')}** 이후에 신청하면 조건 2를 충족할 수 있습니다.")
 
-        const condition1Text = workedDays < threshold
-            ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
+    st.markdown("---")
+    st.markdown("### 📌 최종 판단")
+    general_worker_eligible = worked_days < threshold
+    construction_worker_eligible = (worked_days < threshold) or no_work_14_days
 
-        const generalWorkerText = workedDays < threshold ? "✅ 일반일용근로자: 신청 가능" : "❌ 일반일용근로자: 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 건설일용근로자: 신청 가능" : "❌ 건설일용근로자: 신청 불가능";
+    if general_worker_eligible:
+        st.success("✅ 일반일용근로자: 신청 가능")
+    else:
+        st.error("❌ 일반일용근로자: 신청 불가능")
 
-        const finalHtml = `
-            <h3>📌 조건 기준</h3>
-            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
-            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>
-            <p>총 기간 일수: ` + totalDays + `일</p>
-            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
-            <p>근무일 수: ` + workedDays + `일</p>
-            <h3>📌 조건 판단</h3>
-            <p>` + condition1Text + `</p>
-            <p>` + condition2Text + `</p>
-            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
-            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
-            <h3>📌 최종 판단</h3>
-            <p>` + generalWorkerText + `</p>
-            <p>` + constructionWorkerText + `</p>
-        `;
+    if construction_worker_eligible:
+        st.success("✅ 건설일용근로자: 신청 가능")
+    else:
+        st.error("❌ 건설일용근로자: 신청 불가능")
 
-        document.getElementById('resultContainer').innerHTML = finalHtml;
-    }
-
-    function toggleDate(element) {
-        element.classList.toggle('selected');
-        const selected = [];
-        const days = document.getElementsByClassName('day');
-        for (let i = 0; i < days.length; i++) {
-            if (days[i].classList.contains('selected')) {
-                selected.push(days[i].getAttribute('data-date'));
-            }
-        }
-        saveToLocalStorage(selected);
-        calculateAndDisplayResult(selected);
-        document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
-    }
-
-    window.onload = function() {
-        calculateAndDisplayResult([]);
-    };
-    </script>
-    """
-
-    st.components.v1.html(calendar_html, height=1600, scrolling=False)
-
+if __name__ == "__main__":
+    daily_worker_eligibility_app_native()
