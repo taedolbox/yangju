@@ -26,11 +26,7 @@ def main():
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     all_menus = [
-        "임금 체불 판단",
-        "원거리 발령 판단",
-        "실업인정",
         "조기재취업수당",
-        "실업급여 신청 가능 시점",
         "일용직(건설일용포함)"
     ]
 
