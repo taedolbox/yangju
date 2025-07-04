@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600; color: var(--text-color, #111);'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -60,8 +60,8 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText" style="color:#fff;"></p>
-    <div id="resultContainer" style="color:#fff;"></div>
+    <p id="selectedDatesText"></p>
+    <div id="resultContainer"></div>
 
     <style>
     body {
@@ -119,7 +119,7 @@ def daily_worker_eligibility_app():
         font-weight: bold;
     }
 
-    #resultContainer {
+    #resultContainer, #selectedDatesText {
         color: #111;
     }
 
@@ -128,7 +128,10 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        #resultContainer {
+        .day {
+            color: #eee;
+        }
+        #resultContainer, #selectedDatesText {
             color: #eee;
         }
     }
@@ -220,12 +223,21 @@ def daily_worker_eligibility_app():
         calculateAndDisplayResult([]);
     };
 
-    // ✅ orientationchange 감지하여 로깅/필요시 추가처리
     window.addEventListener("orientationchange", function() {
-        console.log("화면 방향 바뀜:", window.orientation);
+        const calendars = document.querySelectorAll('.calendar');
+        if (window.innerWidth <= 768) {
+            calendars.forEach(cal => {
+                cal.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            });
+        } else {
+            calendars.forEach(cal => {
+                cal.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            });
+        }
     });
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
 
