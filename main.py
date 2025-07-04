@@ -2,13 +2,17 @@ import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
+from app.remote_assignment import remote_assignment_app
+from app.wage_delay import wage_delay_app
+from app.unemployment_recognition import unemployment_recognition_app
 from app.questions import (
     get_employment_questions,
-    get_daily_worker_eligibility_questions,
-    get_self_employment_questions
+    get_self_employment_questions,
+    get_remote_assignment_questions,
+    get_wage_delay_questions,
+    get_daily_worker_eligibility_questions
 )
 
-# 메뉴 선택 시 세션 상태를 업데이트하고 쿼리 파라미터를 설정하는 함수
 def update_selected_menu(filtered_menus, all_menus):
     selected_menu = st.session_state.menu_selector
     if selected_menu in filtered_menus:
@@ -16,7 +20,6 @@ def update_selected_menu(filtered_menus, all_menus):
         menu_id = all_menus.index(selected_menu) + 1
         st.query_params["menu"] = str(menu_id)
 
-# Streamlit 앱의 메인 로직을 담는 함수
 def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
