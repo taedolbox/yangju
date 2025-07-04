@@ -22,7 +22,6 @@ def main():
         layout="centered"
     )
 
-    # CSS 적용
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -83,6 +82,9 @@ def main():
         else:
             st.warning("검색 결과에 해당하는 메뉴가 없습니다.")
             st.session_state.selected_menu = None
+
+        st.markdown("---")
+        st.markdown("[📌 고용센터 찾기](https://www.work24.go.kr/cm/c/d/0190/retrieveInstSrchLst.do)")
 
     st.markdown("---")
 
