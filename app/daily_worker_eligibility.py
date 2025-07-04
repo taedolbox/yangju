@@ -38,7 +38,7 @@ def daily_worker_eligibility_app():
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -55,7 +55,7 @@ def daily_worker_eligibility_app():
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num) + '</div>'
+            calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
     calendar_html += """
@@ -66,6 +66,11 @@ def daily_worker_eligibility_app():
     <style>
     body {
         color: #111;
+    }
+
+    #calendar-container {
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .calendar {
@@ -79,6 +84,7 @@ def daily_worker_eligibility_app():
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         width: 100%;
         box-sizing: border-box;
+        max-width: 100%;
     }
 
     .day-header, .empty-day, .day {
@@ -138,6 +144,14 @@ def daily_worker_eligibility_app():
             grid-template-columns: repeat(7, 1fr);
         }
     }
+
+    @media (orientation: landscape) {
+        .calendar {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
     </style>
 
     <script>
@@ -148,14 +162,6 @@ def daily_worker_eligibility_app():
 
     function saveToLocalStorage(data) {
         localStorage.setItem('selectedDates', JSON.stringify(data));
-    }
-
-    function loadFromLocalStorage() {
-        const saved = localStorage.getItem('selectedDates');
-        if (saved) {
-            return JSON.parse(saved);
-        }
-        return [];
     }
 
     function calculateAndDisplayResult(selected) {
@@ -225,22 +231,10 @@ def daily_worker_eligibility_app():
     }
 
     window.onload = function() {
-        const restored = loadFromLocalStorage();
-        const days = document.getElementsByClassName('day');
-        for (let i = 0; i < days.length; i++) {
-            const date = days[i].getAttribute('data-date');
-            if (restored.includes(date)) {
-                days[i].classList.add('selected');
-            }
-        }
-        calculateAndDisplayResult(restored);
-        document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + restored.join(', ') + " (" + restored.length + "일)";
+        calculateAndDisplayResult([]);
     };
-
-    window.addEventListener("orientationchange", function() {
-        location.reload();
-    });
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
