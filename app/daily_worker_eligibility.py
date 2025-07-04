@@ -8,6 +8,12 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
+    # 모바일 줌 비활성화를 위한 meta 태그 추가 (Streamlit 외부 헤더용)
+    st.markdown(
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
+        unsafe_allow_html=True
+    )
+
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -35,7 +41,6 @@ def daily_worker_eligibility_app():
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     calendar_html = """
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <div id='calendar-container'>
     """
 
@@ -70,6 +75,7 @@ def daily_worker_eligibility_app():
     body {
         color: #111;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+        touch-action: none; /* 모바일 터치 줌 비활성화 */
     }
 
     .calendar {
@@ -86,6 +92,7 @@ def daily_worker_eligibility_app():
         margin-left: auto;
         margin-right: auto;
         box-sizing: border-box;
+        touch-action: none; /* 캘린더 내 터치 줌 비활성화 */
     }
 
     .day-header, .empty-day, .day {
@@ -137,6 +144,7 @@ def daily_worker_eligibility_app():
         max-width: 100%;
         overflow-x: auto;
         padding: 10px;
+        touch-action: none; /* 캘린더 컨테이너 내 터치 줌 비활성화 */
     }
 
     #resultContainer {
