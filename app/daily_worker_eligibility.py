@@ -91,7 +91,7 @@ def daily_worker_eligibility_app():
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: clamp(12px, 3vw, 14px);
+        font-size: 16px; /* 원본의 .day 폰트 크기 복원 */
     }
 
     .day-header {
@@ -100,6 +100,7 @@ def daily_worker_eligibility_app():
         border-radius: 5px;
         font-weight: bold;
         padding: 8px;
+        font-size: 14px; /* 원본의 .day-header 폰트 크기 복원 */
     }
 
     .empty-day {
@@ -182,9 +183,13 @@ def daily_worker_eligibility_app():
             gap: 2px;
             padding: 8px;
         }
-        .day-header, .day {
+        .day-header {
+            font-size: clamp(12px, 3vw, 13px); /* 모바일에서 약간 축소 */
             padding: 6px;
-            font-size: clamp(10px, 2.5vw, 12px);
+        }
+        .day {
+            font-size: clamp(13px, 3.5vw, 15px); /* 원본에 가까운 크기 유지 */
+            padding: 6px;
         }
         #calendar-container {
             padding: 5px;
@@ -204,9 +209,13 @@ def daily_worker_eligibility_app():
             gap: 1px;
             padding: 5px;
         }
-        .day-header, .day {
+        .day-header {
+            font-size: clamp(11px, 2.8vw, 12px); /* 작은 화면에서도 가독성 유지 */
             padding: 4px;
-            font-size: clamp(8px, 2.2vw, 10px);
+        }
+        .day {
+            font-size: clamp(12px, 3.2vw, 14px); /* 원본에 가까운 크기 유지 */
+            padding: 4px;
         }
         #resultContainer {
             font-size: clamp(10px, 2.8vw, 12px);
@@ -221,8 +230,12 @@ def daily_worker_eligibility_app():
             max-width: 90vw;
             gap: 2px;
         }
-        .day-header, .day {
-            font-size: clamp(10px, 1.8vw, 12px);
+        .day-header {
+            font-size: clamp(12px, 2vw, 13px);
+            padding: 5px;
+        }
+        .day {
+            font-size: clamp(13px, 2.5vw, 15px);
             padding: 5px;
         }
     }
