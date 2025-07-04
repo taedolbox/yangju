@@ -5,8 +5,6 @@ from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
     get_self_employment_questions,
-    get_remote_assignment_questions,
-    get_wage_delay_questions,
     get_daily_worker_eligibility_questions
 )
 
@@ -25,20 +23,14 @@ def main():
     )
 
     # CSS 적용
-    # 'static/styles.css' 파일이 프로젝트 루트 폴더에 있는지 확인하세요.
-    try:
-        with open("static/styles.css") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.warning("경고: 'static/styles.css' 파일을 찾을 수 없습니다. CSS 스타일이 적용되지 않을 수 있습니다.")
-
+    with open("static/styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
     ]
 
-    # 함수 이름을 정확히 daily_worker_eligibility_app_original_ui 로 변경합니다.
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
         "일용직(건설일용포함)": daily_worker_eligibility_app
@@ -62,7 +54,6 @@ def main():
                 any(search_query in q.lower() for q in all_questions.get(menu, []))
             ]
 
-        # 세션 초기화
         if "selected_menu" not in st.session_state:
             query_params = st.query_params
             url_menu_id = query_params.get("menu", [None])[0]
@@ -85,11 +76,10 @@ def main():
                 key="menu_selector",
                 on_change=lambda: update_selected_menu(filtered_menus, all_menus)
             )
-            # st.radio는 선택 시 바로 값을 변경하므로, 이 조건문은 필요 없을 수 있습니다.
-            # if selected_menu != st.session_state.selected_menu:
-            #     st.session_state.selected_menu = selected_menu
-            #     menu_id = all_menus.index(selected_menu) + 1
-            #     st.query_params["menu"] = str(menu_id)
+            if selected_menu != st.session_state.selected_menu:
+                st.session_state.selected_menu = selected_menu
+                menu_id = all_menus.index(selected_menu) + 1
+                st.query_params["menu"] = str(menu_id)
         else:
             st.warning("검색 결과에 해당하는 메뉴가 없습니다.")
             st.session_state.selected_menu = None
@@ -110,3 +100,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
