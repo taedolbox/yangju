@@ -97,7 +97,6 @@ def main():
     st.markdown("---")
 
     if st.session_state.selected_menu:
-        # 선택된 메뉴에 해당하는 함수를 호출합니다.
         menu_functions.get(
             st.session_state.selected_menu,
             lambda: st.info("메뉴를 선택하세요.")
@@ -109,6 +108,5 @@ def main():
     st.caption("ⓒ 2025 실업급여 도우미는 도움을 드리기 위한 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.")
     st.markdown("[📌 고용센터 찾기](https://www.work24.go.kr/cm/c/d/0190/retrieveInstSrchLst.do)")
 
-# 스크립트가 직접 실행될 때만 main() 함수를 호출합니다.
 if __name__ == "__main__":
-    main() # <-- 여기만 남겨둡니다.
+    main()
