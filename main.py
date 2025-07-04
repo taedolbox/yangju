@@ -1,6 +1,6 @@
 import streamlit as st
 
-from app.daily_worker_eligibility import daily_worker_eligibility_app
+from app.daily_worker_eligibility import daily_worker_eligibility_app_native
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
