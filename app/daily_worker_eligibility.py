@@ -1,4 +1,5 @@
 import streamlit as st
+from components.footer import render_footer
 from datetime import datetime, timedelta
 import json
 
