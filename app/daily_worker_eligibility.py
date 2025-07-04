@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600; color: var(--text-color, #111);'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -60,12 +60,14 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText"></p>
-    <div id="resultContainer"></div>
+    <p id="selectedDatesText" style="color:#fff;"></p>
+    <div id="resultContainer" style="color:#fff;"></div>
 
     <style>
     body {
         color: #111;
+        margin: 0; /* Remove default body margin */
+        padding: 0; /* Remove default body padding */
     }
 
     .calendar {
@@ -119,8 +121,9 @@ def daily_worker_eligibility_app():
         font-weight: bold;
     }
 
-    #resultContainer, #selectedDatesText {
+    #resultContainer {
         color: #111;
+        padding-bottom: 20px; /* Add some padding at the bottom */
     }
 
     @media (prefers-color-scheme: dark) {
@@ -128,14 +131,12 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        .day {
-            color: #eee;
-        }
-        #resultContainer, #selectedDatesText {
+        #resultContainer {
             color: #eee;
         }
     }
 
+    /* Original media query for calendar grid, remains useful */
     @media (max-width: 768px) {
         .calendar {
             grid-template-columns: repeat(7, 1fr);
@@ -159,7 +160,13 @@ def daily_worker_eligibility_app():
         const workedDays = selected.length;
 
         const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
+        // Ensure selected dates are in YYYY-MM-DD format for comparison with CALENDAR_DATES
+        const selectedFormatted = selected.map(date => {
+            const parts = date.split('/');
+            return new Date(new Date().getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1])).toISOString().split('T')[0];
+        });
+
+        const noWork14Days = fourteenDays.every(date => !selectedFormatted.includes(date));
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
@@ -168,8 +175,7 @@ def daily_worker_eligibility_app():
 
         let nextPossible2 = "";
         if (!noWork14Days) {
-            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
-            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
+            const nextPossibleDate = new Date(new Date(FOURTEEN_DAYS_END).getTime() + (14 * 24 * 60 * 60 * 1000));
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
             nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
         }
@@ -215,29 +221,49 @@ def daily_worker_eligibility_app():
             }
         }
         saveToLocalStorage(selected);
+        updateSelectedDatesText(selected); // Update selected dates text
         calculateAndDisplayResult(selected);
+    }
+
+    function updateSelectedDatesText(selected) {
         document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
+    function adjustStreamlitHeight() {
+        const body = document.body;
+        const html = document.documentElement;
+        // Get the maximum height between body and html elements
+        const height = Math.max( body.scrollHeight, body.offsetHeight, 
+                                html.clientHeight, html.scrollHeight, html.offsetHeight );
+        // Send the height back to Streamlit
+        if (window.parent) {
+            window.parent.postMessage({ type: 'streamlit:setFrameHeight', height: height + 50 }, '*'); // Add some buffer
+        }
+    }
+
     window.onload = function() {
-        calculateAndDisplayResult([]);
+        const storedSelectedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
+        // Re-apply selections from localStorage
+        const days = document.getElementsByClassName('day');
+        for (let i = 0; i < days.length; i++) {
+            const dateAttr = days[i].getAttribute('data-date');
+            if (storedSelectedDates.includes(dateAttr)) {
+                days[i].classList.add('selected');
+            }
+        }
+        updateSelectedDatesText(storedSelectedDates);
+        calculateAndDisplayResult(storedSelectedDates);
+        adjustStreamlitHeight(); // Adjust height on load
     };
 
-    window.addEventListener("orientationchange", function() {
-        const calendars = document.querySelectorAll('.calendar');
-        if (window.innerWidth <= 768) {
-            calendars.forEach(cal => {
-                cal.style.gridTemplateColumns = 'repeat(7, 1fr)';
-            });
-        } else {
-            calendars.forEach(cal => {
-                cal.style.gridTemplateColumns = 'repeat(7, 1fr)';
-            });
-        }
-    });
+    // Listen for orientation change and resize events to adjust height
+    window.addEventListener("orientationchange", adjustStreamlitHeight);
+    window.addEventListener("resize", adjustStreamlitHeight);
+
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+    st.components.v1.html(calendar_html, height=1800, scrolling=True) # Set scrolling to True to allow for content overflow and scrolling
 
-
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
