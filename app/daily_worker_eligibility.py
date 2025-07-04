@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:18px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -34,10 +34,7 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = """
-    <div id="wrapper">
-        <div id="calendar-area">
-    """
+    calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
@@ -62,45 +59,11 @@ def daily_worker_eligibility_app():
         calendar_html += "</div>"
 
     calendar_html += """
-        </div>
-        <div id="result-area">
-            <p id="selectedDatesText"></p>
-            <div id="resultContainer"></div>
-        </div>
     </div>
+    <p id="selectedDatesText"></p>
+    <div id="resultContainer"></div>
 
     <style>
-    /* 전체 래퍼 */
-    #wrapper {
-        display: flex;
-        gap: 20px;
-        max-width: 100%;
-        margin: 0 auto;
-        box-sizing: border-box;
-    }
-
-    /* 달력 영역 */
-    #calendar-area {
-        width: 55%;
-        background: #fff;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        box-sizing: border-box;
-    }
-
-    /* 결과 영역 */
-    #result-area {
-        width: 40%;
-        background: #fff;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        color: #111;
-        box-sizing: border-box;
-        min-height: 300px;
-    }
-
     body {
         color: #111;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
@@ -109,14 +72,15 @@ def daily_worker_eligibility_app():
     .calendar {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
+        gap: 5px;
         margin-bottom: 20px;
         background: #fff;
         padding: 10px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        width: 100%;
+        width: 50%;
         box-sizing: border-box;
+        float: left;
     }
 
     .day-header, .empty-day, .day {
@@ -126,20 +90,18 @@ def daily_worker_eligibility_app():
         align-items: center;
         text-align: center;
     }
-
     .day-header {
         background: #444;
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
         font-size: 14px;
+        padding: 8px;
     }
-
     .empty-day {
         background: transparent;
         border: none;
     }
-
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -149,13 +111,11 @@ def daily_worker_eligibility_app():
         font-size: 16px;
         color: #222;
         background: #fdfdfd;
-        padding: 6px;
+        padding: 8px;
     }
-
     .day:hover {
         background: #eee;
     }
-
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
@@ -165,7 +125,21 @@ def daily_worker_eligibility_app():
 
     #resultContainer {
         color: #111;
+        width: 45%;
+        float: right;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 10px;
         font-size: 16px;
+        box-sizing: border-box;
+        min-height: 200px;
+    }
+
+    #selectedDatesText {
+        margin-top: 10px;
+        font-size: 16px;
+        clear: both;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -173,9 +147,9 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        #calendar-area, #result-area {
-            background: #222;
-            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        .calendar {
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
         }
         .day {
             background: #2a2a2a;
@@ -187,25 +161,20 @@ def daily_worker_eligibility_app():
         }
         #resultContainer {
             color: #eee;
+            background: #222;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.2);
         }
     }
 
     @media (max-width: 768px) {
-        #wrapper {
-            flex-direction: column;
+        .calendar, #resultContainer {
+            float: none;
+            width: 100% !important;
+            box-sizing: border-box;
         }
-        #calendar-area, #result-area {
-            width: 100%;
-            box-shadow: none;
-            border-radius: 0;
-            padding: 10px 5px;
-        }
-        .calendar {
-            gap: 4px;
-            padding: 8px;
-        }
-        .day-header, .day {
-            padding: 5px;
+        #resultContainer {
+            margin-top: 20px;
+            min-height: auto;
         }
     }
     </style>
@@ -292,7 +261,8 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=850, scrolling=False)
+    st.components.v1.html(calendar_html, height=800, scrolling=False)
 
 daily_worker_eligibility_app()
+
 
