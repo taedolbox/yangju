@@ -8,6 +8,12 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
+    # 모바일 줌 비활성화를 위한 meta 태그
+    st.markdown(
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
+        unsafe_allow_html=True
+    )
+
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -34,7 +40,9 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = "<div id='calendar-container'>"
+    calendar_html = """
+    <div id='calendar-container'>
+    """
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
@@ -55,17 +63,23 @@ def daily_worker_eligibility_app():
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num) + '</div>'
+            calendar_html += '<div class="day" data-date="' + date_str + '" onclick="toggleDate(this)">' + str(day_num + '</div>'
         calendar_html += "</div>"
 
     calendar_html += """
     </div>
     <p id="selectedDatesText"></p>
     <div id="resultContainer"></div>
+    <div id="orientationWarning" style="display: none;">
+        <p style="color: red; font-size: 16px; text-align: center;">
+            이 애플리케이션은 세로 모드에서만 지원됩니다. 기기를 세로로 전환해 주세요.
+        </p>
+    </div>
 
     <style>
     body {
         color: #111;
+        touch-action: none; /* 터치 줌 비활성화 */
     }
 
     .calendar {
@@ -79,6 +93,10 @@ def daily_worker_eligibility_app():
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         width: 100%;
         box-sizing: border-box;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        touch-action: none; /* 캘린더 내 터치 줌 비활성화 */
     }
 
     .day-header, .empty-day, .day {
@@ -88,17 +106,21 @@ def daily_worker_eligibility_app():
         align-items: center;
         text-align: center;
     }
+
     .day-header {
         background: #444;
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
         font-size: 14px;
+        padding: 8px;
     }
+
     .empty-day {
         background: transparent;
         border: none;
     }
+
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -106,21 +128,40 @@ def daily_worker_eligibility_app():
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
         font-size: 16px;
-        color: #222;
+        color: #222
+
+;
         background: #fdfdfd;
+        padding: 8px;
     }
+
     .day:hover {
         background: #eee;
     }
+
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important; /* ✅ 다크모드 대비 강제 */
+        color: #fff !important;
         font-weight: bold;
     }
 
     #resultContainer {
         color: #111;
+        font-size: 16px;
+        padding: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    h4 {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+
+    #selectedDatesText {
+        font-size: 16px;
+        margin: 10px 0;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -128,14 +169,63 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
+        .calendar {
+            background: #1a1a1a;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+        }
+        .day {
+            background: #2a2a2a;
+            color: #ddd;
+            border-color: #444;
+        }
+        .day:hover {
+            background: #3a3a3a;
+        }
         #resultContainer {
-            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
+            color: #eee;
         }
     }
 
     @media (max-width: 768px) {
         .calendar {
-            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            padding: 8px;
+            max-width: 90vw;
+        }
+        .day-header, .day {
+            padding: 6px;
+        }
+        #calendar-container {
+            padding: 5px;
+        }
+        #resultContainer {
+            padding: 8px;
+        }
+        h4 {
+            margin: 8px 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calendar {
+            gap: 2px;
+            padding: 6px;
+            max-width: 95vw;
+        }
+        .day-header, .day {
+            padding: 4px;
+        }
+        #resultContainer {
+            padding: 6px;
+        }
+    }
+
+    @media (orientation: landscape) and (max-width: 768px) {
+        #calendar-container, #resultContainer, #selectedDatesText {
+            display: none; /* 가로 모드에서 콘텐츠 숨김 */
+        }
+        #orientationWarning {
+            display: block; /* 가로 모드에서 경고 메시지 표시 */
         }
     }
     </style>
@@ -218,9 +308,31 @@ def daily_worker_eligibility_app():
 
     window.onload = function() {
         calculateAndDisplayResult([]);
+
+        // 가로 모드 감지 및 경고
+        function checkOrientation() {
+            if (window.matchMedia("(orientation: landscape)").matches && window.innerWidth <= 768) {
+                document.getElementById('calendar-container').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'none';
+                document.getElementById('selectedDatesText').style.display = 'none';
+                document.getElementById('orientationWarning').style.display = 'block';
+            } else {
+                document.getElementById('calendar-container').style.display = 'block';
+                document.getElementById('resultContainer').style.display = 'block';
+                document.getElementById('selectedDatesText').style.display = 'block';
+                document.getElementById('orientationWarning').style.display = 'none';
+            }
+        }
+
+        // 초기 확인 및 화면 회전 시 재확인
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
     };
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
+daily_worker_eligibility_app()
 
