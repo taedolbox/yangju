@@ -121,7 +121,7 @@ def daily_worker_eligibility_app():
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
         const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 근무 이력이 없음"
+            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
             : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
 
         const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
@@ -167,4 +167,4 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1200, scrolling=False)
+    st.components.v1.html(calendar_html, height=1000, scrolling=False)
