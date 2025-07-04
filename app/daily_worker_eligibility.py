@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600; color:#eee;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -115,17 +115,11 @@ def daily_worker_eligibility_app():
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important; /* 다크모드 대비 강제 */
+        color: #fff !important; /* ✅ 다크모드 대비 강제 */
         font-weight: bold;
     }
 
     #resultContainer {
-        color: #111;
-        white-space: pre-line;
-    }
-    #selectedDatesText {
-        margin-bottom: 12px;
-        font-weight: 600;
         color: #111;
     }
 
@@ -134,8 +128,8 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        #resultContainer, #selectedDatesText {
-            color: #eee !important;
+        #resultContainer {
+            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
         }
     }
 
