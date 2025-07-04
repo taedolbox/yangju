@@ -167,4 +167,4 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1000, scrolling=False)
+    st.components.v1.html(calendar_html, height=1200, scrolling=False)
