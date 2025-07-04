@@ -2,10 +2,6 @@ import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.questions import (
-    get_employment_questions,
-    get_self_employment_questions,
-    get_remote_assignment_questions,
-    get_wage_delay_questions,
     get_daily_worker_eligibility_questions
 )
 
