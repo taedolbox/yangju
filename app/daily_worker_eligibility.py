@@ -31,7 +31,6 @@ def daily_worker_eligibility_app():
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
-    # 조건 1 충족 기준 날짜 계산
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
@@ -66,23 +65,61 @@ def daily_worker_eligibility_app():
 
     <style>
     .calendar {
-        display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-bottom: 20px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 100%;
+        box-sizing: border-box;
+        max-width: 100%;
     }
-    .day-header, .empty-day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        font-weight: bold; color: #555;
+    .day-header, .empty-day, .day {
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
     }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
-    .empty-day { background: transparent; border: none; }
+    .day-header {
+        background: #444;
+        color: #fff;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .empty-day {
+        background: transparent;
+        border: none;
+    }
     .day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.1s ease, border 0.1s ease;
+        font-size: 16px;
+        color: #222;
+        background: #fdfdfd;
     }
-    .day:hover { background: #f0f0f0; }
-    .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
+    .day:hover {
+        background: #eee;
+    }
+    .day.selected {
+        border: 2px solid #2196F3;
+        background: #2196F3;
+        color: #fff; /* 다크모드에서도 보이도록 흰색 고정 */
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .calendar {
+            grid-template-columns: repeat(7, 1fr);
+        }
+    }
     </style>
 
     <script>
@@ -168,3 +205,4 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1600, scrolling=False)
+
