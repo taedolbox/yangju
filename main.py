@@ -2,15 +2,10 @@ import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
-from app.remote_assignment import remote_assignment_app
-from app.wage_delay import wage_delay_app
-from app.unemployment_recognition import unemployment_recognition_app
 from app.questions import (
     get_employment_questions,
-    get_self_employment_questions,
-    get_remote_assignment_questions,
-    get_wage_delay_questions,
-    get_daily_worker_eligibility_questions
+    get_daily_worker_eligibility_questions,
+    get_self_employment_questions  # 이거 추가!
 )
 
 def update_selected_menu(filtered_menus, all_menus):
@@ -32,29 +27,17 @@ def main():
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     all_menus = [
-        "임금 체불 판단",
-        "원거리 발령 판단",
-        "실업인정",
         "조기재취업수당",
-        "실업급여 신청 가능 시점",
         "일용직(건설일용포함)"
     ]
 
     menu_functions = {
-        "임금 체불 판단": wage_delay_app,
-        "원거리 발령 판단": remote_assignment_app,
-        "실업인정": unemployment_recognition_app,
         "조기재취업수당": early_reemployment_app,
-        "실업급여 신청 가능 시점": lambda: st.info("이곳은 일반 실업급여 신청 가능 시점 안내 페이지입니다."),
         "일용직(건설일용포함)": daily_worker_eligibility_app
     }
 
     all_questions = {
-        "임금 체불 판단": get_wage_delay_questions(),
-        "원거리 발령 판단": get_remote_assignment_questions(),
-        "실업인정": [],
         "조기재취업수당": get_employment_questions() + get_self_employment_questions(),
-        "실업급여 신청 가능 시점": [],
         "일용직(건설일용포함)": get_daily_worker_eligibility_questions()
     }
 
