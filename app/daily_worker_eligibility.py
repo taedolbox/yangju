@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -60,8 +60,8 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText"></p>
-    <div id="resultContainer"></div>
+    <p id="selectedDatesText" style="color:#fff;"></p>
+    <div id="resultContainer" style="color:#fff;"></div>
 
     <style>
     body {
@@ -115,7 +115,7 @@ def daily_worker_eligibility_app():
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important; /* ✅ 다크모드 대비 강제 */
+        color: #fff !important;
         font-weight: bold;
     }
 
@@ -129,7 +129,7 @@ def daily_worker_eligibility_app():
             background: #000;
         }
         #resultContainer {
-            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
+            color: #eee;
         }
     }
 
@@ -219,7 +219,13 @@ def daily_worker_eligibility_app():
     window.onload = function() {
         calculateAndDisplayResult([]);
     };
+
+    // ✅ orientationchange 감지하여 로깅/필요시 추가처리
+    window.addEventListener("orientationchange", function() {
+        console.log("화면 방향 바뀜:", window.orientation);
+    });
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
