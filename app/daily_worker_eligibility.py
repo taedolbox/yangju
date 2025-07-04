@@ -34,10 +34,7 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    calendar_html = """
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <div id='calendar-container'>
-    """
+    calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
@@ -69,7 +66,6 @@ def daily_worker_eligibility_app():
     <style>
     body {
         color: #111;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
     }
 
     .calendar {
@@ -82,9 +78,6 @@ def daily_worker_eligibility_app():
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         width: 100%;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
         box-sizing: border-box;
     }
 
@@ -95,21 +88,17 @@ def daily_worker_eligibility_app():
         align-items: center;
         text-align: center;
     }
-
     .day-header {
         background: #444;
         color: #fff;
         border-radius: 5px;
         font-weight: bold;
         font-size: 14px;
-        padding: 8px;
     }
-
     .empty-day {
         background: transparent;
         border: none;
     }
-
     .day {
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -119,42 +108,19 @@ def daily_worker_eligibility_app():
         font-size: 16px;
         color: #222;
         background: #fdfdfd;
-        padding: 8px;
     }
-
     .day:hover {
         background: #eee;
     }
-
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important;
+        color: #fff !important; /* ✅ 다크모드 대비 강제 */
         font-weight: bold;
-    }
-
-    #calendar-container {
-        max-width: 100%;
-        overflow-x: auto;
-        padding: 10px;
     }
 
     #resultContainer {
         color: #111;
-        font-size: 16px;
-        padding: 10px;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    h4 {
-        font-size: 18px;
-        margin: 10px 0;
-    }
-
-    #selectedDatesText {
-        font-size: 16px;
-        margin: 10px 0;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -162,64 +128,14 @@ def daily_worker_eligibility_app():
             color: #ddd;
             background: #000;
         }
-        .calendar {
-            background: #1a1a1a;
-            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
-        }
-        .day {
-            background: #2a2a2a;
-            color: #ddd;
-            border-color: #444;
-        }
-        .day:hover {
-            background: #3a3a3a;
-        }
         #resultContainer {
-            color: #eee;
+            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
         }
     }
 
     @media (max-width: 768px) {
         .calendar {
-            gap: 3px;
-            padding: 8px;
-            max-width: 90vw;
-        }
-        .day-header, .day {
-            padding: 6px;
-        }
-        #calendar-container {
-            padding: 5px;
-        }
-        #resultContainer {
-            padding: 8px;
-        }
-        h4 {
-            margin: 8px 0;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .calendar {
-            gap: 2px;
-            padding: 6px;
-            max-width: 95vw;
-        }
-        .day-header, .day {
-            padding: 4px;
-        }
-        #resultContainer {
-            padding: 6px;
-        }
-    }
-
-    @media (orientation: landscape) and (max-width: 768px) {
-        .calendar {
-            max-width: 85vw;
-            gap: 3px;
-        }
-        .day-header, .day {
-            padding: 5px;
+            grid-template-columns: repeat(7, 1fr);
         }
     }
     </style>
@@ -306,6 +222,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=True)
+    st.components.v1.html(calendar_html, height=1800, scrolling=False)
 
-daily_worker_eligibility_app()
