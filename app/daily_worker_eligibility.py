@@ -4,7 +4,7 @@ import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<span style='font-size:22px; font-weight:600; color: white;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
 
@@ -38,7 +38,7 @@ def daily_worker_eligibility_app():
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += "<h4 style='color:white;'>" + year + "년 " + month + "월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -60,23 +60,23 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText"></p>
+    <p id="selectedDatesText" style="color:white;"></p>
     <div id="resultContainer"></div>
 
     <style>
     body {
-        color: #111;
+        color: #fff;
     }
 
     .calendar {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
         gap: 5px;
         margin-bottom: 20px;
-        background: #fff;
+        background: #111;
         padding: 10px;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         width: 100%;
         box-sizing: border-box;
     }
@@ -100,43 +100,35 @@ def daily_worker_eligibility_app():
         border: none;
     }
     .day {
-        border: 1px solid #ddd;
+        border: 1px solid #555;
         border-radius: 5px;
         cursor: pointer;
         user-select: none;
         transition: background 0.1s ease, border 0.1s ease;
         font-size: 16px;
-        color: #222;
-        background: #fdfdfd;
+        color: #fff;
+        background: #222;
     }
     .day:hover {
-        background: #eee;
+        background: #333;
     }
     .day.selected {
         border: 2px solid #2196F3;
         background: #2196F3;
-        color: #fff !important; /* ✅ 다크모드 대비 강제 */
+        color: #fff !important;
         font-weight: bold;
     }
 
     #resultContainer {
-        color: #111;
+        color: #fff;
     }
 
-    @media (prefers-color-scheme: dark) {
-        body {
-            color: #ddd;
-            background: #000;
-        }
-        #resultContainer {
-            color: #eee; /* ✅ 다크모드 텍스트 보이도록 */
-        }
-    }
-
-    @media (max-width: 768px) {
-        .calendar {
-            grid-template-columns: repeat(7, 1fr);
-        }
+    @media (prefers-color-scheme: light) {
+        body { color: #000; background: #fff; }
+        .calendar { background: #fff; }
+        .day { color: #000; background: #fdfdfd; }
+        .day-header { background: #e0e0e0; color: #000; }
+        #resultContainer { color: #000; }
     }
     </style>
 
@@ -179,8 +171,8 @@ def daily_worker_eligibility_app():
             ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
             : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
 
-        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = workedDays < threshold ? "✅ 일반일용근로자: 신청 가능" : "❌ 일반일용근로자: 신청 불가능";
+        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 건설일용근로자: 신청 가능" : "❌ 건설일용근로자: 신청 불가능";
 
         const finalHtml = `
             <h3>📌 조건 기준</h3>
@@ -195,8 +187,8 @@ def daily_worker_eligibility_app():
             ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
             ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
             <h3>📌 최종 판단</h3>
-            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
-            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+            <p>` + generalWorkerText + `</p>
+            <p>` + constructionWorkerText + `</p>
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
@@ -222,4 +214,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+    st.components.v1.html(calendar_html, height=1600, scrolling=False)
+
