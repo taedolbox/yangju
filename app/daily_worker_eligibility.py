@@ -2,11 +2,10 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 
-# --- 일용직 신청 가능 시점 판단 UI 함수 ---
 def daily_worker_eligibility_app_original_ui():
     """
     일용직 근로자를 위한 실업급여 신청 가능 시점 판단 UI를 렌더링합니다.
-    사용자가 근무일을 선택하면 조건 충족 여부를 계산하여 표시합니다.
+    기존 달력 디자인을 유지하며 모바일 반응형을 지원합니다.
     """
     st.markdown(
         "<span style='font-size:22px; font-weight:600; color:#fff;'>🏗️ 일용직 신청 가능 시점 판단</span>",
@@ -19,7 +18,7 @@ def daily_worker_eligibility_app_original_ui():
 
     # 지난달 첫날부터 오늘까지의 기간 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-    calculation_end_date = input_date # 명확한 변수명으로 변경 권장
+    calculation_end_date = input_date
 
     cal_dates = []
     current_date = first_day_prev_month
@@ -41,44 +40,43 @@ def daily_worker_eligibility_app_original_ui():
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
     # 조건 1 충족을 위한 다음 가능일 (예상)
-    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1) # 다음달 1일로 설정하는 간단한 예시
+    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     # --- HTML 및 JavaScript 코드 (캘린더 UI) ---
-    # 이 긴 HTML 문자열은 캘린더의 디자인과 동작을 정의합니다.
     calendar_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-    /* 기본 스타일 */
+    /* 기존 달력 스타일 (사용자님이 선호하는 디자인 유지) */
     body {{
         color: #111;
         margin: 0;
         padding: 0;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        overflow-x: hidden; /* 가로 스크롤 방지 */
-        width: 100vw; /* 뷰포트 너비에 맞춤 */
-        min-height: 100vh; /* 최소 높이를 뷰포트 높이에 맞춤 */
-        box-sizing: border-box; /* 패딩, 보더를 너비/높이에 포함 */
-        display: flex; /* flexbox를 사용하여 콘텐츠를 중앙에 배치 */
+        overflow-x: hidden;
+        width: 100vw;
+        min-height: 100vh;
+        box-sizing: border-box;
+        display: flex;
         flex-direction: column;
-        align-items: center; /* 수평 중앙 정렬 */
+        align-items: center;
     }}
 
     html {{
-        background-color: transparent; /* Streamlit의 배경색을 따르도록 투명 설정 */
+        background-color: transparent;
     }}
 
     #calendar-container {{
         width: 100%;
-        max-width: 700px; /* 전체 컨테이너의 최대 너비 제한 */
-        padding: 10px; /* 전체 컨테이너에 패딩 */
+        max-width: 700px;
+        padding: 10px;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        align-items: center; /* 자식 요소도 수평 중앙 정렬 */
+        align-items: center;
     }}
 
     .calendar {{
@@ -90,17 +88,17 @@ def daily_worker_eligibility_app_original_ui():
         padding: 10px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        width: 100%; /* 부모 컨테이너에 꽉 차도록 */
+        width: 100%;
         box-sizing: border-box;
     }}
 
     .day-header, .empty-day, .day {{
-        aspect-ratio: 1/1; /* 너비와 높이를 1:1로 유지 */
+        aspect-ratio: 1/1;
         display: flex;
         justify-content: center;
         align-items: center;
         text-align: center;
-        min-width: 25px; /* 작은 화면에서 너무 작아지지 않게 */
+        min-width: 25px;
     }}
     .day-header {{
         background: #444;
@@ -133,14 +131,13 @@ def daily_worker_eligibility_app_original_ui():
         font-weight: bold;
     }}
 
-    /* 텍스트 및 결과 영역 스타일 */
     #selectedDatesText, #resultContainer, h3, p {{
-        width: 100%; /* 부모에 꽉 차도록 */
-        max-width: 680px; /* #calendar-container보다 조금 작게 */
+        width: 100%;
+        max-width: 680px;
         box-sizing: border-box;
-        padding: 0 10px; /* 좌우 패딩 */
-        margin-left: auto; /* 중앙 정렬 */
-        margin-right: auto; /* 중앙 정렬 */
+        padding: 0 10px;
+        margin-left: auto;
+        margin-right: auto;
     }}
     #selectedDatesText, h4 {{
         color:#fff;
@@ -148,14 +145,14 @@ def daily_worker_eligibility_app_original_ui():
         margin-bottom: 10px;
     }}
     h4 {{
-        text-align: center; /* 월 제목 중앙 정렬 */
+        text-align: center;
     }}
     #resultContainer {{
         padding-bottom: 20px;
         color: #111;
     }}
 
-    /* 다크 모드 지원 */
+    /* 다크 모드 지원 (기존 포함된 내용) */
     @media (prefers-color-scheme: dark) {{
         body {{
             color: #ddd;
@@ -186,8 +183,9 @@ def daily_worker_eligibility_app_original_ui():
         }}
     }}
 
-    /* 미디어 쿼리 - 화면 크기에 따른 폰트 사이즈 및 레이아웃 미세 조정 */
-    @media (max-width: 480px) {{ /* 작은 스마트폰 (세로) */
+    /* --- 모바일 반응형 미디어 쿼리 (추가/조정된 부분) --- */
+    /* 작은 스마트폰 (세로) */
+    @media (max-width: 480px) {{
         .day-header, .empty-day, .day {{
             font-size: 11px;
             min-width: 20px;
@@ -197,7 +195,8 @@ def daily_worker_eligibility_app_original_ui():
         }}
     }}
 
-    @media (min-width: 481px) and (max-width: 767px) {{ /* 큰 스마트폰 (세로) */
+    /* 큰 스마트폰 (세로) */
+    @media (min-width: 481px) and (max-width: 767px) {{
         .day-header, .empty-day, .day {{
             font-size: 13px;
         }}
@@ -210,10 +209,10 @@ def daily_worker_eligibility_app_original_ui():
     @media screen and (orientation: landscape) and (max-height: 400px) {{
         .day-header, .empty-day, .day {{
             font-size: 10px;
-            min-width: 15px; /* 더 줄여서 공간 확보 */
+            min-width: 15px;
         }}
         h3, p, #selectedDatesText, #resultContainer {{
-            font-size: 12px; /* 텍스트도 더 작게 */
+            font-size: 12px;
         }}
     }}
     </style>
@@ -328,46 +327,39 @@ def daily_worker_eligibility_app_original_ui():
         saveToLocalStorage(selected);
         updateSelectedDatesText(selected);
         calculateAndDisplayResult(selected);
-        adjustStreamlitFrameSizeDebounced(); // 날짜 선택 후 프레임 크기 조정
+        adjustStreamlitFrameSizeDebounced();
     }}
 
     function updateSelectedDatesText(selected) {{
         document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }}
 
-    // 디바운스 타이머
     let resizeTimer;
     function adjustStreamlitFrameSizeDebounced() {{
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {{
             adjustStreamlitFrameSize();
-        }}, 150); // 약간 더 긴 지연 시간 (150ms)
+        }}, 150);
     }}
 
-    // Streamlit 부모 프레임에 크기 정보를 전송하는 함수
     function adjustStreamlitFrameSize() {{
         const body = document.body;
         const html = document.documentElement;
-
-        // 스크롤 높이, 오프셋 높이 등 여러 값을 비교하여 실제 콘텐츠 높이를 정확히 측정
         const contentHeight = Math.max(
             body.scrollHeight, body.offsetHeight,
             html.clientHeight, html.scrollHeight, html.offsetHeight
         );
-        // iframe 내부의 실제 너비를 측정 (뷰포트 너비)
         const contentWidth = window.innerWidth;
 
         if (window.parent) {{
             window.parent.postMessage({{
                 type: 'streamlit:setFrameHeight',
-                height: contentHeight + 50, // 높이에 버퍼 추가
-                width: contentWidth // 너비 정보도 함께 전송
+                height: contentHeight + 50,
+                width: contentWidth
             }}, '*');
-            // console.log(`PostMessage: height=${contentHeight + 50}, width=${contentWidth}`); // 디버깅용
         }}
     }}
 
-    // 초기 로드 시 및 화면 방향/크기 변경 시 프레임 크기 조정
     window.onload = function() {{
         const storedSelectedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
         const days = document.getElementsByClassName('day');
@@ -379,14 +371,11 @@ def daily_worker_eligibility_app_original_ui():
         }}
         updateSelectedDatesText(storedSelectedDates);
         calculateAndDisplayResult(storedSelectedDates);
-        adjustStreamlitFrameSizeDebounced(); // 초기 로드 시 디바운스 호출
+        adjustStreamlitFrameSizeDebounced();
     }};
 
-    // orientationchange와 resize 이벤트 리스너
     window.addEventListener("orientationchange", adjustStreamlitFrameSizeDebounced);
     window.addEventListener("resize", adjustStreamlitFrameSizeDebounced);
-
-    // 추가적으로 DOMContentLoaded도 포함 (일부 환경에서 onload보다 먼저 발생)
     document.addEventListener('DOMContentLoaded', adjustStreamlitFrameSizeDebounced);
 
     </script>
@@ -394,6 +383,4 @@ def daily_worker_eligibility_app_original_ui():
     </html>
     """
 
-    # Streamlit 컴포넌트 설정
-    # width는 Streamlit의 컬럼 너비를 따르므로 height만 유동적으로 관리
     st.components.v1.html(calendar_html, height=1000, scrolling=True)
