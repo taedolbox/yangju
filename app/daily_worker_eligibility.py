@@ -60,7 +60,8 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <p id="selectedDatesText"></p>
+    <!-- 선택한 날짜 텍스트 제거 -->
+    <!-- <p id="selectedDatesText"></p> -->
     <div id="resultContainer"></div>
 
     <style>
@@ -83,12 +84,6 @@ def daily_worker_eligibility_app():
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
 
-    #selectedDatesText {
-        color: #121212;
-        font-weight: 600;
-        margin-bottom: 15px;
-        font-size: 16px;
-    }
     #resultContainer {
         color: #121212;
         background: #fff;
@@ -181,7 +176,8 @@ def daily_worker_eligibility_app():
         }
         saveToLocalStorage(selected);
         calculateAndDisplayResult(selected);
-        document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
+        // 선택한 날짜 텍스트 제거
+        // document.getElementById('selectedDatesText').innerText = "선택한 날짜: " + selected.join(', ') + " (" + selected.length + "일)";
     }
 
     window.onload = function() {
@@ -190,9 +186,7 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1400, scrolling=False)
-    # 페이지 맨 아래 푸터 출력
+    st.components.v1.html(calendar_html, height=1800, scrolling=False)
+
+    # 페이지 맨 아래 푸터 출력 (고용센터 찾기)
     render_footer()
-
-
-
