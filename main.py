@@ -1,9 +1,10 @@
 import streamlit as st
 
-from app.daily_worker_eligibility import daily_worker_eligibility_app_native
+from app.daily_worker_eligibility import daily_worker_eligibility_app_original_ui
 
 if __name__ == "__main__":
-    daily_worker_eligibility_app_native()
+    # 변경된 함수 이름을 호출합니다.
+    daily_worker_eligibility_app_original_ui()
     
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
