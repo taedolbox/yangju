@@ -112,10 +112,28 @@ div[data-testid="stHorizontalBlock"] {
 
 /* 반응형 디자인: 모바일 */
 @media (max-width: 767px) {
-    div[data-testid="stHorizontalBlock"] {
-        gap: 2px !important;
+    .calendar {
+        grid-template-columns: repeat(7, 1fr) !important; /* 7칸 균등 비율 */
+        gap: 4px !important;
         max-width: 100% !important;
-        margin-left: 0 !important;
+        padding: 8px !important;
+        justify-content: center !important;
+    }
+    .day, .day-header, .empty-day {
+        width: 100% !important;   /* 칸 너비에 꽉 채우기 */
+        height: auto !important;  /* 높이는 자동으로 */
+        aspect-ratio: 1 / 1 !important; /* 정사각형 유지 */
+        font-size: 14px !important;
+        border-radius: 5px !important;
+        line-height: normal !important; /* 높이에 맞게 자동 조절 */
+        padding: 0 !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+}
+
     }
     .day {
         width: 40px !important;
