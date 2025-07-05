@@ -2,13 +2,14 @@
 div[data-testid="stHorizontalBlock"] {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
-    gap: 4px !important; /* 간격 약간 넓힘 */
-    width: 100% !important;
+    max-width: 700px !important;  /* 데스크톱 최대 너비 */
+    margin: 0 auto !important;
+    gap: 4px !important;
     box-sizing: border-box !important;
     justify-content: flex-start !important;
 }
 
-/* 달력 요일 헤더 스타일 */
+/* 요일 헤더 스타일 */
 .day-header {
     text-align: center !important;
     font-weight: 700 !important;
@@ -16,7 +17,7 @@ div[data-testid="stHorizontalBlock"] {
     color: #333 !important;
     background-color: #e0e0e0 !important;
     border: 1px solid #ccc !important;
-    border-radius: 4px !important; /* 약간 둥글게 */
+    border-radius: 4px !important;
     font-size: 14px !important;
     user-select: none !important;
 }
@@ -36,7 +37,7 @@ div[data-testid="stHorizontalBlock"] {
     min-height: 40px !important;
     line-height: 40px !important;
     border: 1px solid #ddd !important;
-    border-radius: 4px !important; /* 모서리 살짝 둥글게 */
+    border-radius: 4px !important;
     background-color: #fff !important;
     color: #333 !important;
     cursor: pointer !important;
@@ -62,7 +63,7 @@ div[data-testid="stHorizontalBlock"] {
     font-weight: 700 !important;
 }
 
-/* 비활성 날짜 스타일 (만약 있다면) */
+/* 비활성 날짜 스타일 (필요시) */
 .day.disabled {
     background-color: #f9f9f9 !important;
     color: #bbb !important;
@@ -75,19 +76,40 @@ div[data-testid="stHorizontalBlock"] {
     background: transparent !important;
 }
 
-/* 반응형 - 모바일 화면 */
-@media (max-width: 767px) {
+/* 반응형 - 모바일 화면 세로 모드 */
+@media (max-width: 479px) {
     div[data-testid="stHorizontalBlock"] {
+        max-width: 100% !important;
         grid-template-columns: repeat(7, 1fr) !important;
         gap: 3px !important;
+        padding: 0 5px !important;
     }
     .day {
-        min-height: 36px !important;
+        min-height: 32px !important;
         font-size: 14px !important;
+        padding: 0 !important;
     }
     .day-header {
         font-size: 12px !important;
         padding: 4px 0 !important;
+    }
+}
+
+/* 반응형 - 모바일 화면 가로 모드 (태블릿, 큰 휴대폰) */
+@media (min-width: 480px) and (max-width: 767px) {
+    div[data-testid="stHorizontalBlock"] {
+        max-width: 100% !important;
+        gap: 4px !important;
+        padding: 0 10px !important;
+    }
+    .day {
+        min-height: 36px !important;
+        font-size: 15px !important;
+        padding: 0 !important;
+    }
+    .day-header {
+        font-size: 13px !important;
+        padding: 5px 0 !important;
     }
 }
 
