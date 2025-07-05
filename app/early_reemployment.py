@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-def early_reemployment_allowance_app():
+def early_reemployment_app():
     # 앱 제목 (일용직 앱과 동일 스타일)
     st.markdown(
         "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 신청 가능 시점 판단</span>",
