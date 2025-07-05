@@ -9,7 +9,10 @@ def daily_worker_eligibility_app():
     )
     
     # 상단 고지문
-    st.caption("ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.")
+    st.markdown(
+    "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+    unsafe_allow_html=True
+    )
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
