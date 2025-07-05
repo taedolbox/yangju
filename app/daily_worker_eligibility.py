@@ -10,8 +10,8 @@ def daily_worker_eligibility_app():
     
     # 상단 고지문
     st.markdown(
-    "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-    unsafe_allow_html=True
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
     )
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
@@ -43,7 +43,7 @@ def daily_worker_eligibility_app():
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -68,26 +68,71 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
+    #calendar-container {
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
     .calendar {
-        display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
+        display: grid;
+        grid-template-columns: repeat(7, 40px);
+        gap: 6px;
+        margin-bottom: 20px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        justify-content: center;
     }
     .day-header, .empty-day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        font-weight: bold; color: #555;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        font-weight: bold;
+        color: #555;
+        user-select: none;
     }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
-    .empty-day { background: transparent; border: none; }
+    .day-header {
+        background: #e0e0e0;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    .empty-day {
+        background: transparent;
+        border: none;
+    }
     .day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.1s ease, border 0.1s ease;
+        font-size: 16px;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
-    .day:hover { background: #f0f0f0; }
-    .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
+    .day:hover {
+        background: #f0f0f0;
+    }
+    .day.selected {
+        border: 2px solid #2196F3;
+        background: #2196F3;
+        color: #fff;
+        font-weight: bold;
+    }
 
     #resultContainer {
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
         color: #121212;
         background: #fff;
         padding: 15px 20px;
@@ -103,6 +148,22 @@ def daily_worker_eligibility_app():
     }
     #resultContainer p {
         margin: 6px 0;
+    }
+
+    @media (max-width: 767px) {
+        .calendar {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            max-width: 100%;
+            padding: 8px;
+        }
+        .day, .day-header, .empty-day {
+            width: 100% !important;
+            height: 40px !important;
+            line-height: 40px !important;
+            font-size: 14px !important;
+            border-radius: 5px !important;
+        }
     }
     </style>
 
@@ -152,17 +213,17 @@ def daily_worker_eligibility_app():
             <h3>📌 조건 기준</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
             <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>
-            <p>총 기간 일수: ` + totalDays + `일</p>
-            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
-            <p>근무일 수: ` + workedDays + `일</p>
+            <p>총 기간 일수: ${totalDays}일</p>
+            <p>1/3 기준: ${threshold.toFixed(1)}일</p>
+            <p>근무일 수: ${workedDays}일</p>
             <h3>📌 조건 판단</h3>
-            <p>` + condition1Text + `</p>
-            <p>` + condition2Text + `</p>
-            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
-            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
+            <p>${condition1Text}</p>
+            <p>${condition2Text}</p>
+            ${nextPossible1 ? `<p>${nextPossible1}</p>` : ""}
+            ${nextPossible2 ? `<p>${nextPossible2}</p>` : ""}
             <h3>📌 최종 판단</h3>
-            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
-            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+            <p>✅ 일반일용근로자: ${generalWorkerText}</p>
+            <p>✅ 건설일용근로자: ${constructionWorkerText}</p>
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
@@ -188,4 +249,5 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
 
