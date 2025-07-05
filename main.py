@@ -23,11 +23,10 @@ def main():
         layout="wide"
     )
 
-    # 쿼리 파라미터 최초 1회만 읽기
-    query_params = st.experimental_get_query_params()
+    # st.query_params 사용 (deprecated된 experimental_get_query_params 대신)
+    query_params = st.query_params
     user_agent = query_params.get("user_agent", [""])[0]
 
-    # User-Agent 없으면 JS로 받아서 쿼리 파라미터에 추가하고 페이지 새로고침
     if not user_agent:
         st.components.v1.html(
             """
@@ -44,7 +43,6 @@ def main():
         )
         st.stop()
 
-    # CSS 불러오기
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -55,7 +53,6 @@ def main():
 
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        # User-Agent에 따라 모바일/PC 구분해서 일용직 앱 분기
         "일용직(건설일용포함)": daily_worker_eligibility_mobile_app if "Mobile" in user_agent else daily_worker_eligibility_app
     }
 
