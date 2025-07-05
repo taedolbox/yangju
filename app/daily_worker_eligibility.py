@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
+    # 타이틀
     st.markdown(
         "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
@@ -13,6 +14,10 @@ def daily_worker_eligibility_app():
         "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
         unsafe_allow_html=True
     )
+
+    # 👉 styles.css 불러오기
+    with open("static/styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
@@ -66,67 +71,6 @@ def daily_worker_eligibility_app():
     calendar_html += """
     </div>
     <div id="resultContainer"></div>
-
-    <style>
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-        margin-bottom: 20px;
-        max-width: 500px; /* ✅ PC에서 가로폭 제한 */
-    }
-
-    .day-header, .empty-day {
-        width: 100%;
-        height: 40px;
-        background: #e0e0e0;
-        text-align: center;
-        line-height: 40px;
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .empty-day {
-        background: transparent;
-    }
-
-    .day {
-        width: 100%;
-        height: 40px;
-        background: #fff;
-        border: 1px solid #ddd;
-        text-align: center;
-        line-height: 40px;
-        cursor: pointer;
-        font-size: 16px;
-        color: #333;
-        transition: background 0.2s, border 0.2s;
-    }
-
-    .day:hover {
-        background: #f0f0f0;
-    }
-
-    .day.selected {
-        border: 2px solid #2196F3;
-        background: #2196F3;
-        color: #fff;
-        font-weight: bold;
-    }
-
-    #resultContainer {
-        margin-top: 20px;
-        padding: 15px;
-        border-left: 4px solid #36A2EB;
-        background: #f9f9f9;
-    }
-
-    @media (max-width: 768px) {
-        .calendar {
-            max-width: 100%;
-        }
-    }
-    </style>
 
     <script>
     const CALENDAR_DATES = """ + calendar_dates_json + """;
