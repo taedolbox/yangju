@@ -1,8 +1,8 @@
 import streamlit as st
+
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.daily_worker_eligibility_mobile import daily_worker_eligibility_mobile_app
 from app.early_reemployment import early_reemployment_app
-from app.device_detect_pc import pc_device_detect_component
 from app.questions import (
     get_employment_questions,
     get_self_employment_questions,
@@ -14,7 +14,7 @@ def update_selected_menu(filtered_menus, all_menus):
     if selected_menu in filtered_menus:
         st.session_state.selected_menu = selected_menu
         menu_id = all_menus.index(selected_menu) + 1
-        st.experimental_set_query_params(menu=str(menu_id))
+        st.query_params["menu"] = str(menu_id)
 
 def main():
     st.set_page_config(
@@ -23,21 +23,19 @@ def main():
         layout="wide"
     )
 
-        # styles.css 읽기
-        with open("static/styles.css") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    # ✅ styles.css 불러오기
+    with open("static/styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-        # ✅ 외부 폰트 preload & link 추가
-        st.markdown("""
-        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" as="style">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
-        """, unsafe_allow_html=True)
+    # ✅ 외부 폰트 Preload 추가
+    st.markdown("""
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" as="style">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+    """, unsafe_allow_html=True)
 
-
-    # user_agent 파라미터 읽기
+    # ✅ user_agent 파라미터로 디바이스 구분
     user_agent = st.query_params.get("user_agent", [""])[0]
 
-    # user_agent 없으면 JS로 채우고 새로고침
     if not user_agent:
         st.components.v1.html(
             """
@@ -55,7 +53,6 @@ def main():
         st.info("디바이스 정보를 확인 중입니다. 잠시만 기다려주세요...")
         st.stop()
 
-    # 모바일 여부 판단 (예시)
     is_mobile = False
     mobile_indicators = ["Android", "iPhone", "iPad", "iPod", "Mobile"]
     for indicator in mobile_indicators:
@@ -68,7 +65,6 @@ def main():
         "일용직(건설일용포함)"
     ]
 
-    # 모바일용 앱, PC용 앱 함수 매핑
     if is_mobile:
         menu_functions = {
             "조기재취업수당": early_reemployment_app,
@@ -123,7 +119,7 @@ def main():
             if selected_menu != st.session_state.selected_menu:
                 st.session_state.selected_menu = selected_menu
                 menu_id = all_menus.index(selected_menu) + 1
-                st.experimental_set_query_params(menu=str(menu_id))
+                st.query_params["menu"] = str(menu_id)
         else:
             st.warning("검색 결과에 해당하는 메뉴가 없습니다.")
             st.session_state.selected_menu = None
@@ -143,4 +139,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
