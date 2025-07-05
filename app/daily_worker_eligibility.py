@@ -73,16 +73,17 @@ def daily_worker_eligibility_app():
         grid-template-columns: repeat(7, 1fr);
         gap: 5px;
         margin-bottom: 20px;
+        max-width: 500px; /* ✅ PC에서 가로폭 제한 */
     }
 
     .day-header, .empty-day {
-        aspect-ratio: 1 / 1;
         width: 100%;
+        height: 40px;
         background: #e0e0e0;
         text-align: center;
         line-height: 40px;
         font-weight: bold;
-        border-radius: 50%;
+        font-size: 14px;
     }
 
     .empty-day {
@@ -90,18 +91,16 @@ def daily_worker_eligibility_app():
     }
 
     .day {
-        aspect-ratio: 1 / 1;
         width: 100%;
+        height: 40px;
         background: #fff;
         border: 1px solid #ddd;
         text-align: center;
         line-height: 40px;
         cursor: pointer;
-        border-radius: 50%;
+        font-size: 16px;
+        color: #333;
         transition: background 0.2s, border 0.2s;
-        display: flex;
-        justify-content: center;
-        align-items: center;
     }
 
     .day:hover {
@@ -124,7 +123,7 @@ def daily_worker_eligibility_app():
 
     @media (max-width: 768px) {
         .calendar {
-            grid-template-columns: repeat(7, 1fr);
+            max-width: 100%;
         }
     }
     </style>
