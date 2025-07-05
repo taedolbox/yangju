@@ -16,15 +16,16 @@ def daily_worker_eligibility_app():
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # 직전달 1일 ~ 기준일 날짜 리스트 생성
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
-
     cal_dates = []
     current_date = first_day_prev_month
     while current_date <= last_day:
         cal_dates.append(current_date)
         current_date += timedelta(days=1)
 
+    # 년월 그룹핑
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
@@ -32,6 +33,7 @@ def daily_worker_eligibility_app():
             calendar_groups[ym] = []
         calendar_groups[ym].append(date)
 
+    # JSON 데이터 (JS에서 사용)
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
@@ -53,13 +55,18 @@ def daily_worker_eligibility_app():
             <div class="day-header">금</div>
             <div class="day-header saturday">토</div>
         """
+
+        # 요일 시작 빈칸
         start_day_offset = (dates[0].weekday() + 1) % 7
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
+
+        # 날짜들
         for date in dates:
             day_num = date.day
             date_str = date.strftime("%m/%d")
             calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
+
         calendar_html += "</div>"
 
     calendar_html += """
@@ -81,14 +88,8 @@ def daily_worker_eligibility_app():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        // 14일 근무 여부 판단 (직전 14일)
         const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        // 선택된 날짜들은 MM/DD 형식. 14일 구간 날짜는 YYYY-MM-DD. 형식 변환 필요
-        function formatDateToMD(dateStr) {
-            let parts = dateStr.split("-");
-            return parts[1] + "/" + parts[2];
-        }
-        const noWork14Days = fourteenDays.every(date => !selected.includes(formatDateToMD(date)));
+        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
@@ -103,14 +104,14 @@ def daily_worker_eligibility_app():
             nextPossible2 = "📅 조건 2는 직전 14일 근무가 있습니다. " + nextDateStr + " 이후 신청 권장.";
         }
 
-        const resultHtml = `
-            <p>조건 1: 근무일 수 ${workedDays}일 / 기준 ${threshold.toFixed(1)}일</p>
-            <p>조건 1 충족 여부: ${workedDays < threshold ? "✅ 충족" : "❌ 불충족"}</p>
-            <p>조건 2 충족 여부: ${noWork14Days ? "✅ 충족" : "❌ 불충족"}</p>
+        const result = `
+            <p>조건1: ${workedDays}일 / 기준 ${threshold.toFixed(1)}일</p>
+            <p>조건1: ${workedDays < threshold ? "✅ 충족" : "❌ 불충족"}</p>
+            <p>조건2: ${noWork14Days ? "✅ 충족" : "❌ 불충족"}</p>
             ${nextPossible1 ? "<p>" + nextPossible1 + "</p>" : ""}
             ${nextPossible2 ? "<p>" + nextPossible2 + "</p>" : ""}
         `;
-        document.getElementById('resultContainer').innerHTML = resultHtml;
+        document.getElementById('resultContainer').innerHTML = result;
     }
 
     function toggleDate(el) {
@@ -129,6 +130,6 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1500, scrolling=False)
+    st.components.v1.html(calendar_html, height=1000, scrolling=False)
 
 
