@@ -72,17 +72,17 @@ def daily_worker_eligibility_app():
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 5px;
-        margin: 0 auto 20px auto;
-        max-width: 500px;
+        margin-bottom: 20px;
     }
 
     .day-header, .empty-day {
+        aspect-ratio: 1 / 1;
+        width: 100%;
         background: #e0e0e0;
         text-align: center;
-        font-weight: bold;
-        font-size: 14px;
         line-height: 40px;
-        height: 40px;
+        font-weight: bold;
+        border-radius: 50%;
     }
 
     .empty-day {
@@ -90,15 +90,18 @@ def daily_worker_eligibility_app():
     }
 
     .day {
+        aspect-ratio: 1 / 1;
+        width: 100%;
         background: #fff;
         border: 1px solid #ddd;
         text-align: center;
-        font-size: 16px;
-        color: #333;
-        cursor: pointer;
-        transition: background 0.2s, border 0.2s;
-        aspect-ratio: 1 / 1; /* ✅ 가로세로 비율 유지 */
         line-height: 40px;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background 0.2s, border 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .day:hover {
@@ -121,7 +124,7 @@ def daily_worker_eligibility_app():
 
     @media (max-width: 768px) {
         .calendar {
-            max-width: 100%;
+            grid-template-columns: repeat(7, 1fr);
         }
     }
     </style>
@@ -146,7 +149,7 @@ def daily_worker_eligibility_app():
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
+            nextPossible1 = "📅 조건 1은 근무일 수가 기준 이상입니다. " + NEXT_POSSIBLE1_DATE + " 이후 신청 권장.";
         }
 
         let nextPossible2 = "";
@@ -154,38 +157,17 @@ def daily_worker_eligibility_app():
             const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
             nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
+            nextPossible2 = "📅 조건 2는 직전 14일 근무가 있습니다. " + nextDateStr + " 이후 신청 권장.";
         }
 
-        const condition1Text = workedDays < threshold
-            ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
-
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
-
-        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
-
-        const finalHtml = `
-            <h3>📌 조건 기준</h3>
-            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
-            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실이 없어야 함</p>
-            <p>총 기간 일수: ` + totalDays + `일</p>
-            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
-            <p>근무일 수: ` + workedDays + `일</p>
-            <h3>📌 조건 판단</h3>
-            <p>` + condition1Text + `</p>
-            <p>` + condition2Text + `</p>
-            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
-            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
-            <h3>📌 최종 판단</h3>
-            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
-            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+        const result = `
+            <p>조건1: ${workedDays}일 / 기준 ${threshold.toFixed(1)}일</p>
+            <p>조건1: ${workedDays < threshold ? "✅ 충족" : "❌ 불충족"}</p>
+            <p>조건2: ${noWork14Days ? "✅ 충족" : "❌ 불충족"}</p>
+            ${nextPossible1 ? "<p>" + nextPossible1 + "</p>" : ""}
+            ${nextPossible2 ? "<p>" + nextPossible2 + "</p>" : ""}
         `;
-
-        document.getElementById('resultContainer').innerHTML = finalHtml;
+        document.getElementById('resultContainer').innerHTML = result;
     }
 
     function toggleDate(el) {
