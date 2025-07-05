@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
@@ -99,5 +98,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
-
