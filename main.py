@@ -27,39 +27,6 @@ def main():
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-    # ✅ 외부 폰트 Preload 추가
-    st.markdown("""
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
-    """, unsafe_allow_html=True)
-
-    # ✅ user_agent 파라미터로 디바이스 구분
-    user_agent = st.query_params.get("user_agent", [""])[0]
-
-    if not user_agent:
-        st.components.v1.html(
-            """
-            <script>
-            const ua = navigator.userAgent;
-            const url = new URL(window.location);
-            if (!url.searchParams.has('user_agent')) {
-                url.searchParams.set('user_agent', ua);
-                window.location.href = url.toString();
-            }
-            </script>
-            """,
-            height=0,
-        )
-        st.info("디바이스 정보를 확인 중입니다. 잠시만 기다려주세요...")
-        st.stop()
-
-    is_mobile = False
-    mobile_indicators = ["Android", "iPhone", "iPad", "iPod", "Mobile"]
-    for indicator in mobile_indicators:
-        if indicator in user_agent:
-            is_mobile = True
-            break
-
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
