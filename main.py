@@ -1,6 +1,9 @@
 import streamlit as st
+import streamlit.components.v1 as components
+import os
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
+from app.daily_worker_eligibility_mobile import daily_worker_eligibility_mobile_app
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
@@ -17,22 +20,55 @@ def update_selected_menu(filtered_menus, all_menus):
 
 def main():
     st.set_page_config(
-    page_title="실업급여 지원 시스템",
-    page_icon="💼",
-    layout="wide"   # ✅ 이렇게 하면 끝
-    )    
+        page_title="실업급여 지원 시스템",
+        page_icon="💼",
+        layout="wide"
+    )
 
+    # ✅ CSS 로딩
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+    # ✅ 디바이스 감지 (한 번만 실행)
+    if "device_type" not in st.session_state:
+        components.html(
+            """
+            <script>
+                const ua = navigator.userAgent.toLowerCase();
+                let device = "pc";
+                if (/iphone|ipad|ipod|android|mobile/.test(ua)) {
+                    device = "mobile";
+                }
+                document.cookie = "device=" + device;
+                window.location.reload();
+            </script>
+            """,
+            height=0
+        )
+
+    # ✅ 쿠키에서 디바이스 타입 읽기
+    cookie_header = os.environ.get("HTTP_COOKIE", "")
+    device_type = "pc"
+    for part in cookie_header.split(";"):
+        if "device=" in part:
+            device_type = part.strip().split("=")[1]
+    st.session_state.device_type = device_type
+
+    # ✅ 메뉴
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
     ]
 
+    # ✅ PC/모바일에 따라 메뉴 함수 변경
+    if st.session_state.device_type == "mobile":
+        daily_worker_func = daily_worker_eligibility_mobile_app
+    else:
+        daily_worker_func = daily_worker_eligibility_app
+
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app
+        "일용직(건설일용포함)": daily_worker_func
     }
 
     all_questions = {
@@ -40,6 +76,7 @@ def main():
         "일용직(건설일용포함)": get_daily_worker_eligibility_questions()
     }
 
+    # ✅ 사이드바
     with st.sidebar:
         st.markdown("### 🔍 검색")
         search_query = st.text_input("메뉴 또는 질문을 검색하세요", key="search_query")
@@ -98,3 +135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
