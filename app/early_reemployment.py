@@ -3,13 +3,21 @@ from datetime import date
 from app.questions import get_employment_questions, get_self_employment_questions
 
 def early_reemployment_app():
-    # 👉 아이콘 및 제목 통일
+    # 👉 제목: 일용직 스타일 동일
     st.markdown(
-        "<h2 style='font-size: 1.8em;'>🏗️ 조기재취업수당 요건 판단</h2>",
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 요건 판단</span>",
         unsafe_allow_html=True
     )
 
-    # ▶️ 상태 초기화
+    # 👉 상단 고지문
+    st.markdown(
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>"
+        "ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다."
+        "</p>",
+        unsafe_allow_html=True
+    )
+
+    # ▶️ 초기화
     if "early_step" not in st.session_state:
         st.session_state.early_step = 0
         st.session_state.early_answers = []
@@ -18,25 +26,18 @@ def early_reemployment_app():
         st.session_state.report_date = None
         st.session_state.reemployment_date = None
 
-    # ▶️ 1단계: 기본 입력 정보
+    # ▶️ 1단계: 입력 정보
     if st.session_state.early_step == 0:
-        st.markdown("### 📋 기본 정보 입력")
+        st.write("#### 📋 기본 정보 입력")
 
         col1, col2 = st.columns(2)
         with col1:
-            report_date = st.date_input(
-                "📅 실업 신고일",
-                value=date.today()
-            )
+            report_date = st.date_input("📅 실업 신고일", value=date.today())
         with col2:
-            reemployment_date = st.date_input(
-                "📅 재취업 날짜",
-                value=date.today()
-            )
+            reemployment_date = st.date_input("📅 재취업 날짜", value=date.today())
 
-        st.markdown("#### 📌 취업 형태 선택")
         employment_type = st.radio(
-            "",
+            "📌 취업 형태 선택",
             ["일반 회사 취업", "자영업/특수고용직/예술인"]
         )
 
@@ -52,11 +53,11 @@ def early_reemployment_app():
             st.session_state.early_step += 1
             st.rerun()
 
-    # ▶️ 2단계: 조건 질문 흐름
+    # ▶️ 2단계 이후 질문
     elif st.session_state.early_step <= len(st.session_state.early_questions):
         idx = st.session_state.early_step - 1
         q = st.session_state.early_questions[idx]
-        st.markdown(f"### ✅ Q{st.session_state.early_step}. {q}")
+        st.write(f"**Q{st.session_state.early_step}. {q}**")
         ans = st.radio(
             "선택하세요",
             ["예", "아니요"],
@@ -67,9 +68,9 @@ def early_reemployment_app():
             st.session_state.early_step += 1
             st.rerun()
 
-    # ▶️ 3단계: 결과 자동 출력
+    # ▶️ 결과 출력
     else:
-        answers = st.session_state.early_answers[1:]  # 첫번째는 취업 형태
+        answers = st.session_state.early_answers[1:]
         if st.session_state.employment_type == "일반 회사 취업":
             required = ["예", "예", "예", "예", "아니요", "아니요", "아니요", "아니요", "아니요", "아니요"]
             questions = get_employment_questions()
@@ -77,7 +78,6 @@ def early_reemployment_app():
             required = ["예", "예", "예", "아니요", "예", "아니요"]
             questions = get_self_employment_questions()
 
-        st.markdown("### 📄 입력 정보")
         st.write(f"**📅 실업 신고일:** `{st.session_state.report_date}`")
         st.write(f"**📅 재취업 날짜:** `{st.session_state.reemployment_date}`")
         st.write(f"**📌 취업 형태:** `{st.session_state.employment_type}`")
@@ -96,9 +96,9 @@ def early_reemployment_app():
             st.warning("❌ 아래 조건이 충족되지 않았습니다:")
             for i, q, a, r in mismatches:
                 st.write(f"- Q{i}: {q} (답변: `{a}` / 필요: `{r}`)")
-            st.info("조건이 다르면 고용센터에 추가 문의하세요.")
+            st.info("조건이 다르면 고용센터에 문의해 추가 확인하세요.")
 
-    # ▶️ 초기화
+    # ▶️ 초기화 버튼
     if st.button("🔄 처음부터 다시"):
         for key in [
             "early_step",
@@ -111,3 +111,4 @@ def early_reemployment_app():
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
+
