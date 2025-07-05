@@ -1,29 +1,49 @@
-/* 달력 전체 컨테이너 - 좌측 정렬, 그리드 7열 */
-.calendar {
+/* 전체 그리드 컨테이너 - 좌측 정렬 */
+div[data-testid="stHorizontalBlock"] {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
-    gap: 6px !important;
-    max-width: 600px !important;
-    justify-content: flex-start !important;
+    gap: 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: flex-start !important; /* 무조건 좌측 정렬 */
     margin-left: 0 !important;
 }
 
-/* 요일 헤더 */
-.day-header {
-    text-align: center !important;
-    font-weight: bold !important;
-    color: #333 !important;
-    background-color: #f0f0f0 !important;
-    border: 1px solid #ccc !important;
-    border-radius: 8px !important;
+/* 마크다운 컨테이너도 좌측 정렬 */
+div[data-testid="stMarkdownContainer"] {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
     width: 100% !important;
+    height: auto !important;
+    text-align: left !important;
+}
+
+/* 월별 컨테이너 간격 */
+.month-container {
+    margin-bottom: 2rem !important;
+}
+
+/* 요일 헤더 스타일 */
+.day-header {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     aspect-ratio: 1 / 1 !important;
+    line-height: 40px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 50% !important;
+    background-color: #f8f8f8 !important;
+    color: #333 !important;
+    font-weight: bold !important;
+    text-align: center !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
 }
 
-/* 일요일 빨간색, 토요일 파란색 */
+/* 일요일 빨강, 토요일 파랑 */
 .day-header.sunday {
     color: red !important;
 }
@@ -31,62 +51,104 @@
     color: blue !important;
 }
 
-/* 빈칸 (요일 시작 전 빈 셀) */
-.empty-day {
-    width: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    background: transparent !important;
-}
-
-/* 날짜 셀 스타일 - 정사각형 유지 */
+/* 날짜 셀 스타일 (정사각형 유지) */
 .day {
-    width: 100% !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     aspect-ratio: 1 / 1 !important;
-    border: 1px solid #ddd !important;
-    border-radius: 8px !important;
+    line-height: 40px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 50% !important; /* 원형 */
     background-color: #fff !important;
     color: #333 !important;
-    font-size: 16px !important;
+    text-align: center !important;
+    cursor: pointer !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    cursor: pointer !important;
-    user-select: none !important;
+    margin: 0 auto !important;
     transition: background-color 0.2s, border-color 0.2s !important;
 }
 
-/* 날짜 셀 호버 */
-.day:hover {
-    background-color: #e6f0ff !important;
+/* 날짜 텍스트 색상 */
+.day.sunday {
+    color: red !important;
+}
+.day.saturday {
+    color: blue !important;
 }
 
-/* 선택된 날짜 */
+/* 선택된 날짜 스타일 */
 .day.selected {
-    background-color: #2196F3 !important;
-    color: #fff !important;
-    border-color: #0b66c2 !important;
+    border: 2px solid #4444ff !important;
+    background-color: #e6e6ff !important;
     font-weight: bold !important;
 }
 
-/* 결과 박스 */
+/* 체크박스 숨김 처리 (필요시) */
+.stCheckbox {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 결과 영역 스타일 */
 #resultContainer {
     margin-top: 20px !important;
-    max-width: 600px !important;
     padding: 15px !important;
+    border-left: 4px solid #36A2EB !important;
     background-color: #f9f9f9 !important;
-    border-left: 4px solid #2196F3 !important;
+    color: #121212 !important;
     font-size: 15px !important;
     line-height: 1.5 !important;
 }
 
-/* 반응형 - 모바일: 최대 너비 100% */
-@media (max-width: 768px) {
-    .calendar {
-        max-width: 100% !important;
-        gap: 4px !important;
+/* 반응형 - 모바일 */
+@media (max-width: 767px) {
+    div[data-testid="stHorizontalBlock"] {
+        gap: 3px !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        justify-content: flex-start !important;
+        margin-left: 0 !important;
+    }
+
+    .day-header,
+    .day {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        line-height: 32px !important;
+        font-size: 14px !important;
+    }
+
+    #resultContainer {
+        font-size: 14px !important;
+        padding: 10px !important;
+    }
+}
+
+/* 다크모드 대응 */
+@media (prefers-color-scheme: dark), [data-theme="dark"] {
+    .day-header {
+        background-color: #444 !important;
+        color: #ddd !important;
+    }
+    .day {
+        background-color: #333 !important;
+        color: #ddd !important;
+        border-color: #666 !important;
+    }
+    .day.selected {
+        background-color: #4a2a2a !important;
+        border-color: #6666ff !important;
+        font-weight: bold !important;
     }
     #resultContainer {
-        max-width: 100% !important;
+        background-color: #222 !important;
+        border-left-color: #36A2EB !important;
+        color: #ddd !important;
     }
 }
 
