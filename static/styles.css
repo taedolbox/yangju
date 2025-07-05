@@ -1,33 +1,27 @@
-/* 날짜 그리드 컨테이너 - 7열 고정 */
+/* 전체 그리드 컨테이너 */
 div[data-testid="stHorizontalBlock"] {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
-    gap: 4px !important;
+    gap: 4px !important; /* 간격 약간 넓힘 */
     width: 100% !important;
     box-sizing: border-box !important;
     justify-content: flex-start !important;
 }
 
-/* 달력 월별 컨테이너 여백 */
-.month-container {
-    margin-bottom: 2rem !important;
-    max-width: 320px !important; /* 달력 크기 제한 */
-}
-
-/* 요일 헤더 스타일 */
+/* 달력 요일 헤더 스타일 */
 .day-header {
     text-align: center !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
+    padding: 6px 0 !important;
     color: #333 !important;
-    width: 40px !important;
-    height: 40px !important;
+    background-color: #e0e0e0 !important;
     border: 1px solid #ccc !important;
-    border-radius: 50% !important;
-    background-color: #f8f8f8 !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+    border-radius: 4px !important; /* 약간 둥글게 */
+    font-size: 14px !important;
+    user-select: none !important;
 }
+
+/* 일요일 빨간색, 토요일 파란색 */
 .day-header.sunday {
     color: red !important;
 }
@@ -35,78 +29,69 @@ div[data-testid="stHorizontalBlock"] {
     color: blue !important;
 }
 
-/* 날짜 원(day) 스타일 */
+/* 날짜 셀 스타일 (사각형) */
 .day {
-    width: 40px !important;
-    height: 40px !important;
-    border: 1px solid #ccc !important;
-    border-radius: 50% !important;
+    text-align: center !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    line-height: 40px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important; /* 모서리 살짝 둥글게 */
     background-color: #fff !important;
     color: #333 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    margin: 0 auto !important;
-    position: relative !important;
     padding: 0 !important;
 }
 
-/* 토요일, 일요일 색상 */
-.day.sunday {
-    color: red !important;
-}
-.day.saturday {
-    color: blue !important;
+/* 날짜 호버 효과 */
+.day:hover {
+    background-color: #f0f0f0 !important;
+    border-color: #aaa !important;
 }
 
-/* 선택된 날짜 강조 */
+/* 선택된 날짜 스타일 */
 .day.selected {
-    border: 2px solid #4444ff !important;
-    font-weight: bold !important;
-    background-color: #e6e6ff !important;
+    border: 2px solid #2196F3 !important;
+    background-color: #2196F3 !important;
+    color: white !important;
+    font-weight: 700 !important;
 }
 
-/* 체크박스 숨기기 (필요 시 사용) */
-.stCheckbox {
-    opacity: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
+/* 비활성 날짜 스타일 (만약 있다면) */
+.day.disabled {
+    background-color: #f9f9f9 !important;
+    color: #bbb !important;
+    cursor: default !important;
 }
 
-/* 모바일 반응형 */
+/* 빈칸 스타일 */
+.empty-day {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* 반응형 - 모바일 화면 */
 @media (max-width: 767px) {
     div[data-testid="stHorizontalBlock"] {
         grid-template-columns: repeat(7, 1fr) !important;
         gap: 3px !important;
-        justify-content: flex-start !important;
-    }
-    .month-container {
-        max-width: 100% !important;
-        margin-bottom: 1rem !important;
     }
     .day {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 0.9em !important;
+        min-height: 36px !important;
+        font-size: 14px !important;
+    }
+    .day-header {
+        font-size: 12px !important;
+        padding: 4px 0 !important;
     }
 }
 
-/* 데스크톱 반응형 */
-@media (min-width: 768px) {
-    div[data-testid="stHorizontalBlock"] {
-        max-width: 320px !important;
-        margin: 0 !important;
-    }
-}
-
-/* 다크모드 최소 지원 */
+/* 다크 모드 지원 */
 @media (prefers-color-scheme: dark), [data-theme="dark"] {
     .day-header {
         background-color: #444 !important;
@@ -120,13 +105,22 @@ div[data-testid="stHorizontalBlock"] {
         color: #6699ff !important;
     }
     .day {
-        background-color: #333 !important;
+        background-color: #222 !important;
         color: #ddd !important;
-        border-color: #666 !important;
+        border-color: #555 !important;
+    }
+    .day:hover {
+        background-color: #333 !important;
+        border-color: #888 !important;
     }
     .day.selected {
-        background-color: #4a2a2a !important;
-        border-color: #6666ff !important;
+        background-color: #3366ff !important;
+        border-color: #3366ff !important;
+        color: white !important;
+    }
+    .day.disabled {
+        background-color: #444 !important;
+        color: #777 !important;
     }
 }
 
