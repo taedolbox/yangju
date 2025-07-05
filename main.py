@@ -14,20 +14,37 @@ def update_selected_menu(filtered_menus, all_menus):
     if selected_menu in filtered_menus:
         st.session_state.selected_menu = selected_menu
         menu_id = all_menus.index(selected_menu) + 1
-        st.query_params["menu"] = str(menu_id)
-
-def is_mobile():
-    user_agent = st.experimental_get_query_params().get("user_agent", [""])[0]
-    # 모바일 여부 판단: user_agent에 'Mobile'이 포함되면 True
-    return "Mobile" in user_agent
+        st.experimental_set_query_params(menu=str(menu_id))
 
 def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
         page_icon="💼",
         layout="wide"
-    )    
+    )
 
+    # 쿼리 파라미터 최초 1회만 읽기
+    query_params = st.experimental_get_query_params()
+    user_agent = query_params.get("user_agent", [""])[0]
+
+    # User-Agent 없으면 JS로 받아서 쿼리 파라미터에 추가하고 페이지 새로고침
+    if not user_agent:
+        st.components.v1.html(
+            """
+            <script>
+            const ua = navigator.userAgent;
+            const searchParams = new URLSearchParams(window.location.search);
+            if (!searchParams.has('user_agent')) {
+                searchParams.set('user_agent', ua);
+                window.location.search = searchParams.toString();
+            }
+            </script>
+            """,
+            height=0,
+        )
+        st.stop()
+
+    # CSS 불러오기
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -38,7 +55,8 @@ def main():
 
     menu_functions = {
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": None,  # 아래서 디바이스 분기처리
+        # User-Agent에 따라 모바일/PC 구분해서 일용직 앱 분기
+        "일용직(건설일용포함)": daily_worker_eligibility_mobile_app if "Mobile" in user_agent else daily_worker_eligibility_app
     }
 
     all_questions = {
@@ -60,7 +78,6 @@ def main():
             ]
 
         if "selected_menu" not in st.session_state:
-            query_params = st.query_params
             url_menu_id = query_params.get("menu", [None])[0]
             default_menu = None
             if url_menu_id:
@@ -84,7 +101,7 @@ def main():
             if selected_menu != st.session_state.selected_menu:
                 st.session_state.selected_menu = selected_menu
                 menu_id = all_menus.index(selected_menu) + 1
-                st.query_params["menu"] = str(menu_id)
+                st.experimental_set_query_params(menu=str(menu_id))
         else:
             st.warning("검색 결과에 해당하는 메뉴가 없습니다.")
             st.session_state.selected_menu = None
@@ -94,22 +111,7 @@ def main():
 
     st.markdown("---")
 
-    if st.session_state.selected_menu == "일용직(건설일용포함)":
-        user_agent = st.experimental_get_query_params().get("user_agent", [""])[0]
-        # 간단히 User-Agent 감지 (실제 환경에선 헤더 등으로 정확히 판단)
-        import streamlit.components.v1 as components
-        components.html("""
-        <script>
-        const ua = navigator.userAgent;
-        window.parent.postMessage({user_agent: ua}, "*");
-        </script>
-        """, height=0)
-
-        if "Mobile" in user_agent:
-            daily_worker_eligibility_mobile_app()
-        else:
-            daily_worker_eligibility_app()
-    elif st.session_state.selected_menu:
+    if st.session_state.selected_menu:
         menu_functions.get(
             st.session_state.selected_menu,
             lambda: st.info("메뉴를 선택하세요.")
@@ -119,4 +121,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
