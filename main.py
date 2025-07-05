@@ -1,7 +1,7 @@
 import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment_allowance import early_reemployment_allowance_app
+from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
     get_self_employment_questions,
@@ -31,7 +31,7 @@ def main():
     ]
 
     menu_functions = {
-        "조기재취업수당": early_reemployment_allowance_app,
+        "조기재취업수당": early_reemployment_app,
         "일용직(건설일용포함)": daily_worker_eligibility_app
     }
 
