@@ -32,17 +32,6 @@ def main():
         "일용직(건설일용포함)"
     ]
 
-    if is_mobile:
-        menu_functions = {
-            "조기재취업수당": early_reemployment_app,
-            "일용직(건설일용포함)": daily_worker_eligibility_mobile_app
-        }
-    else:
-        menu_functions = {
-            "조기재취업수당": early_reemployment_app,
-            "일용직(건설일용포함)": daily_worker_eligibility_app
-        }
-
     all_questions = {
         "조기재취업수당": get_employment_questions() + get_self_employment_questions(),
         "일용직(건설일용포함)": get_daily_worker_eligibility_questions()
