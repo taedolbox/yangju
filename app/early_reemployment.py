@@ -30,12 +30,6 @@ def early_reemployment_app():
     if st.session_state.early_step == 0:
         st.write("#### 📋 기본 정보 입력")
 
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            report_date = st.date_input("📅 실업 신고일", value=date.today())
-        with col2:
-            reemployment_date = st.date_input("📅 재취업 날짜", value=date.today())
-
         employment_type = st.radio(
             "📌 취업 형태 선택",
             ["일반 회사 취업", "자영업/특수고용직/예술인"]
