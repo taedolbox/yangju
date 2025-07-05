@@ -23,9 +23,16 @@ def main():
         layout="wide"
     )
 
-    # styles.css 읽기
-    with open("static/styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        # styles.css 읽기
+        with open("static/styles.css") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+        # ✅ 외부 폰트 preload & link 추가
+        st.markdown("""
+        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" as="style">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+        """, unsafe_allow_html=True)
+
 
     # user_agent 파라미터 읽기
     user_agent = st.query_params.get("user_agent", [""])[0]
