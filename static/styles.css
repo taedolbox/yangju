@@ -1,16 +1,23 @@
-/* 달력 그리드 컨테이너 */
+/* 공통: 달력 컨테이너 그리드 */
 div[data-testid="stHorizontalBlock"] {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
     gap: 2px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    justify-content: flex-start !important;
-    max-width: 600px !important; /* PC 최대 가로폭 제한 */
-    margin: 0 auto !important; /* 가운데 정렬 */
+    justify-content: center !important; /* PC에서 달력 중앙 정렬 */
 }
 
-/* 월별 컨테이너 간격 */
+div[data-testid="stMarkdownContainer"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    text-align: left !important;
+}
+
+/* 달력 월 컨테이너 간격 */
 .month-container {
     margin-bottom: 2rem !important;
 }
@@ -19,8 +26,13 @@ div[data-testid="stHorizontalBlock"] {
 .day-header {
     text-align: center !important;
     font-weight: bold !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    color: #333 !important;
     width: 40px !important;
     height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     aspect-ratio: 1 / 1 !important;
     line-height: 40px !important;
     border: 1px solid #ccc !important;
@@ -29,9 +41,8 @@ div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    color: #333 !important;
-    margin: 0 auto !important;
 }
+
 .day-header.sunday {
     color: red !important;
 }
@@ -39,7 +50,7 @@ div[data-testid="stHorizontalBlock"] {
     color: blue !important;
 }
 
-/* 날짜 원(day) 스타일 */
+/* 날짜 칸 스타일 */
 .day {
     text-align: center !important;
     width: 40px !important;
@@ -50,6 +61,7 @@ div[data-testid="stHorizontalBlock"] {
     line-height: 40px !important;
     border: 1px solid #ccc !important;
     border-radius: 50% !important;
+    margin: 0 auto !important;
     background-color: #fff !important;
     color: #333 !important;
     cursor: pointer !important;
@@ -57,14 +69,8 @@ div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    margin: 0 auto !important;
-    user-select: none !important;
-    position: relative !important;
-    z-index: 6000 !important;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-    padding: 10px !important;
 }
+
 .day.sunday {
     color: red !important;
 }
@@ -72,14 +78,25 @@ div[data-testid="stHorizontalBlock"] {
     color: blue !important;
 }
 
+.day:hover:not(.disabled) {
+    background-color: #f0f0f0 !important;
+}
+
 /* 선택된 날짜 스타일 */
 .day.selected {
     border: 2px solid #4444ff !important;
-    background-color: #e6e6ff !important;
     font-weight: bold !important;
+    background-color: #e6e6ff !important;
 }
 
-/* 체크박스 숨기기 (체크박스 겹침 이슈 처리) */
+/* 비활성화 날짜 */
+.day.disabled {
+    background-color: #e0e0e0 !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+}
+
+/* 체크박스 숨기기 */
 .stCheckbox {
     position: absolute !important;
     width: 40px !important;
@@ -91,6 +108,7 @@ div[data-testid="stHorizontalBlock"] {
     pointer-events: auto !important;
     cursor: pointer !important;
 }
+
 .stCheckbox > div > div {
     display: block !important;
     width: 40px !important;
@@ -105,27 +123,26 @@ div[data-testid="stHorizontalBlock"] {
     padding: 10px !important;
     border-left: 4px solid #36A2EB !important;
     background-color: #f9f9f9 !important;
-    max-width: 600px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
 }
 
-/* 반응형 디자인: 모바일 */
+/* 반응형: 모바일 */
 @media (max-width: 767px) {
-    .calendar {
-        grid-template-columns: repeat(7, 1fr) !important; /* 7칸 균등 비율 */
+    div[data-testid="stHorizontalBlock"] {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
         gap: 4px !important;
+        justify-content: center !important;
         max-width: 100% !important;
         padding: 8px !important;
-        justify-content: center !important;
+        box-sizing: border-box !important;
     }
     .day, .day-header, .empty-day {
-        width: 100% !important;   /* 칸 너비에 꽉 채우기 */
-        height: auto !important;  /* 높이는 자동으로 */
-        aspect-ratio: 1 / 1 !important; /* 정사각형 유지 */
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
         font-size: 14px !important;
         border-radius: 5px !important;
-        line-height: normal !important; /* 높이에 맞게 자동 조절 */
+        line-height: normal !important;
         padding: 0 !important;
         margin: 0 auto !important;
         display: flex !important;
@@ -134,25 +151,16 @@ div[data-testid="stHorizontalBlock"] {
     }
 }
 
-    }
-    .day {
-        width: 40px !important;
-        height: 40px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
-        aspect-ratio: 1 / 1 !important;
-        font-size: 1em !important;
-        margin: 2px auto !important;
-        padding: 15px !important;
-    }
-    .day.selected {
-        border: 2px solid #4444ff !important;
-        background-color: #e6e6ff !important;
-        font-weight: bold !important;
+/* 반응형: 데스크톱 */
+@media (min-width: 768px) {
+    div[data-testid="stHorizontalBlock"] {
+        max-width: 600px !important;
+        margin: 0 auto !important; /* 가운데 정렬 */
+        justify-content: center !important;
     }
 }
 
-/* 텍스트 정렬 */
+/* 일반 텍스트 정렬 */
 .stMarkdown, .stText, .stHeader {
     text-align: left !important;
 }
@@ -177,13 +185,22 @@ div[data-testid="stHorizontalBlock"] {
     .day:hover:not(.disabled) {
         background-color: #444 !important;
     }
+    .day:not(.disabled):hover::before {
+        background-color: #555 !important;
+        color: #fff !important;
+    }
+    .day.disabled {
+        background-color: #555 !important;
+        color: #888 !important;
+    }
     .day.selected {
         border: 2px solid #6666ff !important;
-        background-color: #4a2a2a !important;
         font-weight: bold !important;
+        background-color: #4a2a2a !important;
     }
     .result-text {
         background-color: #2a2a2a !important;
         border-left-color: #4CAF50 !important;
     }
 }
+
