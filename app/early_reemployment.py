@@ -2,33 +2,35 @@ import streamlit as st
 from datetime import datetime, timedelta
 
 def early_reemployment_app():
-    # 앱 제목
     st.markdown(
         "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
-    # 모바일 줌 비활성화
     st.markdown(
         '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
         unsafe_allow_html=True
     )
-    # 입력 섹션
     st.markdown("<h4>🏗️ 입력 정보</h4>", unsafe_allow_html=True)
     unemployment_date = st.date_input("📅 실업 신고일", value=datetime(2024, 6, 12))
     employment_date = st.date_input("📅 재취업 날짜", value=datetime(2024, 7, 1))
     daily_benefit = st.number_input("💰 실업급여 일액 (원)", min_value=0, step=1000, value=60000)
     benefit_period_days = 90  # 가정: 수급 기간 90일
 
+    st.markdown("<h4>🏗️ 자격 조건</h4>", unsafe_allow_html=True)
+    is_employed_long_term = st.checkbox("재취업 후 12개월 이상 근무 가능합니까?")
+    is_self_employed_valid = st.checkbox("자영업의 경우, 사업자 등록 및 매출 증빙이 가능합니까?")
+
     if st.button("계산"):
-        # 계산 로직
         days_since_unemployment = (employment_date - unemployment_date).days
         remaining_days = max(0, benefit_period_days - days_since_unemployment)
+        time_eligible = days_since_unemployment < benefit_period_days / 2
+        condition_eligible = is_employed_long_term or is_self_employed_valid
         eligibility = (
-            "신청 가능: 수급 기간의 절반 미만 경과"
-            if days_since_unemployment < benefit_period_days / 2
-            else "신청 불가: 수급 기간의 절반 이상 경과"
+            "신청 가능: 조건 충족"
+            if time_eligible and condition_eligible
+            else "신청 불가: 조건 미충족"
         )
-        estimated_allowance = remaining_days * daily_benefit * 0.5  # 예상 수당 = 남은 일수 × 일액 × 1/2
+        estimated_allowance = remaining_days * daily_benefit * 0.5 if condition_eligible else 0
 
         result_html = f"""
         <div id='resultContainer'>
@@ -42,7 +44,6 @@ def early_reemployment_app():
         """
         st.components.v1.html(result_html, height=300)
 
-    # CSS (일용직 앱과 동일)
     css = """
     <style>
     body {
