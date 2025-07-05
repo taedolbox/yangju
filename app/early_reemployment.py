@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
+from app.questions import get_employment_questions, get_self_employment_questions
 
 def early_reemployment_app():
     st.markdown(
@@ -13,12 +14,20 @@ def early_reemployment_app():
     st.markdown("<h4>🏗️ 입력 정보</h4>", unsafe_allow_html=True)
     unemployment_date = st.date_input("📅 실업 신고일", value=datetime(2024, 6, 12))
     employment_date = st.date_input("📅 재취업 날짜", value=datetime(2024, 7, 1))
-    daily_benefit = st.number_input("💰 실업급여 일액 (원)", min_value=0, step=1000, value=60000)
+    daily_benefit = st.number_input("💰 실업급여 일액 (원)", min_value=0, step=1000, value=61000)
     benefit_period_days = 90  # 가정: 수급 기간 90일
 
     st.markdown("<h4>🏗️ 자격 조건</h4>", unsafe_allow_html=True)
-    is_employed_long_term = st.checkbox("재취업 후 12개월 이상 근무 가능합니까?")
-    is_self_employed_valid = st.checkbox("자영업의 경우, 사업자 등록 및 매출 증빙이 가능합니까?")
+    # 샘플 질문 (questions.py 미제공으로 가정)
+    questions = [
+        "재취업 후 12개월 이상 근무 가능합니까?",
+        "정규직 근로계약을 체결했습니까?",
+        "자영업의 경우, 사업자 등록을 완료했습니까?",
+        "자영업의 경우, 매출 증빙이 가능합니까?"
+    ]
+    answers = {}
+    for i, q in enumerate(questions, 1):
+        answers[q] = st.radio(f"질문 {i}: {q}", ["예", "아니오"], key=f"q{i}")
 
     if st.button("계산", key="calculate_button"):
         if employment_date < unemployment_date:
@@ -27,9 +36,9 @@ def early_reemployment_app():
             days_since_unemployment = (employment_date - unemployment_date).days
             remaining_days = max(0, benefit_period_days - days_since_unemployment)
             time_eligible = days_since_unemployment < benefit_period_days / 2
-            condition_eligible = is_employed_long_term or is_self_employed_valid
+            condition_eligible = all(answer == "예" for answer in answers.values())
             eligibility = (
-                "신청 가능: 조건 충족"
+                "신청 가능: 모든 조건 충족"
                 if time_eligible and condition_eligible
                 else "신청 불가: 조건 미충족"
             )
