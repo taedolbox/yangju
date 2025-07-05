@@ -1,43 +1,47 @@
 <style>
-/* 📌 [1] 달력 그리드 컨테이너 */
+/* ✅ 달력 컨테이너 */
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
-  margin-left: 0;       /* PC 좌측 정렬 */
-  margin-right: auto;
-  margin-bottom: 20px;
-  max-width: 500px;     /* PC 최대 너비 */
+  justify-items: start;   /* ← 그리드 내부 셀 좌측 정렬 */
+  justify-content: start; /* ← 그리드 자체도 좌측 정렬 */
+  margin: 0;
+  width: 100%;
+  max-width: 500px;
   box-sizing: border-box;
 }
 
-/* 📌 [2] 공통: 요일, 날짜, 빈 셀 정사각형 */
+/* ✅ 요일 & 날짜 셀 공통 */
 .day-header,
 .day,
 .empty-day {
-  aspect-ratio: 1/1;          /* 정사각형 */
-  display: flex;              /* 가운데 정렬 */
+  aspect-ratio: 1/1;
+  display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
   user-select: none;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
-/* 📌 [3] 요일 헤더 스타일 */
+/* ✅ 요일 헤더 */
 .day-header {
   background: #e0e0e0;
   color: #333;
   font-size: 14px;
+  width: 100%;
 }
 
-/* 📌 [4] 날짜 셀 스타일 */
+/* ✅ 날짜 셀 */
 .day {
   background: #fff;
   border: 1px solid #ddd;
   cursor: pointer;
   font-size: 16px;
   transition: background 0.2s, border 0.2s;
+  width: 100%;
 }
 
 .day:hover {
@@ -50,13 +54,14 @@
   color: #fff;
 }
 
-/* 📌 [5] 빈 셀 (요일 offset) */
+/* ✅ 빈 셀 */
 .empty-day {
   background: transparent;
   border: none;
+  width: 100%;
 }
 
-/* 📌 [6] 결과 박스 */
+/* ✅ 결과 컨테이너 */
 #resultContainer {
   background: #fff;
   color: #121212;
@@ -66,8 +71,11 @@
   font-size: 15px;
   line-height: 1.6;
   margin-top: 20px;
+  box-sizing: border-box;
+  max-width: 500px;
 }
 
+/* ✅ 결과 컨테이너 내부 텍스트 */
 #resultContainer h3 {
   color: #0d47a1;
   margin: 10px 0;
@@ -77,12 +85,18 @@
   margin: 4px 0;
 }
 
-/* 📌 [7] 모바일 반응형 */
+/* ✅ 모바일 반응형 */
 @media (max-width: 768px) {
   .calendar {
+    width: 100%;
     max-width: 100%;
-    grid-template-columns: repeat(7, 1fr);
+    justify-items: start;
+    justify-content: start;
+  }
+  #resultContainer {
+    max-width: 100%;
   }
 }
 </style>
+
 
