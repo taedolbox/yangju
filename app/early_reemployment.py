@@ -28,7 +28,6 @@ def early_reemployment_app():
 
     # 1단계: 입력
     if st.session_state.early_step == 0:
-        st.write("#### 📋 기본 정보 입력")
 
         employment_type = st.radio(
             "📌 취업 형태 선택",
