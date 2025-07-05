@@ -20,29 +20,30 @@ def early_reemployment_app():
     is_employed_long_term = st.checkbox("재취업 후 12개월 이상 근무 가능합니까?")
     is_self_employed_valid = st.checkbox("자영업의 경우, 사업자 등록 및 매출 증빙이 가능합니까?")
 
-    if st.button("계산"):
-        days_since_unemployment = (employment_date - unemployment_date).days
-        remaining_days = max(0, benefit_period_days - days_since_unemployment)
-        time_eligible = days_since_unemployment < benefit_period_days / 2
-        condition_eligible = is_employed_long_term or is_self_employed_valid
-        eligibility = (
-            "신청 가능: 조건 충족"
-            if time_eligible and condition_eligible
-            else "신청 불가: 조건 미충족"
-        )
-        estimated_allowance = remaining_days * daily_benefit * 0.5 if condition_eligible else 0
+    if st.button("계산", key="calculate_button"):
+        if employment_date < unemployment_date:
+            st.error("재취업 날짜는 실업 신고일 이후여야 합니다.")
+        else:
+            days_since_unemployment = (employment_date - unemployment_date).days
+            remaining_days = max(0, benefit_period_days - days_since_unemployment)
+            time_eligible = days_since_unemployment < benefit_period_days / 2
+            condition_eligible = is_employed_long_term or is_self_employed_valid
+            eligibility = (
+                "신청 가능: 조건 충족"
+                if time_eligible and condition_eligible
+                else "신청 불가: 조건 미충족"
+            )
+            estimated_allowance = remaining_days * daily_benefit * 0.5 if condition_eligible else 0
 
-        result_html = f"""
-        <div id='resultContainer'>
-            <h3>🏗️ 계산 결과</h3>
-            <p>실업 신고일: {unemployment_date}</p>
-            <p>재취업 날짜: {employment_date}</p>
-            <p>남은 수급 일수: {remaining_days}일</p>
-            <p>예상 수당: {estimated_allowance:,.0f}원</p>
-            <p>🏗️ 신청 가능 여부: {eligibility}</p>
-        </div>
-        """
-        st.components.v1.html(result_html, height=300)
+            result = f"""
+            **🏗️ 계산 결과**  
+            실업 신고일: {unemployment_date}  
+            재취업 날짜: {employment_date}  
+            남은 수급 일수: {remaining_days}일  
+            예상 수당: {estimated_allowance:,.0f}원  
+            🏗️ 신청 가능 여부: {eligibility}
+            """
+            st.markdown(result)
 
     css = """
     <style>
