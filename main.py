@@ -1,7 +1,6 @@
 import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.daily_worker_eligibility_mobile import daily_worker_eligibility_mobile_app
 from app.early_reemployment import early_reemployment_app
 from app.questions import (
     get_employment_questions,
@@ -20,10 +19,9 @@ def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
         page_icon="💼",
-        layout="wide"
+        layout="centered"
     )
 
-    # ✅ styles.css 불러오기
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -31,6 +29,11 @@ def main():
         "조기재취업수당",
         "일용직(건설일용포함)"
     ]
+
+    menu_functions = {
+        "조기재취업수당": early_reemployment_app,
+        "일용직(건설일용포함)": daily_worker_eligibility_app
+    }
 
     all_questions = {
         "조기재취업수당": get_employment_questions() + get_self_employment_questions(),
@@ -95,5 +98,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
