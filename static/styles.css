@@ -1,66 +1,171 @@
-/* 일용직 달력 공통 스타일 */
-.calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 20px;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
+/* 달력 그리드 컨테이너 */
+div[data-testid="stHorizontalBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 2px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: flex-start !important;
+    max-width: 600px !important; /* PC 최대 가로폭 제한 */
+    margin: 0 auto !important; /* 가운데 정렬 */
 }
-.day-header, .empty-day {
-    width: 100%;
-    height: 40px;
-    background: #e0e0e0;
-    text-align: center;
-    line-height: 40px;
-    font-weight: bold;
-    font-size: 14px;
-    border-radius: 4px;
+
+/* 월별 컨테이너 간격 */
+.month-container {
+    margin-bottom: 2rem !important;
 }
-.empty-day {
-    background: transparent;
+
+/* 요일 헤더 스타일 */
+.day-header {
+    text-align: center !important;
+    font-weight: bold !important;
+    width: 40px !important;
+    height: 40px !important;
+    aspect-ratio: 1 / 1 !important;
+    line-height: 40px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 50% !important;
+    background-color: #f8f8f8 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    color: #333 !important;
+    margin: 0 auto !important;
 }
+.day-header.sunday {
+    color: red !important;
+}
+.day-header.saturday {
+    color: blue !important;
+}
+
+/* 날짜 원(day) 스타일 */
 .day {
-    width: 100%;
-    height: 40px;
-    background: #fff;
-    border: 1px solid #ddd;
-    text-align: center;
-    line-height: 40px;
-    cursor: pointer;
-    font-size: 16px;
-    color: #333;
-    border-radius: 4px;
-    transition: background 0.2s, border 0.2s;
-    user-select: none;
+    text-align: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    aspect-ratio: 1 / 1 !important;
+    line-height: 40px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 50% !important;
+    background-color: #fff !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, border 0.2s !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 auto !important;
+    user-select: none !important;
+    position: relative !important;
+    z-index: 6000 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    padding: 10px !important;
 }
-.day:hover {
-    background: #f0f0f0;
+.day.sunday {
+    color: red !important;
 }
+.day.saturday {
+    color: blue !important;
+}
+
+/* 선택된 날짜 스타일 */
 .day.selected {
-    border: 2px solid #2196F3;
-    background: #2196F3;
-    color: #fff;
-    font-weight: bold;
+    border: 2px solid #4444ff !important;
+    background-color: #e6e6ff !important;
+    font-weight: bold !important;
 }
-#resultContainer {
-    margin-top: 20px;
-    padding: 15px;
-    border-left: 4px solid #36A2EB;
-    background: #f9f9f9;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 15px;
-    line-height: 1.5;
-    white-space: pre-line;
+
+/* 체크박스 숨기기 (체크박스 겹침 이슈 처리) */
+.stCheckbox {
+    position: absolute !important;
+    width: 40px !important;
+    height: 40px !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 6500 !important;
+    opacity: 0 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
-@media (max-width: 768px) {
-    .calendar {
-        max-width: 100%;
+.stCheckbox > div > div {
+    display: block !important;
+    width: 40px !important;
+    height: 40px !important;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+/* 결과 텍스트 박스 */
+.result-text {
+    margin: 10px 0 !important;
+    padding: 10px !important;
+    border-left: 4px solid #36A2EB !important;
+    background-color: #f9f9f9 !important;
+    max-width: 600px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 반응형 디자인: 모바일 */
+@media (max-width: 767px) {
+    div[data-testid="stHorizontalBlock"] {
+        gap: 2px !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
     }
-    #resultContainer {
-        max-width: 100%;
+    .day {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        aspect-ratio: 1 / 1 !important;
+        font-size: 1em !important;
+        margin: 2px auto !important;
+        padding: 15px !important;
+    }
+    .day.selected {
+        border: 2px solid #4444ff !important;
+        background-color: #e6e6ff !important;
+        font-weight: bold !important;
+    }
+}
+
+/* 텍스트 정렬 */
+.stMarkdown, .stText, .stHeader {
+    text-align: left !important;
+}
+
+/* 다크 모드 */
+@media (prefers-color-scheme: dark), [data-theme="dark"] {
+    .day-header {
+        color: #ddd !important;
+        background-color: #444 !important;
+    }
+    .day-header.sunday {
+        color: red !important;
+    }
+    .day-header.saturday {
+        color: blue !important;
+    }
+    .day {
+        background-color: #333 !important;
+        color: #ddd !important;
+        border-color: #888 !important;
+    }
+    .day:hover:not(.disabled) {
+        background-color: #444 !important;
+    }
+    .day.selected {
+        border: 2px solid #6666ff !important;
+        background-color: #4a2a2a !important;
+        font-weight: bold !important;
+    }
+    .result-text {
+        background-color: #2a2a2a !important;
+        border-left-color: #4CAF50 !important;
     }
 }
