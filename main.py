@@ -17,10 +17,10 @@ def update_selected_menu(filtered_menus, all_menus):
 
 def main():
     st.set_page_config(
-        page_title="실업급여 지원 시스템",
-        page_icon="💼",
-        layout="wide"
-    )
+    page_title="실업급여 지원 시스템",
+    page_icon="💼",
+    layout="wide"   # ✅ 이렇게 하면 끝
+    )    
 
     with open("static/styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
