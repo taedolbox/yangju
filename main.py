@@ -1,5 +1,4 @@
 import streamlit as st
-
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.daily_worker_eligibility_mobile import daily_worker_eligibility_mobile_app
 from app.early_reemployment import early_reemployment_app
@@ -23,38 +22,55 @@ def main():
         layout="wide"
     )
 
-    # st.query_params 사용 (deprecated된 experimental_get_query_params 대신)
-    query_params = st.query_params
-    user_agent = query_params.get("user_agent", [""])[0]
+    # styles.css 읽기
+    with open("static/styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+    # user_agent 파라미터 읽기
+    user_agent = st.query_params.get("user_agent", [""])[0]
+
+    # user_agent 없으면 JS로 채우고 새로고침
     if not user_agent:
         st.components.v1.html(
             """
             <script>
             const ua = navigator.userAgent;
-            const searchParams = new URLSearchParams(window.location.search);
-            if (!searchParams.has('user_agent')) {
-                searchParams.set('user_agent', ua);
-                window.location.search = searchParams.toString();
+            const url = new URL(window.location);
+            if (!url.searchParams.has('user_agent')) {
+                url.searchParams.set('user_agent', ua);
+                window.location.href = url.toString();
             }
             </script>
             """,
             height=0,
         )
+        st.info("디바이스 정보를 확인 중입니다. 잠시만 기다려주세요...")
         st.stop()
 
-    with open("static/styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    # 모바일 여부 판단 (예시)
+    is_mobile = False
+    mobile_indicators = ["Android", "iPhone", "iPad", "iPod", "Mobile"]
+    for indicator in mobile_indicators:
+        if indicator in user_agent:
+            is_mobile = True
+            break
 
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
     ]
 
-    menu_functions = {
-        "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_mobile_app if "Mobile" in user_agent else daily_worker_eligibility_app
-    }
+    # 모바일용 앱, PC용 앱 함수 매핑
+    if is_mobile:
+        menu_functions = {
+            "조기재취업수당": early_reemployment_app,
+            "일용직(건설일용포함)": daily_worker_eligibility_mobile_app
+        }
+    else:
+        menu_functions = {
+            "조기재취업수당": early_reemployment_app,
+            "일용직(건설일용포함)": daily_worker_eligibility_app
+        }
 
     all_questions = {
         "조기재취업수당": get_employment_questions() + get_self_employment_questions(),
@@ -75,6 +91,7 @@ def main():
             ]
 
         if "selected_menu" not in st.session_state:
+            query_params = st.query_params
             url_menu_id = query_params.get("menu", [None])[0]
             default_menu = None
             if url_menu_id:
@@ -118,5 +135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
