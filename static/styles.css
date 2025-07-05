@@ -1,147 +1,88 @@
-/* 전체 그리드 컨테이너 */
-div[data-testid="stHorizontalBlock"] {
-    display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important;
-    max-width: 700px !important;  /* 데스크톱 최대 너비 */
-    margin: 0 auto !important;
-    gap: 4px !important;
-    box-sizing: border-box !important;
-    justify-content: flex-start !important;
+<style>
+/* 📌 [1] 달력 그리드 컨테이너 */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-left: 0;       /* PC 좌측 정렬 */
+  margin-right: auto;
+  margin-bottom: 20px;
+  max-width: 500px;     /* PC 최대 너비 */
+  box-sizing: border-box;
 }
 
-/* 요일 헤더 스타일 */
-.day-header {
-    text-align: center !important;
-    font-weight: 700 !important;
-    padding: 6px 0 !important;
-    color: #333 !important;
-    background-color: #e0e0e0 !important;
-    border: 1px solid #ccc !important;
-    border-radius: 4px !important;
-    font-size: 14px !important;
-    user-select: none !important;
-}
-
-/* 일요일 빨간색, 토요일 파란색 */
-.day-header.sunday {
-    color: red !important;
-}
-.day-header.saturday {
-    color: blue !important;
-}
-
-/* 날짜 셀 스타일 (사각형) */
-.day {
-    text-align: center !important;
-    width: 100% !important;
-    min-height: 40px !important;
-    line-height: 40px !important;
-    border: 1px solid #ddd !important;
-    border-radius: 4px !important;
-    background-color: #fff !important;
-    color: #333 !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    transition: background-color 0.15s ease, border-color 0.15s ease !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 0 !important;
-}
-
-/* 날짜 호버 효과 */
-.day:hover {
-    background-color: #f0f0f0 !important;
-    border-color: #aaa !important;
-}
-
-/* 선택된 날짜 스타일 */
-.day.selected {
-    border: 2px solid #2196F3 !important;
-    background-color: #2196F3 !important;
-    color: white !important;
-    font-weight: 700 !important;
-}
-
-/* 비활성 날짜 스타일 (필요시) */
-.day.disabled {
-    background-color: #f9f9f9 !important;
-    color: #bbb !important;
-    cursor: default !important;
-}
-
-/* 빈칸 스타일 */
+/* 📌 [2] 공통: 요일, 날짜, 빈 셀 정사각형 */
+.day-header,
+.day,
 .empty-day {
-    border: none !important;
-    background: transparent !important;
+  aspect-ratio: 1/1;          /* 정사각형 */
+  display: flex;              /* 가운데 정렬 */
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  user-select: none;
+  border-radius: 4px;
 }
 
-/* 반응형 - 모바일 화면 세로 모드 */
-@media (max-width: 479px) {
-    div[data-testid="stHorizontalBlock"] {
-        max-width: 100% !important;
-        grid-template-columns: repeat(7, 1fr) !important;
-        gap: 3px !important;
-        padding: 0 5px !important;
-    }
-    .day {
-        min-height: 32px !important;
-        font-size: 14px !important;
-        padding: 0 !important;
-    }
-    .day-header {
-        font-size: 12px !important;
-        padding: 4px 0 !important;
-    }
+/* 📌 [3] 요일 헤더 스타일 */
+.day-header {
+  background: #e0e0e0;
+  color: #333;
+  font-size: 14px;
 }
 
-/* 반응형 - 모바일 화면 가로 모드 (태블릿, 큰 휴대폰) */
-@media (min-width: 480px) and (max-width: 767px) {
-    div[data-testid="stHorizontalBlock"] {
-        max-width: 100% !important;
-        gap: 4px !important;
-        padding: 0 10px !important;
-    }
-    .day {
-        min-height: 36px !important;
-        font-size: 15px !important;
-        padding: 0 !important;
-    }
-    .day-header {
-        font-size: 13px !important;
-        padding: 5px 0 !important;
-    }
+/* 📌 [4] 날짜 셀 스타일 */
+.day {
+  background: #fff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s, border 0.2s;
 }
 
-/* 다크 모드 지원 */
-@media (prefers-color-scheme: dark), [data-theme="dark"] {
-    .day-header {
-        background-color: #444 !important;
-        color: #ddd !important;
-        border-color: #666 !important;
-    }
-    .day-header.sunday {
-        color: #ff6666 !important;
-    }
-    .day-header.saturday {
-        color: #6699ff !important;
-    }
-    .day {
-        background-color: #222 !important;
-        color: #ddd !important;
-        border-color: #555 !important;
-    }
-    .day:hover {
-        background-color: #333 !important;
-        border-color: #888 !important;
-    }
-    .day.selected {
-        background-color: #3366ff !important;
-        border-color: #3366ff !important;
-        color: white !important;
-    }
-    .day.disabled {
-        background-color: #444 !important;
-        color: #777 !important;
-    }
+.day:hover {
+  background: #f0f0f0;
 }
+
+.day.selected {
+  border: 2px solid #2196F3;
+  background: #2196F3;
+  color: #fff;
+}
+
+/* 📌 [5] 빈 셀 (요일 offset) */
+.empty-day {
+  background: transparent;
+  border: none;
+}
+
+/* 📌 [6] 결과 박스 */
+#resultContainer {
+  background: #fff;
+  color: #121212;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 20px;
+}
+
+#resultContainer h3 {
+  color: #0d47a1;
+  margin: 10px 0;
+}
+
+#resultContainer p {
+  margin: 4px 0;
+}
+
+/* 📌 [7] 모바일 반응형 */
+@media (max-width: 768px) {
+  .calendar {
+    max-width: 100%;
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+</style>
+
