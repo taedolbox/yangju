@@ -16,23 +16,27 @@ def early_reemployment_app():
     st.markdown("<h4>🏗️ 입력 정보</h4>", unsafe_allow_html=True)
     unemployment_date = st.date_input("📅 실업 신고일", value=datetime(2024, 6, 12))
     employment_date = st.date_input("📅 재취업 날짜", value=datetime(2024, 7, 1))
-    allowance_amount = st.number_input("💰 예상 수당 금액", min_value=0, step=10000)
+    daily_benefit = st.number_input("💰 실업급여 일액 (원)", min_value=0, step=1000, value=60000)
+    benefit_period_days = 90  # 가정: 수급 기간 90일
 
     if st.button("계산"):
-        # 샘플 계산 로직: 실업급여 수급 기간(가정: 90일)의 1/2 이상 남았는지 확인
-        benefit_period_days = 90  # 실업급여 수급 기간 (가정)
+        # 계산 로직
         days_since_unemployment = (employment_date - unemployment_date).days
+        remaining_days = max(0, benefit_period_days - days_since_unemployment)
         eligibility = (
             "신청 가능: 수급 기간의 절반 미만 경과"
             if days_since_unemployment < benefit_period_days / 2
             else "신청 불가: 수급 기간의 절반 이상 경과"
         )
+        estimated_allowance = remaining_days * daily_benefit * 0.5  # 예상 수당 = 남은 일수 × 일액 × 1/2
+
         result_html = f"""
         <div id='resultContainer'>
             <h3>🏗️ 계산 결과</h3>
             <p>실업 신고일: {unemployment_date}</p>
             <p>재취업 날짜: {employment_date}</p>
-            <p>예상 수당: {allowance_amount:,}원</p>
+            <p>남은 수급 일수: {remaining_days}일</p>
+            <p>예상 수당: {estimated_allowance:,.0f}원</p>
             <p>🏗️ 신청 가능 여부: {eligibility}</p>
         </div>
         """
