@@ -148,3 +148,6 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+    def daily_worker_eligibility_app():
+    import streamlit as st
+    st.write("daily_worker_eligibility_app 함수가 정상 호출됨")
