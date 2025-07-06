@@ -19,7 +19,7 @@ def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
         page_icon="💼",
-        layout="centered"
+        layout="wide"
     )
 
     with open("static/styles.css") as f:
