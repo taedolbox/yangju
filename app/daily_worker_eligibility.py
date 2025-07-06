@@ -1,154 +1,51 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json
 
 def daily_worker_eligibility_app():
     st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        "<h3>🏗️ 일용직 신청 가능 시점 판단</h3>",
         unsafe_allow_html=True
     )
 
-    # 상단 안내문
-    st.markdown(
-        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-        unsafe_allow_html=True
-    )
+    today = datetime.today()
+    input_date = st.date_input("📅 기준 날짜", today)
 
-    today_kst = datetime.utcnow() + timedelta(hours=9)
-    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
+    first_day = input_date.replace(day=1)
+    last_day = (first_day + timedelta(days=31)).replace(day=1) - timedelta(days=1)
 
     # 달력 날짜 계산
-    first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
-    last_day = input_date
+    days = []
+    current = first_day
+    while current <= last_day:
+        days.append(current)
+        current += timedelta(days=1)
 
-    cal_dates = []
-    current_date = first_day_prev_month
-    while current_date <= last_day:
-        cal_dates.append(current_date)
-        current_date += timedelta(days=1)
-
-    # 달력 그룹핑
-    calendar_groups = {}
-    for date in cal_dates:
-        ym = date.strftime("%Y-%m")
-        if ym not in calendar_groups:
-            calendar_groups[ym] = []
-        calendar_groups[ym].append(date)
-
-    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
-    fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
-    fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
-    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
-    next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
-
-    # 달력 HTML
-    calendar_html = "<div id='calendar-container'>"
-
-    for ym, dates in calendar_groups.items():
-        year, month = ym.split("-")
-        calendar_html += f"<h4>{year}년 {month}월</h4>"
-        calendar_html += """
+    # 시작 요일 offset
+    start_offset = (first_day.weekday() + 1) % 7  # 일요일 시작
+    calendar_html = f"""
+    <div class="month-container">
+        <h4>{first_day.year}년 {first_day.month}월</h4>
         <div class="calendar">
-            <div class="day-header sunday">일</div>
-            <div class="day-header">월</div>
-            <div class="day-header">화</div>
-            <div class="day-header">수</div>
-            <div class="day-header">목</div>
-            <div class="day-header">금</div>
-            <div class="day-header saturday">토</div>
-        """
-
-        start_day_offset = (dates[0].weekday() + 1) % 7
-        for _ in range(start_day_offset):
-            calendar_html += '<div class="empty-day"></div>'
-
-        for date in dates:
-            day_num = date.day
-            date_str = date.strftime("%m/%d")
-            calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
-
-        calendar_html += "</div>"
-
-    calendar_html += """
-    </div>
-    <div id="resultContainer"></div>
-
-    <script>
-    const CALENDAR_DATES = """ + calendar_dates_json + """;
-    const FOURTEEN_DAYS_START = '""" + fourteen_days_prior_start + """';
-    const FOURTEEN_DAYS_END = '""" + fourteen_days_prior_end + """';
-    const NEXT_POSSIBLE1_DATE = '""" + next_possible1_str + """';
-
-    function saveToLocalStorage(data) {
-        localStorage.setItem('selectedDates', JSON.stringify(data));
-    }
-
-    function calculateAndDisplayResult(selected) {
-        const totalDays = CALENDAR_DATES.length;
-        const threshold = totalDays / 3;
-        const workedDays = selected.length;
-
-        const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
-
-        let nextPossible1 = "";
-        if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1 충족하려면 오늘 이후 근로제공이 없으면 " + NEXT_POSSIBLE1_DATE + " 이후 신청하세요.";
-        }
-
-        let nextPossible2 = "";
-        if (!noWork14Days) {
-            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
-            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
-            const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2 충족하려면 오늘 이후 근로제공이 없으면 " + nextDateStr + " 이후 신청하세요.";
-        }
-
-        const condition1Text = workedDays < threshold
-            ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
-
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간 근무기록 존재";
-
-        const generalWorkerText = workedDays < threshold ? "✅ 일반일용근로자 신청 가능" : "❌ 일반일용근로자 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 건설일용근로자 신청 가능" : "❌ 건설일용근로자 신청 불가능";
-
-        const finalHtml = `
-            <h3>📌 조건 기준</h3>
-            <p>조건 1: 직전달 첫날부터 신청일까지 근무일 수가 전체의 1/3 미만</p>
-            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일 무근무</p>
-            <p>총 기간: ` + totalDays + `일</p>
-            <p>1/3 기준: ` + threshold.toFixed(1) + `일</p>
-            <p>근무일 수: ` + workedDays + `일</p>
-            <h3>📌 조건 판단</h3>
-            <p>` + condition1Text + `</p>
-            <p>` + condition2Text + `</p>
-            ` + (nextPossible1 ? "<p>" + nextPossible1 + "</p>" : "") + `
-            ` + (nextPossible2 ? "<p>" + nextPossible2 + "</p>" : "") + `
-            <h3>📌 최종 판단</h3>
-            <p>` + generalWorkerText + `</p>
-            <p>` + constructionWorkerText + `</p>
-        `;
-
-        document.getElementById('resultContainer').innerHTML = finalHtml;
-    }
-
-    function toggleDate(element) {
-        element.classList.toggle('selected');
-        const selected = [];
-        document.querySelectorAll('.day.selected').forEach(el => {
-            selected.push(el.getAttribute('data-date'));
-        });
-        saveToLocalStorage(selected);
-        calculateAndDisplayResult(selected);
-    }
-
-    window.onload = function() {
-        calculateAndDisplayResult([]);
-    };
-    </script>
     """
 
-    st.components.v1.html(calendar_html, height=1500, scrolling=False)
+    # 요일 헤더
+    days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
+    for idx, day_name in enumerate(days_of_week):
+        extra_class = ""
+        if idx == 0:
+            extra_class = "sunday"
+        elif idx == 6:
+            extra_class = "saturday"
+        calendar_html += f'<div class="day-header {extra_class}">{day_name}</div>'
+
+    # 시작 offset
+    for _ in range(start_offset):
+        calendar_html += '<div class="empty-day"></div>'
+
+    # 날짜 출력
+    for d in days:
+        calendar_html += f'<div class="day">{d.day}</div>'
+
+    calendar_html += "</div></div>"
+
+    st.components.v1.html(calendar_html, height=600, scrolling=False)
