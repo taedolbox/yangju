@@ -1,83 +1,119 @@
-/* 좌측 정렬 및 기본 패딩 */
+/* 기본 좌측 정렬 */
+[data-testid="stAppViewContainer"] {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
 .block-container {
-  margin-left: 0 !important;
-  margin-right: auto !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    overflow-x: visible !important;
 }
 
-/* 모바일에서 좌우 패딩 절반 */
-@media (max-width: 600px) {
-  .block-container {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-}
-
-/* 달력 컨테이너 */
+/* 달력 월별 컨테이너 여백 */
 .month-container {
-  max-width: 320px;
-  margin-bottom: 2rem;
+    margin-bottom: 2rem !important;
+    max-width: 320px !important;
 }
 
-@media (max-width: 767px) {
-  .month-container {
-    max-width: 100%;
-    margin-bottom: 1rem;
-  }
-}
-
-/* 달력 그리드 */
+/* 달력 스타일 - 7열 그리드 */
 .calendar {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  gap: 5px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  background: #fff !important;
-  padding: 10px !important;
-  border-radius: 8px !important;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 5px !important;
+    width: 100% !important;
+    background: #fff !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
 }
 
 /* 요일 헤더 */
 .day-header {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  aspect-ratio: 1 / 1 !important;
-  background: #e0e0e0 !important;
-  font-weight: bold !important;
-  font-size: 14px !important;
-  border-radius: 5px !important;
+    aspect-ratio: 1 / 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 50% !important;
+    background-color: #f8f8f8 !important;
+    color: #555 !important;
 }
 
 .day-header.sunday {
-  color: red !important;
+    color: red !important;
 }
 
 .day-header.saturday {
-  color: blue !important;
+    color: blue !important;
 }
 
-/* 날짜 셀 */
+/* 날짜 */
 .day {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  aspect-ratio: 1 / 1 !important;
-  border: 1px solid #ddd !important;
-  border-radius: 5px !important;
-  font-size: 16px !important;
-  cursor: pointer !important;
+    aspect-ratio: 1 / 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border: 1px solid #ddd !important;
+    border-radius: 5px !important;
+    font-size: 16px !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: background 0.1s ease, border 0.1s ease !important;
+    background-color: #fff !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
 }
 
+.day:hover {
+    background: #f0f0f0 !important;
+}
+
+/* 선택된 날짜 */
+.day.selected {
+    border: 2px solid #2196F3 !important;
+    background: #2196F3 !important;
+    color: #fff !important;
+    font-weight: bold !important;
+}
+
+/* 빈 날짜 칸 */
 .empty-day {
-  aspect-ratio: 1 / 1 !important;
+    background: transparent !important;
+    border: none !important;
 }
 
-/* 모바일 글자 크기 */
-@media (max-width: 480px) {
-  .day, .day-header {
-    font-size: 12px !important;
-  }
+/* 모바일 반응형 */
+@media (max-width: 767px) {
+    .month-container {
+        max-width: 100% !important;
+        margin-bottom: 1rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .day {
+        font-size: 14px !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+
+/* 모바일 패딩 절반 줄임 */
+@media (max-width: 600px) {
+    [data-testid="stAppViewContainer"] {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
 }
