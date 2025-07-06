@@ -8,7 +8,6 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    # 상단 고지문
     st.markdown(
         "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
         unsafe_allow_html=True
@@ -17,7 +16,6 @@ def daily_worker_eligibility_app():
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    # 조건 범위 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
 
@@ -40,7 +38,6 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
-    # 달력 HTML
     calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
@@ -151,3 +148,4 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
