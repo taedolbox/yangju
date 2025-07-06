@@ -1,241 +1,142 @@
-/* 날짜 그리드 컨테이너 - 7열 고정 */
-div[data-testid="stHorizontalBlock"] {
-    display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important;
-    gap: 4px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    justify-content: flex-start !important;
-}
-
-/* 달력 월별 컨테이너 여백 */
-.month-container {
-    margin-bottom: 2rem !important;
-    max-width: 320px !important; /* 달력 크기 제한 */
-}
-
-/* 요일 헤더 스타일 */
-.day-header {
-    text-align: center !important;
-    font-weight: bold !important;
-    color: #333 !important;
-    width: 40px !important;
-    height: 40px !important;
-    border: 1px solid #ccc !important;
-    border-radius: 50% !important;
-    background-color: #f8f8f8 !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-.day-header.sunday {
-    color: red !important;
-}
-.day-header.saturday {
-    color: blue !important;
-}
-
-/* 날짜 원(day) 스타일 */
-.day {
-    width: 40px !important;
-    height: 40px !important;
-    border: 1px solid #ccc !important;
-    border-radius: 50% !important;
-    background-color: #fff !important;
-    color: #333 !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    margin: 0 auto !important;
-    position: relative !important;
-    padding: 0 !important;
-}
-
-/* 토요일, 일요일 색상 */
-.day.sunday {
-    color: red !important;
-}
-.day.saturday {
-    color: blue !important;
-}
-
-/* 선택된 날짜 강조 */
-.day.selected {
-    border: 2px solid #4444ff !important;
-    font-weight: bold !important;
-    background-color: #e6e6ff !important;
-}
-
-/* 체크박스 숨기기 (필요 시 사용) */
-.stCheckbox {
-    opacity: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-/* 모바일 반응형 */
-@media (max-width: 767px) {
-    div[data-testid="stHorizontalBlock"] {
-        grid-template-columns: repeat(7, 1fr) !important;
-        gap: 3px !important;
-        justify-content: flex-start !important;
-    }
-    .month-container {
-        max-width: 100% !important;
-        margin-bottom: 1rem !important;
-    }
-    .day {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 0.9em !important;
-    }
-}
-
-/* 데스크톱 반응형 */
-@media (min-width: 768px) {
-    div[data-testid="stHorizontalBlock"] {
-        max-width: 320px !important;
-        margin: 0 !important;
-    }
-}
-
-/* 다크모드 최소 지원 */
-@media (prefers-color-scheme: dark), [data-theme="dark"] {
-    .day-header {
-        background-color: #444 !important;
-        color: #ddd !important;
-        border-color: #666 !important;
-    }
-    .day-header.sunday {
-        color: #ff6666 !important;
-    }
-    .day-header.saturday {
-        color: #6699ff !important;
-    }
-    .day {
-        background-color: #333 !important;
-        color: #ddd !important;
-        border-color: #666 !important;
-    }
-    .day.selected {
-        background-color: #4a2a2a !important;
-        border-color: #6666ff !important;
-    }
-}
-
-/* 좌측 정렬 */
-[data-testid="stAppViewContainer"] {
-    max-width: 100%;
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-
+/* ---------------------------------------
+   1️⃣ 전체 레이아웃 - 좌측 정렬 + 패딩
+------------------------------------------*/
 .block-container {
-    margin-left: 0 !important;
-    margin-right: auto !important;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    overflow-x: visible;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  overflow-x: visible !important;
 }
 
-/* 달력 스타일 - 반응형 */
+/* 모바일 좌우 여백 절반 */
+@media (max-width: 600px) {
+  .block-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ---------------------------------------
+   2️⃣ 달력 컨테이너
+------------------------------------------*/
 .calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* ✅ 고정 px 대신 1fr */
-    grid-gap: 5px;
-    margin-bottom: 20px;
-    background: #fff;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    width: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 5px;
+  margin-bottom: 20px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-.day-header, .empty-day, .day {
-    aspect-ratio: 1 / 1; /* ✅ 정사각형 */
-    width: 100%;
-    text-align: center;
-    line-height: 40px;
+/* 월별 컨테이너 여백 + 최대 폭 제한 */
+.month-container {
+  margin-bottom: 2rem !important;
+  max-width: 320px !important;
 }
 
+/* 모바일 월별 컨테이너 */
+@media (max-width: 767px) {
+  .month-container {
+    max-width: 100% !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* ---------------------------------------
+   3️⃣ 요일 헤더 스타일
+------------------------------------------*/
 .day-header {
-    background: #e0e0e0;
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: #555;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #e0e0e0;
+  border-radius: 5px;
 }
 
-.empty-day {
-    background: transparent;
-    border: none;
-}
+/* 요일별 색상 (nth-child 기준) */
+.day-header:nth-child(1) { color: red; }   /* 일요일 */
+.day-header:nth-child(7) { color: blue; }  /* 토요일 */
 
+/* ---------------------------------------
+   4️⃣ 날짜 셀 스타일
+------------------------------------------*/
 .day {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.1s ease, border 0.1s ease;
-    font-size: 16px;
-    color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #333;
+  transition: background 0.1s ease, border 0.1s ease;
 }
 
 .day:hover { background: #f0f0f0; }
+
 .day.selected {
-    border: 2px solid #2196F3;
-    background: #2196F3;
-    color: #fff;
-    font-weight: bold;
+  border: 2px solid #2196F3;
+  background: #2196F3;
+  color: #fff;
+  font-weight: bold;
 }
 
+/* 빈 칸 */
+.empty-day {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border: none;
+}
+
+/* ---------------------------------------
+   5️⃣ 모바일 날짜 크기
+------------------------------------------*/
+@media (max-width: 480px) {
+  .day, .day-header {
+    font-size: 12px;
+  }
+}
+
+/* ---------------------------------------
+   6️⃣ 결과 컨테이너
+------------------------------------------*/
 #resultContainer {
-    color: #121212;
-    background: #fff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    font-size: 15px;
-    line-height: 1.6;
+  color: #121212;
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 #resultContainer h3 {
-    color: #0d47a1;
-    margin-top: 20px;
-    margin-bottom: 10px;
+  color: #0d47a1;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
 #resultContainer p {
-    margin: 6px 0;
+  margin: 6px 0;
 }
 
-/* 모바일 글자 크기 */
-@media (max-width: 480px) {
-    .day, .day-header {
-        font-size: 12px;
-    }
-}
-
-/* 기본 좌측 정렬 */
-.block-container {
-    margin-left: 0 !important;
-    margin-right: auto !important;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    overflow-x: visible;
-}
-
-/* ✅ 모바일에서 좌우 패딩 절반 줄이기 */
-@media (max-width: 600px) {
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+/* ---------------------------------------
+   7️⃣ 불필요한 체크박스 숨기기 (필요시)
+------------------------------------------*/
+.stCheckbox {
+  display: none !important;
 }
