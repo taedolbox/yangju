@@ -1,6 +1,4 @@
-/* ---------------------------------------
-   1️⃣ 전체 레이아웃 - 좌측 정렬 + 패딩
-------------------------------------------*/
+/* ✅ 전체 레이아웃 - 좌측 정렬 + 기본 패딩 */
 .block-container {
   margin-left: 0 !important;
   margin-right: auto !important;
@@ -9,7 +7,7 @@
   overflow-x: visible !important;
 }
 
-/* 모바일 좌우 여백 절반 */
+/* ✅ 모바일 좌우 패딩 절반 */
 @media (max-width: 600px) {
   .block-container {
     padding-left: 1rem;
@@ -17,9 +15,7 @@
   }
 }
 
-/* ---------------------------------------
-   2️⃣ 달력 컨테이너
-------------------------------------------*/
+/* ✅ 달력 메인 그리드 */
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -32,13 +28,12 @@
   width: 100%;
 }
 
-/* 월별 컨테이너 여백 + 최대 폭 제한 */
+/* ✅ 월별 컨테이너 최대폭 제한 */
 .month-container {
   margin-bottom: 2rem !important;
   max-width: 320px !important;
 }
 
-/* 모바일 월별 컨테이너 */
 @media (max-width: 767px) {
   .month-container {
     max-width: 100% !important;
@@ -46,9 +41,7 @@
   }
 }
 
-/* ---------------------------------------
-   3️⃣ 요일 헤더 스타일
-------------------------------------------*/
+/* ✅ 요일 헤더 */
 .day-header {
   display: flex;
   justify-content: center;
@@ -63,13 +56,15 @@
   border-radius: 5px;
 }
 
-/* 요일별 색상 (nth-child 기준) */
-.day-header:nth-child(1) { color: red; }   /* 일요일 */
-.day-header:nth-child(7) { color: blue; }  /* 토요일 */
+/* ✅ 일요일 빨강, 토요일 파랑 */
+.day-header.sunday {
+  color: red;
+}
+.day-header.saturday {
+  color: blue;
+}
 
-/* ---------------------------------------
-   4️⃣ 날짜 셀 스타일
-------------------------------------------*/
+/* ✅ 날짜 셀(day) */
 .day {
   display: flex;
   justify-content: center;
@@ -85,7 +80,9 @@
   transition: background 0.1s ease, border 0.1s ease;
 }
 
-.day:hover { background: #f0f0f0; }
+.day:hover {
+  background: #f0f0f0;
+}
 
 .day.selected {
   border: 2px solid #2196F3;
@@ -94,7 +91,7 @@
   font-weight: bold;
 }
 
-/* 빈 칸 */
+/* ✅ 빈칸(달력 시작 요일 오프셋) */
 .empty-day {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -102,18 +99,14 @@
   border: none;
 }
 
-/* ---------------------------------------
-   5️⃣ 모바일 날짜 크기
-------------------------------------------*/
+/* ✅ 모바일 날짜/요일 글자 크기 */
 @media (max-width: 480px) {
   .day, .day-header {
     font-size: 12px;
   }
 }
 
-/* ---------------------------------------
-   6️⃣ 결과 컨테이너
-------------------------------------------*/
+/* ✅ 결과 컨테이너 */
 #resultContainer {
   color: #121212;
   background: #fff;
@@ -134,9 +127,7 @@
   margin: 6px 0;
 }
 
-/* ---------------------------------------
-   7️⃣ 불필요한 체크박스 숨기기 (필요시)
-------------------------------------------*/
+/* ✅ 불필요한 체크박스 숨기기 (필요시) */
 .stCheckbox {
   display: none !important;
 }
