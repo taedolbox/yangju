@@ -23,8 +23,7 @@ def main():
     )
 
     with open("static/styles.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)    
-
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     all_menus = [
         "조기재취업수당",
         "일용직(건설일용포함)"
