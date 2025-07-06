@@ -1,10 +1,9 @@
-/* ✅ 전체 레이아웃 - 좌측 정렬 + 기본 패딩 */
+/* ✅ 전체 레이아웃 좌측 정렬 */
 .block-container {
   margin-left: 0 !important;
   margin-right: auto !important;
   padding-left: 2rem;
   padding-right: 2rem;
-  overflow-x: visible !important;
 }
 
 /* ✅ 모바일 좌우 패딩 절반 */
@@ -15,119 +14,68 @@
   }
 }
 
-/* ✅ 달력 메인 그리드 */
+/* ✅ 달력 */
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-gap: 5px;
-  margin-bottom: 20px;
+  gap: 5px;
+  width: 100%;
+  box-sizing: border-box;
   background: #fff;
   padding: 10px;
   border-radius: 8px;
-  box-sizing: border-box;
-  width: 100%;
 }
 
-/* ✅ 월별 컨테이너 최대폭 제한 */
 .month-container {
-  margin-bottom: 2rem !important;
-  max-width: 320px !important;
+  max-width: 320px;
+  margin-bottom: 2rem;
 }
 
 @media (max-width: 767px) {
   .month-container {
-    max-width: 100% !important;
-    margin-bottom: 1rem !important;
+    max-width: 100%;
+    margin-bottom: 1rem;
   }
 }
 
-/* ✅ 요일 헤더 */
+/* 요일 헤더 */
 .day-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  aspect-ratio: 1/1;
+  background: #e0e0e0;
   font-weight: bold;
   font-size: 14px;
-  color: #555;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: #e0e0e0;
   border-radius: 5px;
 }
 
-/* ✅ 일요일 빨강, 토요일 파랑 */
 .day-header.sunday {
   color: red;
 }
+
 .day-header.saturday {
   color: blue;
 }
 
-/* ✅ 날짜 셀(day) */
+/* 날짜 셀 */
 .day {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
-  user-select: none;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
-  color: #333;
-  transition: background 0.1s ease, border 0.1s ease;
+  cursor: pointer;
 }
 
-.day:hover {
-  background: #f0f0f0;
-}
-
-.day.selected {
-  border: 2px solid #2196F3;
-  background: #2196F3;
-  color: #fff;
-  font-weight: bold;
-}
-
-/* ✅ 빈칸(달력 시작 요일 오프셋) */
 .empty-day {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: transparent;
-  border: none;
+  aspect-ratio: 1/1;
 }
 
-/* ✅ 모바일 날짜/요일 글자 크기 */
 @media (max-width: 480px) {
   .day, .day-header {
     font-size: 12px;
   }
-}
-
-/* ✅ 결과 컨테이너 */
-#resultContainer {
-  color: #121212;
-  background: #fff;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-#resultContainer h3 {
-  color: #0d47a1;
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
-#resultContainer p {
-  margin: 6px 0;
-}
-
-/* ✅ 불필요한 체크박스 숨기기 (필요시) */
-.stCheckbox {
-  display: none !important;
 }
