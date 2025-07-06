@@ -1,31 +1,20 @@
-/* ✅ 전체 레이아웃 좌측 정렬 */
+/* 좌측 정렬 및 기본 패딩 */
 .block-container {
   margin-left: 0 !important;
   margin-right: auto !important;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
 }
 
-/* ✅ 모바일 좌우 패딩 절반 */
+/* 모바일에서 좌우 패딩 절반 */
 @media (max-width: 600px) {
   .block-container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 
-/* ✅ 달력 */
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  width: 100%;
-  box-sizing: border-box;
-  background: #fff;
-  padding: 10px;
-  border-radius: 8px;
-}
-
+/* 달력 컨테이너 */
 .month-container {
   max-width: 320px;
   margin-bottom: 2rem;
@@ -38,44 +27,57 @@
   }
 }
 
+/* 달력 그리드 */
+.calendar {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 5px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: #fff !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+}
+
 /* 요일 헤더 */
 .day-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1/1;
-  background: #e0e0e0;
-  font-weight: bold;
-  font-size: 14px;
-  border-radius: 5px;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  background: #e0e0e0 !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  border-radius: 5px !important;
 }
 
 .day-header.sunday {
-  color: red;
+  color: red !important;
 }
 
 .day-header.saturday {
-  color: blue;
+  color: blue !important;
 }
 
 /* 날짜 셀 */
 .day {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1/1;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 5px !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
 }
 
 .empty-day {
-  aspect-ratio: 1/1;
+  aspect-ratio: 1 / 1 !important;
 }
 
+/* 모바일 글자 크기 */
 @media (max-width: 480px) {
   .day, .day-header {
-    font-size: 12px;
+    font-size: 12px !important;
   }
 }
