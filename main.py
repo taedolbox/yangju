@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath('.'))
 import streamlit as st
 import os
 from app.daily_worker_eligibility import daily_worker_eligibility_app
