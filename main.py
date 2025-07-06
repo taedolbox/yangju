@@ -1,5 +1,7 @@
 import sys
-print(sys.path)
+import streamlit as st
+
+st.write("sys.path:", sys.path)
 
 import app
-print(dir(app))
+st.write("dir(app):", dir(app))
