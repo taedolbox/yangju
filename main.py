@@ -1,3 +1,7 @@
+import sys
+print(sys.path)
+import app
+print(dir(app))
 import streamlit as st
 
 from app.daily_worker_eligibility import daily_worker_eligibility_app
