@@ -11,24 +11,24 @@ def daily_worker_eligibility_app():
     input_date = st.date_input("📅 기준 날짜", today)
 
     first_day = input_date.replace(day=1)
-    last_day = (first_day + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+    # 다음 달 1일 - 1일 = 이번 달 마지막 날 계산
+    next_month = (first_day + timedelta(days=31)).replace(day=1)
+    last_day = next_month - timedelta(days=1)
 
-    # 달력 날짜 계산
     days = []
     current = first_day
     while current <= last_day:
         days.append(current)
         current += timedelta(days=1)
 
-    # 시작 요일 offset
-    start_offset = (first_day.weekday() + 1) % 7  # 일요일 시작
+    start_offset = (first_day.weekday() + 1) % 7  # 일요일 기준 맞춤
+
     calendar_html = f"""
     <div class="month-container">
         <h4>{first_day.year}년 {first_day.month}월</h4>
         <div class="calendar">
     """
 
-    # 요일 헤더
     days_of_week = ["일", "월", "화", "수", "목", "금", "토"]
     for idx, day_name in enumerate(days_of_week):
         extra_class = ""
@@ -38,11 +38,9 @@ def daily_worker_eligibility_app():
             extra_class = "saturday"
         calendar_html += f'<div class="day-header {extra_class}">{day_name}</div>'
 
-    # 시작 offset
     for _ in range(start_offset):
         calendar_html += '<div class="empty-day"></div>'
 
-    # 날짜 출력
     for d in days:
         calendar_html += f'<div class="day">{d.day}</div>'
 
