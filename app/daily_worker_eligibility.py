@@ -7,16 +7,17 @@ def daily_worker_eligibility_app():
         "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
-    
+
     # 상단 고지문
     st.markdown(
-    "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-    unsafe_allow_html=True
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
     )
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # 조건 범위 계산
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
 
@@ -39,11 +40,12 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
+    # 달력 HTML
     calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
             <div class="day-header">일</div>
@@ -66,45 +68,6 @@ def daily_worker_eligibility_app():
     calendar_html += """
     </div>
     <div id="resultContainer"></div>
-
-    <style>
-    .calendar {
-        display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .day-header, .empty-day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        font-weight: bold; color: #555;
-    }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
-    .empty-day { background: transparent; border: none; }
-    .day {
-        width: 40px; height: 40px; line-height: 40px; text-align: center;
-        border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
-    }
-    .day:hover { background: #f0f0f0; }
-    .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
-
-    #resultContainer {
-        color: #121212;
-        background: #fff;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    #resultContainer h3 {
-        color: #0d47a1;
-        margin-top: 20px;
-        margin-bottom: 10px;
-    }
-    #resultContainer p {
-        margin: 6px 0;
-    }
-    </style>
 
     <script>
     const CALENDAR_DATES = """ + calendar_dates_json + """;
@@ -188,6 +151,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-
-
