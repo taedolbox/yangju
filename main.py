@@ -1,5 +1,4 @@
 import streamlit as st
-
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 
 def main():
@@ -9,9 +8,10 @@ def main():
         layout="centered"
     )
 
-    # ✅ CSS 경로 정확히!
+    # CSS 파일 읽기 및 주입
     with open("static/styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        css = f.read()
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
     st.sidebar.title("메뉴")
     menu = st.sidebar.radio(
