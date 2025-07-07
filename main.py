@@ -1,6 +1,7 @@
 import streamlit as st
+
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app  # 구현 안했으면 제외 가능
+from app.early_reemployment import early_reemployment_app  # 없으면 이 줄 지워도 됨
 
 def main():
     st.set_page_config(
@@ -18,7 +19,7 @@ def main():
     )
 
     if menu == "조기재취업수당":
-        early_reemployment_app()  # 없으면 pass 처리해둬
+        early_reemployment_app()
     else:
         daily_worker_eligibility_app()
 
