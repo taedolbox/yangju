@@ -115,5 +115,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(html_code, height=1500)
+    st.components.v1.html(html_code, height=1000)
 
