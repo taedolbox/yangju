@@ -20,13 +20,13 @@ def main():
         else:
             st.session_state.current_menu_idx = 0
 
-    # CSS 스타일 (이전과 동일)
+    # CSS 스타일 (이전과 동일, 변경 없음)
     st.markdown("""
     <style>
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
     div[data-baseweb="select"] > div:first-child {
         border: 2px solid #2196F3 !important; /* 기존 테두리 유지 */
-        color: #2196F3 !important;           /* 기존 텍스트 색상 유지 */
+        color: #2196F3 !important;            /* 기존 텍스트 색상 유지 */
         font-weight: 600 !important;
         background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
     }
@@ -81,10 +81,11 @@ def main():
 
         if st.session_state.current_menu_idx == 0:
             if "menu" in st.query_params:
-                del st.query_params["menu"]
+                del st.query_params["menu"] # "메뉴 선택" 시 URL 파라미터 제거
         else:
-            st.query_params["menu"] = str(st.session_state.current_menu_idx + 1)
+            st.query_params["menu"] = str(st.session_state.current_menu_idx + 1) # 선택된 메뉴의 인덱스를 URL 파라미터로 저장
 
+    # 메뉴 선택 콤보박스
     st.selectbox(
         "📋 메뉴 선택",
         menus,
@@ -93,11 +94,33 @@ def main():
         on_change=on_menu_change
     )
 
-    # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
+    # --- ★여기에 공통 문구를 추가합니다★ ---
     selected_idx = st.session_state.current_menu_idx
+    
+    # 선택된 메뉴에 따라 동적으로 변경될 타이틀
+    display_title = ""
+    if selected_idx == 1: # "조기재취업수당" 선택 시
+        display_title = "🏗️ 조기재취업수당 요건 판단"
+    elif selected_idx == 2: # "일용직(건설일용포함)" 선택 시
+        display_title = "🏗️ 일용직 신청 가능 시점 판단"
+    # selected_idx == 0 ("메뉴 선택")일 때는 타이틀을 표시하지 않거나 다른 환영 메시지 사용
 
+    if display_title: # 타이틀이 있을 경우에만 표시
+        st.markdown(
+            f"<span style='font-size:22px; font-weight:600;'>{display_title}</span>",
+            unsafe_allow_html=True
+        )
+    
+    # 모든 페이지에 공통으로 표시될 안내 문구
+    st.markdown(
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
+    )
+    # --- 공통 문구 추가 종료 ---
+
+    # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
     if selected_idx == 0:
-        # 빈 공간에 들어갈 내용
+        # "메뉴 선택" 시 보여줄 초기 화면 내용
         st.markdown("---") # 시각적 구분선 추가
         st.markdown(
             """
@@ -118,9 +141,9 @@ def main():
         )
         st.markdown("---") # 또 다른 시각적 구분선
     elif selected_idx == 1:
-        early_reemployment_app()
+        early_reemployment_app() # 조기재취업수당 페이지 함수 호출
     elif selected_idx == 2:
-        daily_worker_eligibility_app()
+        daily_worker_eligibility_app() # 일용직 페이지 함수 호출
 
 if __name__ == "__main__":
     main()
