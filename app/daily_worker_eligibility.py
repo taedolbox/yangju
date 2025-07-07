@@ -100,6 +100,10 @@ def daily_worker_eligibility_app():
     html += """
     </div>
 
+    <div id="resultContainer" style="margin-top:20px; padding:10px; border:1px solid #ddd; border-radius:5px;">
+      <b>선택된 날짜: <span id="selectedCount">0</span>일</b>
+    </div>
+
     <script>
       function toggleDate(el) {
         el.classList.toggle("selected");
@@ -107,10 +111,10 @@ def daily_worker_eligibility_app():
         document.querySelectorAll(".day.selected").forEach(e => {
           selected.push(e.innerText);
         });
-        console.log("선택된 날짜:", selected);
+        document.getElementById("selectedCount").innerText = selected.length;
       }
     </script>
     """
 
-    st.components.v1.html(html, height=600, scrolling=False)
+    st.components.v1.html(html, height=700, scrolling=False)
 
