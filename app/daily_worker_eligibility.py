@@ -62,6 +62,7 @@ def daily_worker_eligibility_app():
             elif wd == 6:
                 extra_cls = "sunday"
             day_num = date.day
+            # ★ 변경: data-date를 YYYY-MM-DD 형식으로 통일
             date_full_str = date.strftime("%Y-%m-%d") 
             calendar_html += f'<div class="day {extra_cls}" data-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
@@ -72,16 +73,16 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 47px); /* 변경: 각 날짜 셀 너비 45px */
+        grid-template-columns: repeat(7, 46px); /* 변경: 45px -> 46px */
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
-        padding: 5px; /* 변경: 안쪽 여백 5px로 축소 */
+        padding: 5px; /* 안쪽 여백 5px로 유지 */
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
-        width: 45px; height: 45px; /* 변경: 헤더 셀 크기 45px */
-        line-height: 47px; text-align: center; /* 변경: line-height 45px */
+        width: 46px; height: 46px; /* 변경: 45px -> 46px */
+        line-height: 46px; text-align: center; /* 변경: 45px -> 46px */
         font-weight: bold; color: #555;
     }
     .day-header.sunday { color: red; }
@@ -91,8 +92,8 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 45px; height: 45px; /* 변경: 날짜 셀 크기 45px */
-        line-height: 45px; text-align: center; /* 변경: line-height 45px */
+        width: 46px; height: 46px; /* 변경: 45px -> 46px */
+        line-height: 46px; text-align: center; /* 변경: 45px -> 46px */
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
         transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
     }
@@ -171,7 +172,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를 Jamboree-MM-DD 형식 문자열로 포맷
+    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -376,7 +377,7 @@ def daily_worker_eligibility_app():
     function loadSelectedDates() {
         try {
             const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
-            storedDates.forEach(fullDateStr => { // 인자 이름 변경: mmdd -> fullDateStr
+            storedDates.forEach(fullDateStr => { 
                 // ★ 변경: YYYY-MM-DD 형식의 전체 날짜로 요소를 찾습니다.
                 const dayElement = document.querySelector(`.day[data-date="${fullDateStr}"]`);
                 if (dayElement) {
@@ -399,20 +400,20 @@ def daily_worker_eligibility_app():
         }
     }
 
-    // ★ 중요: DOMContentLoaded 이벤트 리스너가 Streamlit 스크립트보다 먼저 실행될 수 있도록
-    // 직접 호출하는 대신, Streamlit의 컴포넌트 라이프사이클에 맞춰 적절한 시점에 실행되도록 합니다.
-    // 기존 로직은 Streamlit 컴포넌트가 다시 렌더링될 때마다 이 스크립트가 로드되므로,
-    // 이 스크립트가 실행되는 시점 자체가 새로운 '로드'로 간주될 수 있습니다.
-    // 따라서, localStorage.removeItem()과 loadSelectedDates()를 전역적으로 바로 실행합니다.
-    localStorage.removeItem('selectedDates'); // 페이지 로드 시 localStorage 초기화
-    loadSelectedDates(); // 초기 상태 로드 및 계산
+    # ★ 중요: DOMContentLoaded 이벤트 리스너가 Streamlit 스크립트보다 먼저 실행될 수 있도록
+    # 직접 호출하는 대신, Streamlit의 컴포넌트 라이프사이클에 맞춰 적절한 시점에 실행되도록 합니다.
+    # 기존 로직은 Streamlit 컴포넌트가 다시 렌더링될 때마다 이 스크립트가 로드되므로,
+    # 이 스크립트가 실행되는 시점 자체가 새로운 '로드'로 간주될 수 있습니다.
+    # 따라서, localStorage.removeItem()과 loadSelectedDates()를 전역적으로 바로 실행합니다.
+    localStorage.removeItem('selectedDates'); # 페이지 로드 시 localStorage 초기화
+    loadSelectedDates(); # 초기 상태 로드 및 계산
 
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
-
-# Streamlit 앱 실행
+# 이 부분이 app/daily_worker_eligibility.py 파일이라면 아래 __main__은 필요 없습니다.
+# 만약 이 파일 자체가 단독으로 실행되는 Streamlit 앱이라면 필요할 수 있습니다.
 if __name__ == "__main__":
     daily_worker_eligibility_app()
