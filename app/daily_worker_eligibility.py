@@ -13,6 +13,11 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
+    # ----------- 여기가 콤보박스 메뉴 선택 부분 --------------
+    menu_options = ["메뉴 선택", "조기재취업수당", "일용근로자"]
+    selected_menu = st.selectbox("", menu_options, key="menu_selector")
+    # -------------------------------------------------------
+
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -71,6 +76,16 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
+    /* 콤보박스 테두리 및 글자색 변경용 스타일 */
+    div[data-baseweb="select"] > div {
+        border: 2px solid #007bff !important; /* 파란색 테두리 */
+        border-radius: 6px !important;
+    }
+    div[data-baseweb="select"] span {
+        color: #007bff !important;  /* 파란색 글자 */
+        font-weight: 600;
+    }
+
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -126,32 +141,29 @@ def daily_worker_eligibility_app():
         const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
         const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
 
-        // 👉 달력에서 07/07이 선택되면 무조건 조건1/2 미충족
-        const forceFail = selected.includes('07/07');
-
         let nextPossible1 = "";
-        if (workedDays >= threshold || forceFail) {
+        if (workedDays >= threshold) {
             nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
         }
 
         let nextPossible2 = "";
-        if (!noWork14Days || forceFail) {
+        if (!noWork14Days) {
             const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
             nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
             nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
         }
 
-        const condition1Text = (workedDays < threshold && !forceFail)
+        const condition1Text = workedDays < threshold
             ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
-        const condition2Text = noWork14Days && !forceFail
+        const condition2Text = noWork14Days
             ? "✅ 조건 2 충족: 신청일 직전 14일간 무근무"
             : "❌ 조건 2 불충족: 신청일 직전 14일간 근무기록 존재";
 
-        const generalWorkerText = (workedDays < threshold && !forceFail) ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = ((workedDays < threshold || noWork14Days) && !forceFail) ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
 
         const finalHtml = `
             <h3>📌 조건 기준</h3>
@@ -193,3 +205,7 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
+
