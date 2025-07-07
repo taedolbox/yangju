@@ -1,12 +1,11 @@
-import os
 import sys
+import os
 
-print("실행 경로:", os.getcwd())
-print("sys.path:", sys.path)
-print("app/__init__.py 존재:", os.path.isfile("app/__init__.py"))
-print("app/daily_worker_eligibility.py 존재:", os.path.isfile("app/daily_worker_eligibility.py"))
+sys.path.append(os.path.abspath("."))
+
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
+
 from app.early_reemployment import early_reemployment_app
 
 def main():
