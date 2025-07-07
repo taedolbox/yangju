@@ -6,6 +6,10 @@ def early_reemployment_app():
         "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 요건 판단</span>",
         unsafe_allow_html=True
     )
+    st.markdown(
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
+    )
 
     if "early_step" not in st.session_state:
         st.session_state.early_step = 0
