@@ -127,9 +127,9 @@ def daily_worker_eligibility_app():
     html[data-theme="dark"] #resultContainer h3 {
         color: #90CAF9;
     }
-    /* 다크 모드에서 년월 텍스트 보이도록 색상 추가 (이 부분이 중요!) */
-    html[data-theme="dark"] #calendar-container h4 {
-        color: #FAFAFA; /* 밝은 색으로 설정하여 다크 모드에서 보이도록 함 */
+    /* ★★★ 이 부분이 변경되었습니다: 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 ★★★ */
+    html[data-theme="dark"] h4 {
+        color: #FAFAFA !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
     }
     html[data-theme="dark"] .day {
         background-color: #31333F;
@@ -185,7 +185,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
+    // Date 객체를曌-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -195,7 +195,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을曌-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
