@@ -13,11 +13,50 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    # ----------- 여기가 콤보박스 메뉴 선택 부분 --------------
-    menu_options = ["메뉴 선택", "조기재취업수당", "일용근로자"]
-    selected_menu = st.selectbox("", menu_options, key="menu_selector")
-    # -------------------------------------------------------
+    # ---- 단일 콤보박스 메뉴 ----
+    menu_options = [
+        "메뉴 선택",
+        "조기재취업수당",
+        "일용직(건설일용포함)"
+    ]
 
+    selected_menu = st.selectbox(
+        "",
+        menu_options,
+        key="menu_selector"
+    )
+
+    # 콤보박스 스타일 적용
+    st.markdown(
+        """
+        <style>
+        div[data-baseweb="select"] > div {
+            border: 2px solid #007bff !important;
+            border-radius: 6px !important;
+        }
+        div[data-baseweb="select"] span {
+            color: #007bff !important;
+            font-weight: 600;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 메뉴별 화면 내용 분기 처리
+    if selected_menu == "조기재취업수당":
+        st.markdown("<h3>조기재취업수당 관련 내용이 여기에 표시됩니다.</h3>", unsafe_allow_html=True)
+        # 필요한 조기재취업수당 관련 UI 및 로직 추가
+
+    elif selected_menu == "일용직(건설일용포함)":
+        # 여기서 기존 일용직 달력 및 조건판단 UI 전체 출력
+        show_daily_worker_eligibility()
+
+    else:
+        st.info("메뉴를 선택해 주세요.")
+
+def show_daily_worker_eligibility():
+    # 기존 일용직 달력 + 조건 판단 로직 전체 복붙
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -76,16 +115,6 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
-    /* 콤보박스 테두리 및 글자색 변경용 스타일 */
-    div[data-baseweb="select"] > div {
-        border: 2px solid #007bff !important; /* 파란색 테두리 */
-        border-radius: 6px !important;
-    }
-    div[data-baseweb="select"] span {
-        color: #007bff !important;  /* 파란색 글자 */
-        font-weight: 600;
-    }
-
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -208,3 +237,4 @@ def daily_worker_eligibility_app():
 
 if __name__ == "__main__":
     daily_worker_eligibility_app()
+
