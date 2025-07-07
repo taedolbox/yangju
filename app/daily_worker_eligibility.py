@@ -1,5 +1,3 @@
-# app/daily_worker_eligibility.py
-
 import streamlit as st
 from datetime import datetime, timedelta
 import json
@@ -159,7 +157,7 @@ def daily_worker_eligibility_app():
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';               
+    const INPUT_DATE_STR = '""" + input_date_str + """';             
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -187,7 +185,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
+    // Date 객체를曌-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -197,7 +195,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을曌-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
@@ -353,40 +351,85 @@ def daily_worker_eligibility_app():
             }
         }
 
-        # --- 최종 신청 가능 여부 판단 (현재 기준 날짜 기준) ---
-        generalWorkerEligible = condition1Met
-        constructionWorkerEligible = condition1Met or noWork14Days # 건설일용근로자는 둘 중 하나만 충족해도 됨
+        // --- 최종 신청 가능 여부 판단 (현재 기준 날짜 기준) ---
+        const generalWorkerEligible = condition1Met;
+        const constructionWorkerEligible = condition1Met || noWork14Days; // 건설일용근로자는 둘 중 하나만 충족해도 됨
 
-        generalWorkerText = "✅ 신청 가능" if generalWorkerEligible else "❌ 신청 불가능"
-        constructionWorkerText = "✅ 신청 가능" if constructionWorkerEligible else "❌ 신청 불가능"
+        const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         
-        # 최종 HTML 구성 및 출력
-        finalHtml = f"""
-            <h3>📌 기준 날짜({INPUT_DATE_STR}) 기준 조건 판단</h3>
+        // 최종 HTML 구성 및 출력
+        const finalHtml = `
+            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
             <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실 없어야 함</p>
-            <p>총 기간 일수: {currentTotalDaysForCond1}일</p>
-            <p>1/3 기준: {currentThresholdForCond1:.1f}일</p>
-            <p>근무일 수: {actualWorkedDaysForCond1}일</p>
-            <p>{condition1Text}</p>
-            <p>{condition2Text}</p>
-            {"<p>" + nextPossible1Message + "</p>" if nextPossible1Message else ""}
-            {"<p>" + nextPossible2Message + "</p>" if nextPossible2Message else ""}
-            <h3>📌 기준 날짜({INPUT_DATE_STR}) 기준 최종 판단</h3>
-            <p>✅ 일반일용근로자: {generalWorkerText}</p>
-            <p>✅ 건설일용근로자: {constructionWorkerText}</p>
+            <p>총 기간 일수: ` + currentTotalDaysForCond1 + `일</p>
+            <p>1/3 기준: ` + currentThresholdForCond1.toFixed(1) + `일</p>
+            <p>근무일 수: ` + actualWorkedDaysForCond1 + `일</p>
+            <p>` + condition1Text + `</p>
+            <p>` + condition2Text + `</p>
+            ` + (nextPossible1Message ? "<p>" + nextPossible1Message + "</p>" : "") + `
+            ` + (nextPossible2Message ? "<p>" + nextPossible2Message + "</p>" : "") + `
+            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
+            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
+            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
             <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
-        """
+        `;
 
-        # JS에서 계산된 finalHtml을 다시 파이썬으로 가져올 수 없으므로,
-        # HTML 렌더링은 Streamlit 파이썬 코드 내에서 이루어져야 합니다.
-        # 따라서 이 JS 함수의 결과는 JS DOM에 직접 반영하는 방식으로 사용하고,
-        # Streamlit 앱의 최종 HTML은 이전에 구성된 calendar_html을 그대로 사용합니다.
+        document.getElementById('resultContainer').innerHTML = finalHtml;
     }
 
-    # 날짜 선택/해제 토글 함수
-    # 이 함수들은 Streamlit 파이썬 코드 내에서 정의될 수 없으며,
-    # HTML/JS 문자열의 <script> 태그 안에 포함되어야 합니다.
-    # toggleDate, loadSelectedDates, saveToLocalStorage 함수는 이미 calendar_html 변수에 포함되어 있습니다.
-    
+    // 날짜 선택/해제 토글 함수
+    function toggleDate(element) {
+        element.classList.toggle('selected');
+        const selected = [];
+        const days = document.getElementsByClassName('day');
+        for (let i = 0; i < days.length; i++) {
+            if (days[i].classList.contains('selected')) {
+                selected.push(days[i].getAttribute('data-date'));
+            }
+        }
+        saveToLocalStorage(selected); // 로컬 스토리지에 저장
+        calculateAndDisplayResult(selected); // 결과 다시 계산
+    }
+
+    // 로컬 스토리지에서 선택된 날짜 불러오기
+    function loadSelectedDates() {
+        try {
+            const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
+            storedDates.forEach(mmdd => {
+                // 현재 달력에 있는 날짜만 selected 클래스 추가
+                const dayElement = document.querySelector(`.day[data-date="${mmdd}"]`);
+                if (dayElement) {
+                    dayElement.classList.add('selected');
+                }
+            });
+            calculateAndDisplayResult(storedDates); // 불러온 날짜로 초기 결과 계산
+        } catch (e) {
+            console.error("Failed to load selected dates from localStorage or calculate result:", e);
+            calculateAndDisplayResult([]); // 오류 발생 시 빈 상태로 초기화
+        }
+    }
+
+    // 로컬 스토리지에 선택된 날짜 저장
+    function saveToLocalStorage(data) {
+        try {
+            localStorage.setItem('selectedDates', JSON.stringify(data));
+        } catch (e) {
+            console.error("Failed to save selected dates to localStorage:", e);
+        }
+    }
+
+
+    // DOMContentLoaded 이벤트 리스너: HTML 문서가 완전히 로드되고 파싱된 후 스크립트 실행
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSelectedDates();
+    });
+    </script>
+    """
+
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+# Streamlit 앱 실행
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
