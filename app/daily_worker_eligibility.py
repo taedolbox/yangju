@@ -190,8 +190,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-
-이것에서 수정해줘
-1. 기준 날짜 선택일을 달력에서 순택하면 조건1과 2 모두 미충족
-일단 이것만 해줘
