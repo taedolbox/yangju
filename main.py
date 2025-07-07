@@ -1,4 +1,5 @@
-# main.py (GOOD EXAMPLE)
+# main.py
+
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
@@ -21,7 +22,7 @@ def main():
         else:
             st.session_state.current_menu_idx = 0
 
-    # CSS 스타일 (이전과 동일, 변경 없음)
+    # CSS 스타일
     st.markdown("""
     <style>
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
@@ -95,7 +96,7 @@ def main():
         on_change=on_menu_change
     )
 
-    # --- ★여기에 동적 타이틀을 추가합니다★ ---
+    # --- 동적 타이틀을 추가합니다 ---
     selected_menu_title = menus[st.session_state.current_menu_idx]
     
     if selected_menu_title == "메뉴 선택":
