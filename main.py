@@ -1,8 +1,6 @@
 # main.py
 
 import streamlit as st
-
-# 필요한 모든 앱 함수들을 임포트합니다.
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 
