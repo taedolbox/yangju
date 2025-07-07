@@ -8,21 +8,19 @@ def main():
     menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)"]
 
     # 1. 초기 메뉴 인덱스 결정 (URL 또는 세션 상태)
-    # URL 쿼리 파라미터에서 메뉴 인덱스 가져오기 (앱 최초 로드 시)
     menu_param_from_url = st.query_params.get("menu", None)
 
-    # 세션 상태에 'current_menu_idx'가 없으면 URL 파라미터에서 초기값 설정
     if "current_menu_idx" not in st.session_state:
         if menu_param_from_url and menu_param_from_url.isdigit():
             parsed_menu_idx = int(menu_param_from_url) - 1
             if 0 <= parsed_menu_idx < len(menus):
                 st.session_state.current_menu_idx = parsed_menu_idx
             else:
-                st.session_state.current_menu_idx = 0 # 유효하지 않으면 기본값
+                st.session_state.current_menu_idx = 0
         else:
-            st.session_state.current_menu_idx = 0 # URL 파라미터 없으면 기본값
+            st.session_state.current_menu_idx = 0
 
-    # --- CSS 스타일 변경 ---
+    # CSS 스타일 (이전과 동일)
     st.markdown("""
     <style>
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
@@ -78,30 +76,49 @@ def main():
 
     # 2. st.selectbox에서 값 변경 시 세션 상태 업데이트
     def on_menu_change():
-        selected_menu_name = st.session_state.main_menu_select_key # key로 접근
+        selected_menu_name = st.session_state.main_menu_select_key
         st.session_state.current_menu_idx = menus.index(selected_menu_name)
         
-        # 메뉴 변경 시 URL 쿼리 파라미터도 업데이트 (옵션)
         if st.session_state.current_menu_idx == 0:
             if "menu" in st.query_params:
                 del st.query_params["menu"]
         else:
             st.query_params["menu"] = str(st.session_state.current_menu_idx + 1)
 
-    # st.selectbox의 index를 현재 세션 상태 값으로 설정
     st.selectbox(
-        "📋 메뉴 선택", 
-        menus, 
-        index=st.session_state.current_menu_idx, # 현재 세션 상태에 따라 초기화
-        key="main_menu_select_key", # 콜백에서 접근할 키
-        on_change=on_menu_change # 변경 시 콜백 함수 실행
+        "📋 메뉴 선택",
+        menus,
+        index=st.session_state.current_menu_idx,
+        key="main_menu_select_key",
+        on_change=on_menu_change
     )
 
     # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
     selected_idx = st.session_state.current_menu_idx
 
     if selected_idx == 0:
-        st.info("메뉴를 선택하세요.")
+        # 빈 공간에 들어갈 내용
+        st.markdown("---") # 시각적 구분선 추가
+        st.markdown(
+            """
+            <div style="padding: 20px; border-radius: 10px; background-color: #f0f8ff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3 style="color: #0d47a1; margin-bottom: 15px;">🌟 실업급여 지원 시스템에 오신 것을 환영합니다!</h3>
+                <p style="font-size: 16px; line-height: 1.6;">
+                    이 시스템은 **실업급여 수급 자격** 및 **조기재취업수당**과 관련된 정보를 쉽고 빠르게 확인하실 수 있도록 돕습니다.
+                    <br><br>
+                    궁금한 기능을 위에 있는 **'📋 메뉴 선택' 콤보박스에서 선택**해 주세요.
+                </p>
+                <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px;">
+                    <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
+                    <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
+                </ul>
+                <p style="font-size: 14px; color: #555; margin-top: 20px;">
+                    💡 <b>주의:</b> 본 시스템의 결과는 참고용이며, 최종적인 실업급여 수급 여부는 관할 고용센터의 판단에 따릅니다.
+                </p>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        st.markdown("---") # 또 다른 시각적 구분선
     elif selected_idx == 1:
         early_reemployment_app()
     elif selected_idx == 2:
