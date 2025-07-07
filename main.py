@@ -11,10 +11,7 @@ def main():
 
     if menu_param and menu_param.isdigit():
         idx = int(menu_param) - 1
-        if 0 <= idx < len(menus):
-            default_idx = idx
-        else:
-            default_idx = 0
+        default_idx = idx if 0 <= idx < len(menus) else 0
     else:
         default_idx = 0
 
@@ -42,10 +39,11 @@ def main():
 
     selected_idx = st.selectbox("📋 메뉴 선택", menus, index=default_idx)
 
-    if selected_idx is not None and st.session_state.get("last_selected_idx") != selected_idx:
+    if st.session_state.get("last_selected_idx") != selected_idx:
         if selected_idx == 0:
             st.experimental_set_query_params()
         else:
+            # 반드시 리스트나 문자열로 전달
             st.experimental_set_query_params(menu=[str(selected_idx + 1)])
         st.session_state.last_selected_idx = selected_idx
 
