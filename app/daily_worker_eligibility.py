@@ -34,10 +34,30 @@ def daily_worker_eligibility_app():
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
 
-    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
-    next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
-    
+    # 근무 일수 입력 (예: 6월 1일~6월 14일)
+    worked_days_input = st.multiselect(
+        "🛠️ 근무한 날짜 선택 (직전 달 1일부터 기준일까지)",
+        options=[d.strftime("%Y-%m-%d") for d in cal_dates],
+        default=["2025-06-01", "2025-06-02", "2025-06-03", "2025-06-04", "2025-06-05",
+                 "2025-06-06", "2025-06-07", "2025-06-08", "2025-06-09", "2025-06-10",
+                 "2025-06-11", "2025-06-12", "2025-06-13", "2025-06-14"]
+    )
+    worked_days_count = len(worked_days_input)
+
     input_date_str = input_date.strftime("%Y-%m-%d")
+
+    # 조건 1에 따른 가장 빠른 신청 가능 날짜 계산
+    total_days = (input_date - first_day_prev_month).days + 1
+    threshold = total_days / 3
+    next_possible1_date = input_date
+    while True:
+        total_period = (next_possible1_date - first_day_prev_month).days + 1
+        new_threshold = total_period / 3
+        if worked_days_count < new_threshold:
+            break
+        next_possible1_date += timedelta(days=1)
+
+    next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
     calendar_html = "<div id='calendar-container'>"
 
@@ -168,7 +188,6 @@ def daily_worker_eligibility_app():
             return foundDate || '';
         }).filter(Boolean);
 
-
         const totalDays = CALENDAR_DATES.length;
         const threshold = totalDays / 3;
         const workedDays = selectedFullDates.length;
@@ -216,12 +235,11 @@ def daily_worker_eligibility_app():
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
-            nextPossible1 = `📅 조건 1을 충족하려면 현재 기준 기간의 근무일수가 많으므로, 다음 달로 넘어가 전체 기간이 길어져 1/3 미만 조건을 충족할 수 있는 **${NEXT_POSSIBLE1_DATE_STR} 이후**에 신청하는 것을 고려해 볼 수 있습니다. (※이후 근무내역에 따라 결과는 달라질 수 있습니다.)`;
+            nextPossible1 = `📅 조건 1을 충족하려면, 가장 빠른 신청 가능 날짜는 **${NEXT_POSSIBLE1_DATE_STR}**입니다. (※ 이후 근무가 없어야 함)`;
         }
 
         let nextPossible2 = "";
         if (!noWork14Days) {
-            // 신청일 직전 14일 기간 내에 근무한 날짜들만 필터링
             const workedDaysIn14DaysWindow = selectedFullDates.filter(dateStr => {
                 const date = new Date(dateStr);
                 return date >= fourteenDaysStart && date <= fourteenDaysEnd;
@@ -229,7 +247,6 @@ def daily_worker_eligibility_app():
 
             let latestWorkedDayIn14DaysWindow = null;
             if (workedDaysIn14DaysWindow.length > 0) {
-                // 가장 늦게 근무한 날짜 찾기
                 latestWorkedDayIn14DaysWindow = workedDaysIn14DaysWindow.reduce((maxDate, currentDateStr) => {
                     const currentDate = new Date(currentDateStr);
                     return maxDate === null || currentDate > maxDate ? currentDate : maxDate;
@@ -238,8 +255,7 @@ def daily_worker_eligibility_app():
 
             if (latestWorkedDayIn14DaysWindow) {
                 const nextPossible2Date = new Date(latestWorkedDayIn14DaysWindow);
-                nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1); // 마지막 근무일로부터 14일 경과 후 +1일
-                
+                nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1);
                 const nextDateStr = nextPossible2Date.toISOString().split('T')[0];
                 nextPossible2 = `📅 조건 2를 충족하려면 마지막 근로일(${latestWorkedDayIn14DaysWindow.toISOString().split('T')[0]})로부터 14일 경과한 **${nextDateStr} 이후**에 신청하면 조건 2를 충족할 수 있습니다.`;
             }
@@ -296,3 +312,6 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
