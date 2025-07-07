@@ -1,28 +1,30 @@
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app  # 만약 사용한다면
+from app.early_reemployment import early_reemployment_app  # 조기재취업수당 페이지용
 
-def main():
-    st.set_page_config(
-        page_title="실업급여 지원 시스템",
-        page_icon="💼",
-        layout="centered"
-    )
-    st.title("💼 실업급여 지원 시스템")
+# 페이지 설정
+st.set_page_config(
+    page_title="실업급여 지원 시스템",
+    page_icon="💼",
+    layout="centered"
+)
 
-    menu = st.radio(
-        "메뉴 선택",
-        ["조기재취업수당", "일용직(건설일용포함)"],
-        horizontal=True
-    )
+# 상단 헤더를 한 단계 작게
+st.header("💼 실업급여 지원 시스템")
 
-    if menu == "조기재취업수당":
-        early_reemployment_app()
-    else:
-        daily_worker_eligibility_app()
+# 메뉴 선택을 콤보박스(selectbox)로 변경
+menu = st.selectbox(
+    "메뉴 선택",
+    ["조기재취업수당", "일용직(건설일용포함)"],
+    index=0
+)
 
-    st.markdown("---")
-    st.caption("ⓘ 참고용입니다. 실제 가능 여부는 고용센터 판단을 따르십시오.")
+# 메뉴별 기능 연결
+if menu == "조기재취업수당":
+    early_reemployment_app()
+elif menu == "일용직(건설일용포함)":
+    daily_worker_eligibility_app()
 
-if __name__ == "__main__":
-    main()
+# 하단 참고문구
+st.markdown("---")
+st.caption("ⓘ 본 도우미는 참고용입니다. 실제 판단은 고용센터의 공식 결과를 따르십시오.")
