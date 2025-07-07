@@ -7,7 +7,7 @@ def daily_worker_eligibility_app():
         "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
         unsafe_allow_html=True
     )
-    
+
     st.markdown(
         "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
         unsafe_allow_html=True
@@ -35,9 +35,6 @@ def daily_worker_eligibility_app():
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
-
-    # 오늘 기준 yyyy-mm-dd
-    today_str = today_kst.strftime("%Y-%m-%d")
 
     calendar_html = "<div id='calendar-container'>"
 
@@ -116,8 +113,6 @@ def daily_worker_eligibility_app():
     const FOURTEEN_DAYS_START = '""" + fourteen_days_prior_start + """';
     const FOURTEEN_DAYS_END = '""" + fourteen_days_prior_end + """';
     const NEXT_POSSIBLE1_DATE = '""" + next_possible1_str + """';
-    const TODAY_DATE = '""" + today_str + """';
-    const SELECTED_DATE = '""" + input_date.strftime("%Y-%m-%d") + """';
 
     function saveToLocalStorage(data) {
         localStorage.setItem('selectedDates', JSON.stringify(data));
@@ -128,39 +123,35 @@ def daily_worker_eligibility_app():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        let noWork14Days = true;
+        const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
+        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
 
-        if (SELECTED_DATE === TODAY_DATE) {
-            // 오늘이면 무조건 조건2 불충족
-            noWork14Days = false;
-        } else {
-            const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-            noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
-        }
+        // 👉 달력에서 07/07이 선택되면 무조건 조건1/2 미충족
+        const forceFail = selected.includes('07/07');
 
         let nextPossible1 = "";
-        if (workedDays >= threshold) {
+        if (workedDays >= threshold || forceFail) {
             nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
         }
 
         let nextPossible2 = "";
-        if (!noWork14Days) {
+        if (!noWork14Days || forceFail) {
             const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
             nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
             const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
             nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
         }
 
-        const condition1Text = workedDays < threshold && SELECTED_DATE !== TODAY_DATE
+        const condition1Text = (workedDays < threshold && !forceFail)
             ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
+        const condition2Text = noWork14Days && !forceFail
+            ? "✅ 조건 2 충족: 신청일 직전 14일간 무근무"
+            : "❌ 조건 2 불충족: 신청일 직전 14일간 근무기록 존재";
 
-        const generalWorkerText = workedDays < threshold && SELECTED_DATE !== TODAY_DATE ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) && SELECTED_DATE !== TODAY_DATE ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = (workedDays < threshold && !forceFail) ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = ((workedDays < threshold || noWork14Days) && !forceFail) ? "✅ 신청 가능" : "❌ 신청 불가능";
 
         const finalHtml = `
             <h3>📌 조건 기준</h3>
