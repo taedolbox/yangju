@@ -2,7 +2,10 @@ import streamlit as st
 from app.questions import get_employment_questions, get_self_employment_questions
 
 def early_reemployment_app():
-    st.subheader("🏗️ 조기재취업수당 요건 판단")
+    st.markdown(
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 요건 판단</span>",
+        unsafe_allow_html=True
+    )
 
     if "early_step" not in st.session_state:
         st.session_state.early_step = 0
