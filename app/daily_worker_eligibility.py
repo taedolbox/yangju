@@ -43,15 +43,23 @@ def daily_worker_eligibility_app():
       border-radius: 5px;
       font-size: 16px;
       color: #333;
+      cursor: pointer;
     }
     .day.sunday { color: red; }
     .day.saturday { color: blue; }
+
+    .day.selected {
+      background: #2196F3;
+      color: #fff;
+      font-weight: bold;
+    }
 
     .day.empty {
       border: none;
       background: none;
     }
     </style>
+
     <div class="calendar">
       <div class="day-header sunday">일</div>
       <div class="day-header">월</div>
@@ -75,10 +83,23 @@ def daily_worker_eligibility_app():
             cls = "sunday"
         elif dow == 6:
             cls = "saturday"
-        html += f'<div class="day {cls}">{current.day}</div>'
+        html += f'<div class="day {cls}" onclick="toggleDate(this)">{current.day}</div>'
         current += timedelta(days=1)
 
-    html += "</div>"
+    html += """
+    </div>
+
+    <script>
+      function toggleDate(el) {
+        el.classList.toggle("selected");
+        let selected = [];
+        document.querySelectorAll(".day.selected").forEach(e => {
+          selected.push(e.innerText);
+        });
+        console.log("선택된 날짜:", selected);
+      }
+    </script>
+    """
 
     st.components.v1.html(html, height=500, scrolling=False)
 
