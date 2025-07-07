@@ -21,6 +21,23 @@ def daily_worker_eligibility_app():
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
+        calendar_groups.setdefault(ym, []).append(date)
+
+    # JavaScript로 전달할 날짜 데이터 (JSON 배열 문자열)
+    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
+    
+    # 조건 2 계산에 필요한 14일 전 날짜 (기준 날짜에 따라 달라짐)
+    fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
+    fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+    
+    input_date_str = input_date.strftime("%Y-%m-%d")
+
+    # Streamlit에 HTML/JavaScript 컴포넌트 삽입
+    # --- ★ 이 줄이 반드시 있어야 합니다. ★ ---
+    calendar_html = "<div id='calendar-container'>" 
+
+    for ym, dates in calendar_groups.items():
+        year, month = ym.split("-")
         calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
