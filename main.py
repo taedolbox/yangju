@@ -5,9 +5,6 @@ sys.path.append(os.path.abspath("."))
 
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-
-from app.early_reemployment import early_reemployment_app
-
 def main():
     st.set_page_config(
         page_title="실업급여 지원 시스템",
