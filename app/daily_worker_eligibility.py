@@ -63,7 +63,7 @@ def daily_worker_eligibility_app():
                 extra_cls = "sunday"
             day_num = date.day
             date_str = date.strftime("%m/%d") # MM/DD 형식 (로컬 스토리지 키 및 JS에서 사용)
-            date_full_str = date.strftime("%Y-%m-%d") # YYYY-MM-DD 형식 (JS에서 계산용)
+            date_full_str = date.strftime("%Y-%m-%d") #YYYY-MM-DD 형식 (JS에서 계산용)
             calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" data-full-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
@@ -91,14 +91,14 @@ def daily_worker_eligibility_app():
     .day-header.saturday { color: blue; }
     .day.sunday { color: red; }
     .day.saturday { color: blue; }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
+    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; /* 14px -> 16px */ }
     .empty-day { background: transparent; border: none; }
     .day {
         width: 45px; height: 45px; /* 40px -> 45px: 날짜 칸 크기 증가 */
         line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
+        transition: background 0.1s ease, border 0.1s ease; font-size: 18px; /* 16px -> 18px */ color: #333;
     }
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
@@ -411,9 +411,7 @@ def daily_worker_eligibility_app():
     }
 
 
-    // ★ 중요 변경: window.onload 대신 DOMContentLoaded 사용
-    // 이 이벤트는 HTML 문서가 완전히 로드되고 파싱되었을 때 발생하며,
-    // 스크립트 실행에 더 안정적입니다.
+    // DOMContentLoaded 이벤트 리스너: HTML 문서가 완전히 로드되고 파싱된 후 스크립트 실행
     document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
     });
