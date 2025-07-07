@@ -3,15 +3,6 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
-    st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
-        unsafe_allow_html=True
-    )
-    
-    st.markdown(
-        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-        unsafe_allow_html=True
-    )
 
     # 한국 시간으로 오늘 날짜 설정
     today_kst = datetime.utcnow() + timedelta(hours=9)
