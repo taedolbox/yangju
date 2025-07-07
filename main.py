@@ -9,8 +9,12 @@ def main():
     )
 
     st.title("💼 실업급여 지원 시스템")
-    st.sidebar.title("메뉴")
-    menu = st.sidebar.radio("메뉴 선택", ["일용직(건설일용포함)"])
+
+    menu = st.radio(
+        "메뉴 선택",
+        ["일용직(건설일용포함)"],
+        horizontal=True
+    )
 
     if menu == "일용직(건설일용포함)":
         daily_worker_eligibility_app()
