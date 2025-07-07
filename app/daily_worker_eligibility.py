@@ -12,86 +12,176 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    today = datetime.now()
-    input_date = st.date_input("📅 기준 날짜 선택", today.date())
+    # 기준 날짜 입력
+    today_kst = datetime.utcnow() + timedelta(hours=9)
+    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    first_day_prev = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+    # 달력에 표시할 날짜 계산
+    first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_day = input_date
 
-    # 날짜 리스트
-    dates = []
-    cur = first_day_prev
-    while cur <= last_day:
-        dates.append(cur)
-        cur += timedelta(days=1)
+    cal_dates = []
+    current = first_day_prev_month
+    while current <= last_day:
+        cal_dates.append(current)
+        current += timedelta(days=1)
 
-    # JSON 데이터
-    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in dates])
+    # JSON 데이터 생성
+    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     fourteen_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     fourteen_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
-    next_month_first = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1).strftime("%Y-%m-%d")
+    next1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1).strftime("%Y-%m-%d")
 
-    # HTML + CSS + JS
-    html = """
+    # HTML + CSS + JS 조합
+    calendar_html = """
     <style>
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap:5px; padding:10px; background:#fff; border-radius:8px; width:100%; max-width:420px; box-sizing:border-box; }
-    .day-header, .day { aspect-ratio:1/1; display:flex; justify-content:center; align-items:center; border:1px solid #ddd; border-radius:5px; font-size:16px; }
-    .day-header { background:#e0e0e0; font-weight:bold; }
-    .day-header.sunday, .day.sunday { color:red; }
-    .day-header.saturday, .day.saturday { color:blue; }
-    .day { cursor:pointer; transition:background .1s; }
-    .day:hover { background:#f0f0f0; }
-    .day.selected { background:#2196F3; color:#fff; }
-    #resultContainer { margin-top:20px; padding:15px; background:#fff; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); max-width:420px; }
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 420px;
+        margin-bottom: 20px;
+    }
+    .day-header, .day {
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        user-select: none;
+    }
+    .day-header {
+        background: #e0e0e0;
+        font-weight: bold;
+    }
+    .day-header.sunday, .day.sunday { color: red; }
+    .day-header.saturday, .day.saturday { color: blue; }
+    .day {
+        cursor: pointer;
+        transition: background 0.1s ease;
+    }
+    .day:hover { background: #f0f0f0; }
+    .day.selected {
+        background: #2196F3;
+        color: #fff;
+    }
+    .empty-day {
+        background: transparent;
+        border: none;
+    }
+    #resultContainer {
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-width: 420px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    #resultContainer h4 {
+        margin-bottom: 10px;
+    }
     </style>
-    <div class='calendar'>
+    <div class="calendar">
     """
 
     # 요일 헤더
-    weekdays = [("일","sunday"),("월",""),("화",""),("수",""),("목",""),("금",""),("토","saturday")]
+    weekdays = [("일", "sunday"), ("월", ""), ("화", ""), ("수", ""), ("목", ""), ("금", ""), ("토", "saturday")]
     for name, cls in weekdays:
-        html += f"<div class='day-header {cls}'>{name}</div>"
+        calendar_html += f'<div class="day-header {cls}">{name}</div>'
 
-    # 빈칸
-    offset = (dates[0].weekday() + 1) % 7
-    for _ in range(offset): html += "<div class='day empty'></div>"
+    # 빈칸 채우기
+    offset = (cal_dates[0].weekday() + 1) % 7
+    for _ in range(offset):
+        calendar_html += '<div class="empty-day"></div>'
 
-    # 날짜
-    for d in dates:
-        cls = ''
+    # 날짜 셀
+    for d in cal_dates:
         wd = (d.weekday() + 1) % 7
-        if wd == 0: cls='sunday'
-        if wd == 6: cls='saturday'
-        html += f"<div class='day {cls}' data-date='{d.strftime('%Y-%m-%d')}' onclick='toggleDate(this)'>{d.day}</div>"
+        cls = "sunday" if wd == 0 else "saturday" if wd == 6 else ""
+        calendar_html += (
+            f'<div class="day {cls}" data-date="{d.strftime("%Y-%m-%d")}" '
+            f'onclick="toggleDate(this)">{d.day}</div>'
+        )
+    calendar_html += "</div>"
 
-    html += "</div>"
-
-    # 결과 영역 및 스크립트
-    html += f"""
-    <div id='resultContainer'><h4>조건 및 최종 판단</h4><div id='resultDetails'>날짜를 선택하세요.</div></div>
-    <script>
-      const CALENDAR = {calendar_dates_json};
-      const START14 = '{fourteen_start}';
-      const END14 = '{fourteen_end}';
-      const NEXT1 = '{next_month_first}';
-      function toggleDate(el) {{
-        el.classList.toggle('selected');
-        let selected = [...document.querySelectorAll('.day.selected')].map(e=>e.dataset.date);
-        let total = CALENDAR.length;
-        let thr = total/3;
-        let worked = selected.length;
-        let last14 = CALENDAR.filter(d=>d>=START14&&d<=END14);
-        let no14 = last14.every(d=>!selected.includes(d));
-        let c1 = worked<thr ? '✅ 조건1 충족':'❌ 조건1 불충족';
-        let c2 = no14?'✅ 조건2 충족':'❌ 조건2 불충족';
-        let n1= worked>=thr?`조건1 위해 ${NEXT1} 이후 신청`:'');
-        let n2=!no14?`조건2 위해 ${END14} 이후 14일 무근무`:'');
-        let g = worked<thr?'✅ 일반일용 신청':'❌ 일반일용 불가';
-        let c = (worked<thr||no14)?'✅ 건설일용 신청':'❌ 건설일용 불가';
-        document.getElementById('resultDetails').innerHTML =
-          `<p>${c1} (${worked}/${thr.toFixed(1)})</p><p>${c2}</p><p>${n1}</p><p>${n2}</p><p>${g}</p><p>${c}</p>`;
-      }}
-    </script>
+    # 결과 표시 영역
+    calendar_html += """
+    <div id="resultContainer">
+      <h4>조건 및 최종 판단</h4>
+      <div id="resultDetails">날짜를 선택하세요.</div>
+    </div>
     """
 
-    st.components.v1.html(html, height=800, scrolling=False)
+    # JavaScript: 선택 토글 & 조건 계산
+    calendar_html += (
+        "<script>\n"
+        f"const CALENDAR = {calendar_dates_json};\n"
+        f"const START14 = '{fourteen_start}';\n"
+        f"const END14 = '{fourteen_end}';\n"
+        f"const NEXT1 = '{next1_date}';\n"
+
+        "function toggleDate(el) {\n"
+        "  el.classList.toggle('selected');\n"
+        "  const selected = Array.from(document.querySelectorAll('.day.selected'))\n"
+        "    .map(e => e.dataset.date);\n"
+        "  const total = CALENDAR.length;\n"
+        "  const thr = total / 3;\n"
+        "  const worked = selected.length;\n"
+        "  const last14 = CALENDAR.filter(d => d >= START14 && d <= END14);\n"
+        "  const no14 = last14.every(d => !selected.includes(d));\n"
+
+        "  const condition1Text = worked < thr\n"
+        "    ? '✅ 조건1 충족: ' + worked + '/' + thr.toFixed(1)\n"
+        "    : '❌ 조건1 불충족: ' + worked + '/' + thr.toFixed(1);\n"
+
+        "  const condition2Text = no14\n"
+        "    ? '✅ 조건2 충족'\n"
+        "    : '❌ 조건2 불충족';\n"
+
+        "  let nextPossible1 = '';\n"
+        "  if (worked >= thr) nextPossible1 = '📅 조건1 위해 ' + NEXT1 + ' 이후 신청';\n"
+
+        "  let nextPossible2 = '';\n"
+        "  if (!no14) {\n"
+        "    const nd = new Date(END14);\n"
+        "    nd.setDate(nd.getDate() + 14);\n"
+        "    nextPossible2 = '📅 조건2 위해 ' + nd.toISOString().slice(0,10) + ' 이후 신청';\n"
+        "  }\n"
+
+        "  const generalOk = worked < thr ? '✅ 일반일용 신청 가능' : '❌ 일반일용 불가';\n"
+        "  const constructionOk = (worked < thr || no14)\n"
+        "    ? '✅ 건설일용 신청 가능' : '❌ 건설일용 불가';\n"
+
+        "  let html = '';\n"
+        "  html += '<p>' + condition1Text + '</p>';\n"
+        "  html += '<p>' + condition2Text + '</p>';\n"
+        "  if (nextPossible1) html += '<p>' + nextPossible1 + '</p>';\n"
+        "  if (nextPossible2) html += '<p>' + nextPossible2 + '</p>';\n"
+        "  html += '<h5>최종 판단</h5>';\n"
+        "  html += '<p>' + generalOk + '</p>';\n"
+        "  html += '<p>' + constructionOk + '</p>';\n"
+
+        "  document.getElementById('resultDetails').innerHTML = html;\n"
+        "}\n"
+
+        "window.onload = () => {\n"
+        "  const saved = localStorage.getItem('selectedDates');\n"
+        "  const sel = saved ? JSON.parse(saved) : [];\n"
+        "  sel.forEach(d => {\n"
+        "    const el = document.querySelector(`.day[data-date='${d}']`);\n"
+        "    if (el) el.classList.add('selected');\n"
+        "  });\n"
+        "  toggleDate({ classList: { toggle: () => {} } }); // initial calc\n"
+        "};\n"
+        "</script>"
+    )
+
+    st.components.v1.html(calendar_html, height=900, scrolling=False)
