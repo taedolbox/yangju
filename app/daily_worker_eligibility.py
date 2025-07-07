@@ -72,7 +72,7 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 45px); /* 변경: 각 날짜 셀 너비 45px */
+        grid-template-columns: repeat(7, 47px); /* 변경: 각 날짜 셀 너비 45px */
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
         padding: 5px; /* 변경: 안쪽 여백 5px로 축소 */
@@ -81,7 +81,7 @@ def daily_worker_eligibility_app():
     }
     .day-header, .empty-day {
         width: 45px; height: 45px; /* 변경: 헤더 셀 크기 45px */
-        line-height: 45px; text-align: center; /* 변경: line-height 45px */
+        line-height: 47px; text-align: center; /* 변경: line-height 45px */
         font-weight: bold; color: #555;
     }
     .day-header.sunday { color: red; }
