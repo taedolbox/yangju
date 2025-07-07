@@ -123,32 +123,15 @@ def daily_worker_eligibility_app():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
+        // 강제 미충족 메시지
+        const condition1Text = "❌ 조건 1 불충족: 근무일 수 강제 미충족 표시";
+        const condition2Text = "❌ 조건 2 불충족: 신청일 직전 14일간 근무 기록 있음 (강제 미충족)";
 
-        let nextPossible1 = "";
-        if (workedDays >= threshold) {
-            nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
-        }
+        const nextPossible1 = "";
+        const nextPossible2 = "";
 
-        let nextPossible2 = "";
-        if (!noWork14Days) {
-            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
-            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
-            const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
-            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
-        }
-
-        const condition1Text = workedDays < threshold
-            ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
-            : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
-
-        const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
-
-        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = "❌ 신청 불가능";
+        const constructionWorkerText = "❌ 신청 불가능";
 
         const finalHtml = `
             <h3>📌 조건 기준</h3>
@@ -190,4 +173,5 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
 
