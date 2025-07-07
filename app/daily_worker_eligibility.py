@@ -56,7 +56,7 @@ def daily_worker_eligibility_app():
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         for date in dates:
-            wd = date.weekday()  # 월:0 ~ 일:6
+            wd = date.weekday()
             extra_cls = ""
             if wd == 5:
                 extra_cls = "saturday"
@@ -72,6 +72,7 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
+    /* 스타일은 이전 내용 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -85,7 +86,6 @@ def daily_worker_eligibility_app():
     .day-header.saturday { color: blue; }
     .day.sunday { color: red; }
     .day.saturday { color: blue; }
-
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
     .empty-day { background: transparent; border: none; }
     .day {
@@ -95,7 +95,6 @@ def daily_worker_eligibility_app():
     }
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
-
     #resultContainer {
         color: #121212;
         background: #fff;
@@ -125,15 +124,6 @@ def daily_worker_eligibility_app():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        // 오늘 날짜 계산 (yyyy-mm-dd)
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = ("0" + (today.getMonth() + 1)).slice(-2);
-        const dd = ("0" + today.getDate()).slice(-2);
-        const todayStr = `${yyyy}-${mm}-${dd}`;
-
-        // 선택한 근무일(selected)은 "MM/DD" 형식 배열
-
         // 7/7 선택 시 무조건 미충족
         if (selected.includes("07/07")) {
             const finalHtml = `
@@ -148,7 +138,7 @@ def daily_worker_eligibility_app():
             return;
         }
 
-        // 근무일 하나도 선택 안 했으면 미충족 처리
+        // 근무일 선택 없으면 미충족 처리
         if (workedDays === 0) {
             const finalHtml = `
                 <h3>📌 조건 판단</h3>
@@ -162,14 +152,7 @@ def daily_worker_eligibility_app():
             return;
         }
 
-        // 기존 조건 판단 로직
         const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const selectedNormalized = selected.map(d => {
-            // "MM/DD" -> "YYYY-MM-DD" 형태로 변환 위해 달력 날짜 배열 참조
-            // 실제 비교는 MM/DD로 하므로 여기선 그냥 두기
-            return d;
-        });
-
         const noWork14Days = fourteenDays.every(date => {
             const mmdd = date.slice(5).replace("-", "/");
             return !selected.includes(mmdd);
@@ -230,5 +213,6 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
 
 
