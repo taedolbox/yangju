@@ -1,4 +1,4 @@
-아니import streamlit as st
+import streamlit as st
 from datetime import datetime, timedelta
 import json
 
