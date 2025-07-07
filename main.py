@@ -38,14 +38,15 @@ def main():
     """, unsafe_allow_html=True)
 
     selected_idx = st.selectbox("📋 메뉴 선택", menus, index=default_idx)
+    st.write("DEBUG selected_idx:", selected_idx, type(selected_idx))  # 확인용 출력
 
-    if st.session_state.get("last_selected_idx") != selected_idx:
-        if selected_idx == 0:
-            st.experimental_set_query_params()
-        else:
-            # 반드시 리스트나 문자열로 전달
-            st.experimental_set_query_params(menu=[str(selected_idx + 1)])
-        st.session_state.last_selected_idx = selected_idx
+    if selected_idx is not None and isinstance(selected_idx, int):
+        if st.session_state.get("last_selected_idx") != selected_idx:
+            if selected_idx == 0:
+                st.experimental_set_query_params()
+            else:
+                st.experimental_set_query_params(menu=[str(selected_idx + 1)])
+            st.session_state.last_selected_idx = selected_idx
 
     if selected_idx == 0:
         st.info("메뉴를 선택하세요.")
