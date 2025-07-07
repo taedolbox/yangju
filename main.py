@@ -1,9 +1,6 @@
 import streamlit as st
 
-# 👇 반드시 app 폴더 안에 daily_worker_eligibility.py 가 있어야 함
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-
-# 👇 필요한 경우
 from app.early_reemployment import early_reemployment_app
 
 def main():
