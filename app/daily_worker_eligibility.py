@@ -1,3 +1,5 @@
+# app/daily_worker_eligibility.py
+
 import streamlit as st
 from datetime import datetime, timedelta
 import json
@@ -8,10 +10,10 @@ def daily_worker_eligibility_app():
     # static/styles.css 파일 로드
     # 이 부분이 모든 CSS를 앱에 적용합니다.
     try:
-        # 현재 스크립트 파일의 디렉토리를 기준으로 static/styles.css 경로를 구성
+        # 현재 스크립트 파일 (daily_worker_eligibility.py)의 디렉토리를 기준으로 static/styles.css 경로를 구성
         script_dir = os.path.dirname(__file__)
         css_file_path = os.path.join(script_dir, "static", "styles.css")
-        with open(css_file_path, "r") as f:
+        with open(css_file_path, "r", encoding="utf-8") as f: # 인코딩 추가
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
         st.error("오류: static/styles.css 파일을 찾을 수 없습니다. 파일이 올바른 디렉토리에 있는지 확인하세요.")
@@ -122,7 +124,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
+    // Date 객체를YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -132,7 +134,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을YYYY-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
@@ -288,13 +290,6 @@ def daily_worker_eligibility_app():
             }
         }
 
-        // --- 최종 신청 가능 여부 판단 (현재 기준 날짜 기준) ---
-        const generalWorkerEligible = condition1Met;
-        const constructionWorkerEligible = condition1Met || noWork14Days; // 건설일용근로자는 둘 중 하나만 충족해도 됨
-
-        const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
-        
         # 최종 HTML 구성 및 출력 (여기에 스타일 태그 없음)
         final_html_content = f"""
             <h3>📌 기준 날짜({INPUT_DATE_STR}) 기준 조건 판단</h3>
@@ -308,8 +303,8 @@ def daily_worker_eligibility_app():
             {f"<p>{nextPossible1Message}</p>" if nextPossible1Message else ""}
             {f"<p>{nextPossible2Message}</p>" if nextPossible2Message else ""}
             <h3>📌 기준 날짜({INPUT_DATE_STR}) 기준 최종 판단</h3>
-            <p>✅ 일반일용근로자: {generalWorkerText}</p>
-            <p>✅ 건설일용근로자: {constructionWorkerText}</p>
+            <p>✅ 일반일용근로자: {'✅ 신청 가능' if condition1Met else '❌ 신청 불가능'}</p>
+            <p>✅ 건설일용근로자: {'✅ 신청 가능' if (condition1Met or noWork14Days) else '❌ 신청 불가능'}</p>
             <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
         """
 
@@ -366,7 +361,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-# Streamlit 앱 실행
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
