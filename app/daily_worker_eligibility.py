@@ -62,9 +62,9 @@ def daily_worker_eligibility_app():
             elif wd == 6:
                 extra_cls = "sunday"
             day_num = date.day
-            # ★ 변경: data-date를 YYYY-MM-DD 형식으로 통일
-            date_full_str = date.strftime("%Y-%m-%d") 
-            calendar_html += f'<div class="day {extra_cls}" data-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
+            date_str = date.strftime("%m/%d") # MM/DD 형식 (로컬 스토리지 키 및 JS에서 사용)
+            date_full_str = date.strftime("%Y-%m-%d") # YYYY-MM-DD 형식 (JS에서 계산용)
+            calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" data-full-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
     calendar_html += """
@@ -72,17 +72,12 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div> <style>
     /* CSS 스타일 */
     .calendar {
-        display: grid; 
-        grid-template-columns: repeat(7, 45px); /* 변경: 40px -> 45px */
-        grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; 
-        padding: 5px; /* 변경: 10px -> 5px */
-        border-radius: 8px;
+        display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
+        margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
-        width: 45px; height: 45px; /* 변경: 40px -> 45px */
-        line-height: 45px; text-align: center; /* 변경: 40px -> 45px */
+        width: 40px; height: 40px; line-height: 40px; text-align: center;
         font-weight: bold; color: #555;
     }
     .day-header.sunday { color: red; }
@@ -92,8 +87,7 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 45px; height: 45px; /* 변경: 40px -> 45px */
-        line-height: 45px; text-align: center; /* 변경: 40px -> 45px */
+        width: 40px; height: 40px; line-height: 40px; text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
         transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
     }
@@ -143,8 +137,8 @@ def daily_worker_eligibility_app():
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';                 
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     
+    const INPUT_DATE_STR = '""" + input_date_str + """';                     
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -181,9 +175,13 @@ def daily_worker_eligibility_app():
     }
 
     // --- Core Logic: 계산 및 결과 표시 ---
-    function calculateAndDisplayResult(selectedFullDates) { // 인자 이름 변경: selectedMMDD -> selectedFullDates
-        // 이 함수는 이제 항상 YYYY-MM-DD 형식의 날짜 배열을 받습니다.
-        
+    function calculateAndDisplayResult(selectedMMDD) {
+        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
+        const selectedFullDates = selectedMMDD.map(mmdd => {
+            const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
+            return foundDate || '';
+        }).filter(Boolean); // 빈 문자열 제거 (만약 달력에 없는 날짜가 storedDates에 있었다면 제거)
+
         // 선택된 근무일 중 가장 최근 날짜 찾기 (이후 근무 없음을 전제하기 위함)
         let latestWorkedDay = null;
         if (selectedFullDates.length > 0) {
@@ -214,6 +212,7 @@ def daily_worker_eligibility_app():
         }
 
         // --- 특수 케이스 2: 7월 7일 (예시에서 고정된 조건 불충족 날짜)이 선택된 경우 ---
+        // (이 부분은 예시를 위한 것으로, 실제 앱에서는 제거하거나 사용자가 설정하도록 변경할 수 있습니다.)
         const currentYear = inputDate.getFullYear();
         const fixedSpecialDate = `${currentYear}-07-07`; 
         if (selectedFullDates.includes(fixedSpecialDate)) {
@@ -366,8 +365,7 @@ def daily_worker_eligibility_app():
         const days = document.getElementsByClassName('day');
         for (let i = 0; i < days.length; i++) {
             if (days[i].classList.contains('selected')) {
-                // ★ 변경: data-date 속성에서 YYYY-MM-DD 형식의 전체 날짜를 가져옵니다.
-                selected.push(days[i].getAttribute('data-date')); 
+                selected.push(days[i].getAttribute('data-date'));
             }
         }
         saveToLocalStorage(selected); // 로컬 스토리지에 저장
@@ -378,9 +376,9 @@ def daily_worker_eligibility_app():
     function loadSelectedDates() {
         try {
             const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
-            storedDates.forEach(fullDateStr => { // 인자 이름 변경: mmdd -> fullDateStr
-                // ★ 변경: YYYY-MM-DD 형식의 전체 날짜로 요소를 찾습니다.
-                const dayElement = document.querySelector(`.day[data-date="${fullDateStr}"]`);
+            storedDates.forEach(mmdd => {
+                // 현재 달력에 있는 날짜만 selected 클래스 추가
+                const dayElement = document.querySelector(`.day[data-date="${mmdd}"]`);
                 if (dayElement) {
                     dayElement.classList.add('selected');
                 }
@@ -401,13 +399,13 @@ def daily_worker_eligibility_app():
         }
     }
 
-    // ★ 중요: DOMContentLoaded 이벤트 리스너를 제거하고 Streamlit 스크립트 로드 시점에 즉시 실행되도록 변경
-    // Streamlit 환경에서는 Streamlit 컴포넌트가 다시 렌더링될 때마다 이 스크립트가 로드되므로,
-    // 이 스크립트가 실행되는 시점 자체가 새로운 '로드'로 간주될 수 있습니다.
-    // 따라서, localStorage.removeItem()과 loadSelectedDates()를 전역적으로 바로 실행합니다.
-    localStorage.removeItem('selectedDates'); // 페이지 로드 시 localStorage 초기화
-    loadSelectedDates(); // 초기 상태 로드 및 계산
 
+    // ★ 중요 변경: window.onload 대신 DOMContentLoaded 사용
+    // 이 이벤트는 HTML 문서가 완전히 로드되고 파싱되었을 때 발생하며,
+    // 스크립트 실행에 더 안정적입니다.
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSelectedDates();
+    });
     </script>
     """
 
