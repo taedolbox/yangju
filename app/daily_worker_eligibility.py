@@ -16,6 +16,8 @@ def daily_worker_eligibility_app():
       grid-template-columns: repeat(7, 1fr);
       gap: 5px;
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       background: #fff;
       padding: 10px;
       border-radius: 8px;
@@ -58,6 +60,13 @@ def daily_worker_eligibility_app():
       border: none;
       background: none;
     }
+
+    @media (max-width: 600px) {
+      .calendar {
+        padding: 5px;
+        gap: 3px;
+      }
+    }
     </style>
 
     <div class="calendar">
@@ -70,10 +79,12 @@ def daily_worker_eligibility_app():
       <div class="day-header saturday">토</div>
     """
 
+    # 시작 요일 offset
     start_offset = (first_day.weekday() + 1) % 7
     for _ in range(start_offset):
         html += '<div class="day empty"></div>'
 
+    # 날짜
     current = first_day
     while current <= last_day:
         weekday = current.weekday()
@@ -101,5 +112,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(html, height=500, scrolling=False)
+    st.components.v1.html(html, height=600, scrolling=False)
 
