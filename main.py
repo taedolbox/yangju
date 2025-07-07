@@ -1,7 +1,7 @@
 # main.py
 
 import streamlit as st
-from app.daily_worker_eligibility ipport daily_worker-eligibility_app
+from app.daily_worker_eligibility ipport daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 
 def main():
