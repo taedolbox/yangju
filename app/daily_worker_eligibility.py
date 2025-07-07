@@ -73,7 +73,7 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 46px); /* 변경: 45px -> 46px */
+        grid-template-columns: repeat(7, 45px); /* 변경: 46px -> 45px */
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
         padding: 5px; /* 안쪽 여백 5px로 유지 */
@@ -81,8 +81,8 @@ def daily_worker_eligibility_app():
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
-        width: 46px; height: 46px; /* 변경: 45px -> 46px */
-        line-height: 46px; text-align: center; /* 변경: 45px -> 46px */
+        width: 45px; height: 45px; /* 변경: 46px -> 45px */
+        line-height: 45px; text-align: center; /* 변경: 46px -> 45px */
         font-weight: bold; color: #555;
     }
     .day-header.sunday { color: red; }
@@ -92,8 +92,8 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 46px; height: 46px; /* 변경: 45px -> 46px */
-        line-height: 46px; text-align: center; /* 변경: 45px -> 46px */
+        width: 45px; height: 45px; /* 변경: 46px -> 45px */
+        line-height: 45px; text-align: center; /* 변경: 46px -> 45px */
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
         transition: background 0.1s ease, border 0.1s ease; font-size: 16px; color: #333;
     }
