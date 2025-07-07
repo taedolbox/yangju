@@ -12,12 +12,13 @@ def main():
     st.markdown(
         """
         <style>
-        /* 콤보박스 테두리 */
+        /* 콤보박스 테두리 파란색 */
         div[data-baseweb="select"] > div {
             border: 2px solid #007bff !important;
             border-radius: 6px !important;
         }
-        /* 선택된 텍스트 색상 */
+
+        /* 선택된 텍스트 색상 파란색 */
         div[data-baseweb="select"] span {
             color: #007bff !important;
             font-weight: 600;
@@ -29,4 +30,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
