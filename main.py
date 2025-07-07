@@ -42,9 +42,9 @@ def main():
 
     selected_idx = st.selectbox("📋 메뉴 선택", menus, index=default_idx)
 
-    if st.session_state.get("last_selected_idx", None) != selected_idx:
+    if selected_idx is not None and st.session_state.get("last_selected_idx") != selected_idx:
         if selected_idx == 0:
-            st.experimental_set_query_params()  # 쿼리파라미터 삭제
+            st.experimental_set_query_params()
         else:
             st.experimental_set_query_params(menu=[str(selected_idx + 1)])
         st.session_state.last_selected_idx = selected_idx
@@ -58,4 +58,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
