@@ -162,6 +162,14 @@ def daily_worker_eligibility_app():
             nextPossible1 = "📅 조건 1을 충족하려면 오늘 이후에 근로제공이 없는 경우 " + NEXT_POSSIBLE1_DATE + " 이후에 신청하면 조건 1을 충족할 수 있습니다.";
         }
 
+        let nextPossible2 = "";
+        if (!noWork14Days) {
+            const nextPossibleDate = new Date(FOURTEEN_DAYS_END);
+            nextPossibleDate.setDate(nextPossibleDate.getDate() + 14);
+            const nextDateStr = nextPossibleDate.toISOString().split('T')[0];
+            nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
+        }
+
         const condition1Text = workedDays < threshold
             ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
