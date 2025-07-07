@@ -7,11 +7,9 @@ def main():
 
     menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)"]
 
-    # URL 쿼리에서 menu 번호 읽기 (1부터 시작)
     query_params = st.experimental_get_query_params()
     menu_param = query_params.get("menu", [None])[0]
 
-    # 초기 선택 인덱스 결정
     if menu_param and menu_param.isdigit():
         idx = int(menu_param) - 1
         if 0 <= idx < len(menus):
@@ -21,7 +19,6 @@ def main():
     else:
         default_idx = 0
 
-    # 스타일 (테두리+글자색 파란색)
     st.markdown("""
     <style>
     div[data-baseweb="select"] > div {
@@ -46,12 +43,10 @@ def main():
 
     selected_idx = st.selectbox("📋 메뉴 선택", menus, index=default_idx)
 
-    # 선택 바뀔 때 URL 파라미터 업데이트
     if st.session_state.get("last_selected_idx", None) != selected_idx:
-        st.experimental_set_query_params(menu=selected_idx + 1)
+        st.experimental_set_query_params(menu=str(selected_idx + 1))
         st.session_state.last_selected_idx = selected_idx
 
-    # 메뉴별 화면 분기
     if selected_idx == 0:
         st.info("메뉴를 선택하세요.")
     elif selected_idx == 1:
@@ -61,3 +56,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
