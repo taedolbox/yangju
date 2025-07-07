@@ -78,10 +78,8 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <div id="resultContainer"></div>
-
-    <style>
-    /* CSS 스타일 (이전과 동일) */
+    <div id="resultContainer"></div> <style>
+    /* CSS 스타일 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -115,6 +113,7 @@ def daily_worker_eligibility_app():
     }
     #resultContainer h3 { color: #0d47a1; margin-top: 20px; margin-bottom: 10px; }
     #resultContainer p { margin: 6px 0; }
+    /* 다크 모드 스타일 */
     html[data-theme="dark"] #resultContainer {
         background: #262730;
         color: #FAFAFA;
@@ -141,14 +140,14 @@ def daily_worker_eligibility_app():
     </style>
 
     <script>
-    // Python에서 넘겨받은 날짜 데이터
-    const CALENDAR_DATES_RAW = """ + calendar_dates_json + """;
-    const CALENDAR_DATES = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr)); // Date 객체로 변환
+    // Python에서 넘겨받은 날짜 데이터 (JSON 문자열로 받으므로 반드시 파싱 필요)
+    const CALENDAR_DATES_RAW_STR = """ + calendar_dates_json + """;
+    const CALENDAR_DATES_RAW = JSON.parse(CALENDAR_DATES_RAW_STR); // ★ JSON.parse()를 통해 문자열을 배열로 변환
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
-    const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; // 기준 날짜 직전 14일 시작일
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     // 기준 날짜 직전 14일 종료일
-    const INPUT_DATE_STR = '""" + input_date_str + """';                     // 사용자가 선택한 기준 날짜
+    const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     
+    const INPUT_DATE_STR = '""" + input_date_str + """';                     
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -217,8 +216,9 @@ def daily_worker_eligibility_app():
         }
 
         // --- 특수 케이스 2: 7월 7일 (예시에서 고정된 조건 불충족 날짜)이 선택된 경우 ---
+        // (이 부분은 예시를 위한 것으로, 실제 앱에서는 제거하거나 사용자가 설정하도록 변경할 수 있습니다.)
         const currentYear = inputDate.getFullYear();
-        const fixedSpecialDate = `${currentYear}-07-07`; // 예시에서 사용된 특정 날짜
+        const fixedSpecialDate = `${currentYear}-07-07`; 
         if (selectedFullDates.includes(fixedSpecialDate)) {
             const finalHtml = `
                 <h3 style="color: red;">📌 조건 판단</h3>
@@ -397,10 +397,38 @@ def daily_worker_eligibility_app():
         calculateAndDisplayResult(selected); // 결과 다시 계산
     }
 
-    // 페이지 로드 시 저장된 날짜 불러오기
-    window.onload = function() {
+    // 로컬 스토리지에서 선택된 날짜 불러오기
+    function loadSelectedDates() {
+        try {
+            const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
+            storedDates.forEach(mmdd => {
+                // 현재 달력에 있는 날짜만 selected 클래스 추가
+                const dayElement = document.querySelector(`.day[data-date="${mmdd}"]`);
+                if (dayElement) {
+                    dayElement.classList.add('selected');
+                }
+            });
+            calculateAndDisplayResult(storedDates); // 불러온 날짜로 초기 결과 계산
+        } catch (e) {
+            console.error("Failed to load selected dates from localStorage or calculate result:", e);
+            calculateAndDisplayResult([]); // 오류 발생 시 빈 상태로 초기화
+        }
+    }
+
+    // 로컬 스토리지에 선택된 날짜 저장
+    function saveToLocalStorage(data) {
+        try {
+            localStorage.setItem('selectedDates', JSON.stringify(data));
+        } catch (e) {
+            console.error("Failed to save selected dates to localStorage:", e);
+        }
+    }
+
+
+    // ★ 중요 변경: window.onload 대신 DOMContentLoaded 사용
+    document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
-    };
+    });
     </script>
     """
 
