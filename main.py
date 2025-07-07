@@ -7,8 +7,7 @@ def main():
 
     menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)"]
 
-    query_params = st.experimental_get_query_params()
-    menu_param = query_params.get("menu", [None])[0]
+    menu_param = st.query_params.get("menu", [None])[0]
 
     if menu_param and menu_param.isdigit():
         idx = int(menu_param) - 1
