@@ -95,22 +95,11 @@ def main():
     )
 
     # --- ★여기에 공통 문구를 추가합니다★ ---
-    selected_idx = st.session_state.current_menu_idx
-    
-    # 선택된 메뉴에 따라 동적으로 변경될 타이틀
-    display_title = ""
-    if selected_idx == 1: # "조기재취업수당" 선택 시
-        display_title = "🏗️ 조기재취업수당 요건 판단"
-    elif selected_idx == 2: # "일용직(건설일용포함)" 선택 시
-        display_title = "🏗️ 일용직 신청 가능 시점 판단"
-    # selected_idx == 0 ("메뉴 선택")일 때는 타이틀을 표시하지 않거나 다른 환영 메시지 사용
-
-    if display_title: # 타이틀이 있을 경우에만 표시
-        st.markdown(
-            f"<span style='font-size:22px; font-weight:600;'>{display_title}</span>",
-            unsafe_allow_html=True
-        )
-    
+    # 사용자가 요청한 고정 타이틀 '조기재취업수당 요건 판단'을 사용
+    st.markdown(
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 요건 판단</span>",
+        unsafe_allow_html=True
+    )
     # 모든 페이지에 공통으로 표시될 안내 문구
     st.markdown(
         "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
@@ -119,6 +108,8 @@ def main():
     # --- 공통 문구 추가 종료 ---
 
     # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
+    selected_idx = st.session_state.current_menu_idx
+
     if selected_idx == 0:
         # "메뉴 선택" 시 보여줄 초기 화면 내용
         st.markdown("---") # 시각적 구분선 추가
