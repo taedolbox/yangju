@@ -1,6 +1,6 @@
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app  # 필요 시 구현
+from app.early_reemployment import early_reemployment_app  # 필요 시 추가 구현
 
 def main():
     st.set_page_config(
@@ -9,14 +9,12 @@ def main():
         layout="centered"
     )
 
-    # 헤더 크기 한 단계 축소
     st.header("💼 실업급여 지원 시스템")
 
-    # 콤보박스 메뉴
     menu = st.selectbox(
         "메뉴 선택",
         ["조기재취업수당", "일용직(건설일용포함)"],
-        index=0
+        index=1
     )
 
     if menu == "조기재취업수당":
