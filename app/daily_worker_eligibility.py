@@ -74,7 +74,9 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
+        margin-bottom: 20px; background: #fff; 
+        padding: 10px 1px; /* 좌우 여백을 1px로 변경 */
+        border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
