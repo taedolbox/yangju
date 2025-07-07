@@ -72,7 +72,6 @@ def daily_worker_eligibility_app():
     <div id="resultContainer"></div>
 
     <style>
-    /* 스타일은 이전 내용 유지 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
         margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px;
@@ -138,15 +137,15 @@ def daily_worker_eligibility_app():
             return;
         }
 
-        // 근무일 선택 없으면 미충족 처리
+        // 근무일 선택 없으면 무조건 신청 가능
         if (workedDays === 0) {
             const finalHtml = `
                 <h3>📌 조건 판단</h3>
-                <p>❌ 조건 1 불충족: 근무일 0일 (선택 없음)</p>
-                <p>❌ 조건 2 불충족: 근무일 0일 (선택 없음)</p>
+                <p>✅ 조건 1 충족: 근무일 0일 (선택 없음)</p>
+                <p>✅ 조건 2 충족: 근무일 0일 (선택 없음)</p>
                 <h3>📌 최종 판단</h3>
-                <p>❌ 일반일용근로자: 신청 불가능</p>
-                <p>❌ 건설일용근로자: 신청 불가능</p>
+                <p>✅ 일반일용근로자: 신청 가능</p>
+                <p>✅ 건설일용근로자: 신청 가능</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
             return;
@@ -213,6 +212,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-
-
