@@ -30,13 +30,13 @@ def main():
         font-weight: 600 !important;
         background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
     }
-    
+
     /* 콤보박스 내부 텍스트 (현재 선택된 값) */
     div[data-baseweb="select"] span {
         color: #2196F3 !important;
         font-weight: 600 !important;
     }
-    
+
     /* 드롭다운 리스트 컨테이너 */
     div[data-baseweb="popover"] {
         z-index: 9999 !important; /* 다른 요소 위에 오도록 z-index 높임 */
@@ -52,13 +52,13 @@ def main():
         font-weight: 600 !important;
         padding: 10px 15px !important; /* 패딩 조정 */
     }
-    
+
     /* 드롭다운 리스트 항목 호버 시 */
     div[data-baseweb="select"] ul[role="listbox"] li:hover {
         background-color: #2196F3 !important;
         color: white !important;
     }
-    
+
     /* 스크롤바 스타일링 (선택 사항, 깔끔하게 보이게) */
     div[data-baseweb="popover"]::-webkit-scrollbar {
         width: 8px;
@@ -78,7 +78,7 @@ def main():
     def on_menu_change():
         selected_menu_name = st.session_state.main_menu_select_key
         st.session_state.current_menu_idx = menus.index(selected_menu_name)
-        
+
         if st.session_state.current_menu_idx == 0:
             if "menu" in st.query_params:
                 del st.query_params["menu"]
@@ -103,13 +103,11 @@ def main():
             """
             <div style="padding: 20px; border-radius: 10px; background-color: #f0f8ff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <h3 style="color: #0d47a1; margin-bottom: 15px;">🌟 실업급여 지원 시스템에 오신 것을 환영합니다!</h3>
-                <p style="font-size: 16px; line-height: 1.6;">
-                    이 시스템은 **실업급여 수급 자격** 및 **조기재취업수당**과 관련된 정보를 쉽고 빠르게 확인하실 수 있도록 돕습니다.
+                <p style="font-size: 16px; line-height: 1.6; color: #333333;">  이 시스템은 <b>실업급여 수급 자격</b> 및 <b>조기재취업수당</b>과 관련된 정보를 쉽고 빠르게 확인하실 수 있도록 돕습니다.
                     <br><br>
-                    궁금한 기능을 위에 있는 **'📋 메뉴 선택' 콤보박스에서 선택**해 주세요.
+                    궁금한 기능을 위에 있는 <b>'📋 메뉴 선택' 콤보박스에서 선택</b>해 주세요.
                 </p>
-                <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px;">
-                    <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
+                <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px; color: #333333;"> <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
                     <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
                 </ul>
                 <p style="font-size: 14px; color: #555; margin-top: 20px;">
