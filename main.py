@@ -19,13 +19,28 @@ def main():
     st.markdown(
         """
         <style>
+        /* 콤보박스 외곽 테두리 */
         div[data-baseweb="select"] > div {
             border: 2px solid #007bff !important;
             border-radius: 6px !important;
         }
+
+        /* 콤보박스 선택된 값 텍스트 색상 */
         div[data-baseweb="select"] span {
             color: #007bff !important;
             font-weight: 600;
+        }
+
+        /* 드롭다운 옵션들 텍스트 색상 */
+        div[data-baseweb="select"] ul[role="listbox"] li {
+            color: #007bff !important;
+            font-weight: 600;
+        }
+
+        /* 드롭다운 옵션 마우스 오버 색상 */
+        div[data-baseweb="select"] ul[role="listbox"] li:hover {
+            background-color: #cce4ff !important;
+            color: #004a99 !important;
         }
         </style>
         """,
