@@ -141,9 +141,7 @@ def daily_worker_eligibility_app():
 
     <script>
     // Python에서 넘겨받은 날짜 데이터 (JSON 배열 문자열로 주입)
-    // 예: const CALENDAR_DATES_RAW = ["2025-06-01", "2025-06-02", ...];
     const CALENDAR_DATES_RAW = """ + calendar_dates_json + """;
-    // CALENDAR_DATES_RAW는 이미 JS 배열이므로, map만 하면 됨
     const CALENDAR_DATES = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr)); 
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
@@ -151,7 +149,7 @@ def daily_worker_eligibility_app():
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     
     const INPUT_DATE_STR = '""" + input_date_str + """';                     
 
-    // --- Helper Functions (이 부분들이 누락되어 ReferenceError가 발생할 수 있습니다!) ---
+    // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
     function getDaysBetween(startDate, endDate) {
         const start = new Date(startDate);
@@ -216,6 +214,7 @@ def daily_worker_eligibility_app():
                 <p>✅ 건설일용근로자: 신청 가능</p>
                 <h3>📌 종합 신청 가능일</h3>
                 <p>근무일이 없으므로, 현재(${INPUT_DATE_STR}) 바로 신청 가능합니다.</p>
+                <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
             return;
@@ -235,7 +234,8 @@ def daily_worker_eligibility_app():
                 <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
                 <h3>📌 종합 신청 가능일</h3>
                 <p style="color: red;">${fixedSpecialDate} 근무 기록으로 인해 현재 신청 불가능합니다.</p>
-                <p style="color: red;">(이 경우, ${fixedSpecialDate}이 마지막 근무일이라면 ${formatDateToYYYYMMDD(new Date(new Date(fixedSpecialDate).setDate(new Date(fixedSpecialDate).getDate() + 14 + 1)))} 이후 신청 가능)</p>
+                <p style="color: red;">(이 경우, ${fixedSpecialDate}이 마지막 근무일이라면 ${formatDateToYYYYMMDD(new Date(new Date(fixedSpecialDate).setDate(new Date(fixedSpecialDate).getDate() + 14 + 1)))} 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
+                <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
             return;
@@ -333,7 +333,7 @@ def daily_worker_eligibility_app():
                 nextPossible2Date = new Date(latestWorkedDay);
                 nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1); // 마지막 근무일 + 14일 무근무 후 +1일 (신청 가능일)
                 nextPossible2Date.setHours(0,0,0,0); // 시간 초기화
-                nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준)`;
+                nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준) (이후 근로제공이 없다는 전제)`;
             } else {
                 nextPossible2Message = `🤔 조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 확인 필요)`;
             }
@@ -345,42 +345,8 @@ def daily_worker_eligibility_app():
 
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
-
-        // --- 두 조건을 모두 고려한 가장 빠른 '종합 신청 가능일' 계산 및 메시지 ---
-        let finalEarliestApplicationDate = null;
-        let finalRecommendationMessage = "";
-
-        // Case 1: 현재 기준 날짜로 이미 모든 조건 충족
-        if (condition1Met && noWork14Days) {
-            finalEarliestApplicationDate = inputDate;
-            finalRecommendationMessage = `현재(${INPUT_DATE_STR}) 신청 가능합니다.`;
-        } 
-        // Case 2: 하나 이상의 조건이 불충족이며, 각 조건별로 미래의 가능일이 계산된 경우
-        else {
-            if (nextPossible1Date && nextPossible2Date) { // 두 조건 모두 불충족 및 계산 완료
-                // 두 날짜 중 더 늦은 날짜가 두 조건을 모두 충족하는 가장 빠른 날짜가 됨
-                finalEarliestApplicationDate = (nextPossible1Date > nextPossible2Date) ? nextPossible1Date : nextPossible2Date;
-                finalRecommendationMessage = `두 조건을 모두 충족하는 가장 빠른 신청 가능일은 **${formatDateToYYYYMMDD(finalEarliestApplicationDate)}**입니다.`;
-            } else if (nextPossible1Date) { // 조건 1만 불충족 및 계산 완료
-                finalEarliestApplicationDate = nextPossible1Date;
-                finalRecommendationMessage = `조건 1만 불충족되었으므로, 가장 빠른 신청 가능일은 **${formatDateToYYYYMMDD(finalEarliestApplicationDate)}**입니다.`;
-            } else if (nextPossible2Date) { // 조건 2만 불충족 및 계산 완료
-                finalEarliestApplicationDate = nextPossible2Date;
-                finalRecommendationMessage = `조건 2만 불충족되었으므로, 가장 빠른 신청 가능일은 **${formatDateToYYYYMMDD(finalEarliestApplicationDate)}**입니다.`;
-            } else { // 어떤 조건도 미래 가능일을 찾지 못한 경우
-                finalRecommendationMessage = `현재 근무 기록으로는 가장 빠른 신청 가능일을 계산하기 어렵습니다. (계산 범위 초과 또는 기타 오류)`;
-            }
-        }
         
-        // 최종 추천 메시지 HTML
-        const finalRecommendationHtml = `
-            <h3>📌 종합 신청 가능일 (이후 근로제공이 없는 경우)</h3>
-            <p>${finalRecommendationMessage}</p>
-            <p>※ 위 날짜는 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
-        `;
-
-
-        // 결과 HTML 구성 및 출력
+        // 최종 HTML 구성 및 출력
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
@@ -395,7 +361,7 @@ def daily_worker_eligibility_app():
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
             <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
             <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
-            ${finalRecommendationHtml}
+            <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
