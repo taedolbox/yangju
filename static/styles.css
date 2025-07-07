@@ -1,54 +1,155 @@
-/* 달력 그리드 */
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  width: 100%;
-  background: #fff;
-  padding: 10px;
-  border-radius: 8px;
+/* static/styles.css */
+
+/* General Styling & Layout */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #333; /* Default text color for light mode */
+    background-color: #f0f2f6; /* Default background for light mode */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for theme change */
 }
 
-/* 요일 헤더 */
+#calendar-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px; /* Padding around the entire calendar block if desired */
+}
+
+/* Year/Month Header (h4) */
+#calendar-container h4 {
+    margin-bottom: 5px; /* Space between year/month and calendar grid */
+    text-align: center; /* Center the year/month text */
+    color: #333; /* Default color for light mode */
+    /* Streamlit의 기본 h4 스타일에 의해 오버라이드될 수 있으므로, 아래 다크모드에서 !important 사용 */
+}
+
+/* Calendar Grid */
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 45px); /* Fixed width columns for consistent sizing */
+    grid-gap: 5px; /* Gap between grid items */
+    margin-bottom: 20px; /* Space below each month's calendar */
+    background: #fff;
+    padding: 10px 1px; /* Vertical 10px, Horizontal 1px padding inside the calendar box */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    justify-content: center; /* Center the grid within its container */
+    max-width: 350px; /* Max width to keep it compact */
+    margin-left: auto; /* Center the calendar horizontally */
+    margin-right: auto;
+}
+
+/* Day Headers (Sun, Mon, ...) */
 .day-header {
-  aspect-ratio: 1/1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #333;
+    width: 45px;
+    height: 45px;
+    line-height: 45px; /* Vertical centering */
+    text-align: center;
+    font-weight: bold;
+    color: #555; /* Default color */
+    background: #e0e0e0;
+    border-radius: 5px;
+    font-size: 16px;
 }
 .day-header.sunday {
-  color: red;
+    color: red;
 }
 .day-header.saturday {
-  color: blue;
+    color: blue;
 }
 
-/* 날짜 */
+/* Day Cells (1, 2, 3, ...) */
 .day {
-  aspect-ratio: 1/1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  color: #333;
+    width: 45px;
+    height: 45px;
+    line-height: 45px; /* Vertical centering */
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s ease, border 0.1s ease;
+    font-size: 18px;
+    color: #333; /* Default color */
 }
-
+.day:hover {
+    background: #f0f0f0;
+}
+.day.selected {
+    border: 2px solid #2196F3;
+    background: #2196F3;
+    color: #fff; /* Selected day text is always white */
+    font-weight: bold;
+}
 .day.sunday {
-  color: red;
+    color: red;
 }
 .day.saturday {
-  color: blue;
+    color: blue;
 }
 
-/* 빈칸 */
-.day.empty {
-  border: none;
-  background: none;
+/* Empty Day Cells (for calendar padding) */
+.empty-day {
+    background: transparent;
+    border: none;
+    width: 45px;
+    height: 45px;
+}
+
+/* Result Container */
+#resultContainer {
+    color: #121212; /* Default color for light mode */
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-top: 20px; /* Space above result container */
+}
+#resultContainer h3 {
+    color: #0d47a1; /* Default color for light mode */
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+#resultContainer p {
+    margin: 6px 0;
+}
+
+/* Dark Mode Styles */
+html[data-theme="dark"] body {
+    color: #FAFAFA; /* Dark mode default text color */
+    background-color: #1A1C20; /* Dark mode default background */
+}
+html[data-theme="dark"] #calendar-container h4 {
+    color: #FAFAFA !important; /* Force bright color for year/month text in dark mode */
+}
+html[data-theme="dark"] .calendar {
+    background: #262730; /* Dark mode background for calendar box */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+html[data-theme="dark"] .day-header {
+    background: #31333F;
+    color: #BBBBBB; /* Lighter color for day headers */
+    border: 1px solid #4B4B4B;
+}
+html[data-theme="dark"] .day {
+    background-color: #31333F;
+    color: #FAFAFA; /* Bright color for day numbers */
+    border: 1px solid #4B4B4B;
+}
+html[data-theme="dark"] .day:hover {
+    background-color: #45475A;
+}
+html[data-theme="dark"] .day.selected {
+    background: #2196F3; /* Selected day color remains bright blue */
+    color: #fff;
+}
+html[data-theme="dark"] #resultContainer {
+    background: #262730;
+    color: #FAFAFA;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+html[data-theme="dark"] #resultContainer h3 {
+    color: #90CAF9; /* Lighter blue for result headings */
 }
