@@ -137,8 +137,8 @@ def daily_worker_eligibility_app():
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';                 
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     
+    const INPUT_DATE_STR = '""" + input_date_str + """';                     
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -404,16 +404,13 @@ def daily_worker_eligibility_app():
     // 이 이벤트는 HTML 문서가 완전히 로드되고 파싱되었을 때 발생하며,
     // 스크립트 실행에 더 안정적입니다.
     document.addEventListener('DOMContentLoaded', function() {
-        // 페이지 로드 시 localStorage에서 이전 선택 날짜를 삭제하여 초기화
-        localStorage.removeItem('selectedDates'); // <-- 이 줄이 추가되었습니다.
-        loadSelectedDates(); // 이제 이 함수는 localStorage가 비워진 상태에서 호출됩니다.
+        loadSelectedDates();
     });
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
-# 이 부분이 app/daily_worker_eligibility.py 파일이라면 아래 __main__은 필요 없습니다.
-# 만약 이 파일 자체가 단독으로 실행되는 Streamlit 앱이라면 필요할 수 있습니다.
-# if __name__ == "__main__":
-#     daily_worker_eligibility_app()
+# Streamlit 앱 실행
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
