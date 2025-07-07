@@ -33,7 +33,6 @@ def daily_worker_eligibility_app():
     input_date_str = input_date.strftime("%Y-%m-%d")
 
     # Streamlit에 HTML/JavaScript 컴포넌트 삽입
-    # --- ★ 이 줄이 반드시 있어야 합니다. ★ ---
     calendar_html = "<div id='calendar-container'>" 
 
     for ym, dates in calendar_groups.items():
@@ -128,7 +127,7 @@ def daily_worker_eligibility_app():
     html[data-theme="dark"] #resultContainer h3 {
         color: #90CAF9;
     }
-    /* 다크 모드에서 년월 텍스트 보이도록 색상 추가 */
+    /* 다크 모드에서 년월 텍스트 보이도록 색상 추가 (이 부분이 중요!) */
     html[data-theme="dark"] #calendar-container h4 {
         color: #FAFAFA; /* 밝은 색으로 설정하여 다크 모드에서 보이도록 함 */
     }
