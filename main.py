@@ -1,3 +1,5 @@
+# main.py
+
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
@@ -26,7 +28,7 @@ def main():
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
     div[data-baseweb="select"] > div:first-child {
         border: 2px solid #2196F3 !important; /* 기존 테두리 유지 */
-        color: #2196F3 !important;            /* 기존 텍스트 색상 유지 */
+        color: #2196F3 !important;             /* 기존 텍스트 색상 유지 */
         font-weight: 600 !important;
         background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
     }
@@ -94,18 +96,26 @@ def main():
         on_change=on_menu_change
     )
 
-    # --- ★여기에 공통 문구를 추가합니다★ ---
-    # 사용자가 요청한 고정 타이틀 '조기재취업수당 요건 판단'을 사용
-    st.markdown(
-        "<span style='font-size:22px; font-weight:600;'>🏗️ 조기재취업수당 요건 판단</span>",
-        unsafe_allow_html=True
-    )
+    # --- ★여기에 동적 타이틀을 추가합니다★ ---
+    selected_menu_title = menus[st.session_state.current_menu_idx]
+    
+    if selected_menu_title == "메뉴 선택":
+        # 초기 화면이므로 별도의 타이틀을 넣지 않거나, 환영 메시지 안에 포함
+        pass 
+    else:
+        # 선택된 메뉴 이름으로 동적 타이틀 생성
+        display_title = selected_menu_title + " 요건 판단" if selected_menu_title != "일용직(건설일용포함)" else "일용직(건설일용포함) 실업급여 요건 판단"
+        st.markdown(
+            f"<span style='font-size:22px; font-weight:600;'>🏗️ {display_title}</span>",
+            unsafe_allow_html=True
+        )
+
     # 모든 페이지에 공통으로 표시될 안내 문구
     st.markdown(
         "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
         unsafe_allow_html=True
     )
-    # --- 공통 문구 추가 종료 ---
+    # --- 동적 타이틀 추가 종료 ---
 
     # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
     selected_idx = st.session_state.current_menu_idx
