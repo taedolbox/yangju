@@ -10,6 +10,48 @@ def daily_worker_eligibility_app():
     last_day = last_day - timedelta(days=last_day.day)
 
     html = """
+    <style>
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      width: 100%;
+      background: #fff;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .day-header {
+      aspect-ratio: 1/1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+    }
+    .day-header.sunday { color: red; }
+    .day-header.saturday { color: blue; }
+
+    .day {
+      aspect-ratio: 1/1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #333;
+    }
+    .day.sunday { color: red; }
+    .day.saturday { color: blue; }
+
+    .day.empty {
+      border: none;
+      background: none;
+    }
+    </style>
     <div class="calendar">
       <div class="day-header sunday">일</div>
       <div class="day-header">월</div>
@@ -20,12 +62,10 @@ def daily_worker_eligibility_app():
       <div class="day-header saturday">토</div>
     """
 
-    # 시작 요일 맞추기
     start_offset = (first_day.weekday() + 1) % 7
     for _ in range(start_offset):
         html += '<div class="day empty"></div>'
 
-    # 날짜 출력
     current = first_day
     while current <= last_day:
         weekday = current.weekday()
