@@ -1,7 +1,10 @@
 import streamlit as st
 
+# 👇 반드시 app 폴더 안에 daily_worker_eligibility.py 가 있어야 함
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app  # 없으면 이 줄 지워도 됨
+
+# 👇 필요한 경우
+from app.early_reemployment import early_reemployment_app
 
 def main():
     st.set_page_config(
@@ -15,7 +18,7 @@ def main():
     menu = st.selectbox(
         "메뉴 선택",
         ["조기재취업수당", "일용직(건설일용포함)"],
-        index=0
+        index=1
     )
 
     if menu == "조기재취업수당":
