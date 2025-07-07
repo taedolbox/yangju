@@ -1,6 +1,6 @@
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-# from app.early_reemployment import early_reemployment_app  # 필요 시 사용
+from app.early_reemployment import early_reemployment_app  # 구현 안했으면 제외 가능
 
 def main():
     st.set_page_config(
@@ -13,16 +13,17 @@ def main():
 
     menu = st.selectbox(
         "메뉴 선택",
-        ["일용직(건설일용포함)"]  # 필요하면 여기에 "조기재취업수당" 추가
+        ["조기재취업수당", "일용직(건설일용포함)"],
+        index=0
     )
 
-    if menu == "일용직(건설일용포함)":
+    if menu == "조기재취업수당":
+        early_reemployment_app()  # 없으면 pass 처리해둬
+    else:
         daily_worker_eligibility_app()
-    # elif menu == "조기재취업수당":
-    #     early_reemployment_app()
 
     st.markdown("---")
-    st.caption("ⓘ 참고용입니다. 실제 판단은 고용센터의 공식 결과를 따르십시오.")
+    st.caption("ⓘ 참고용입니다. 실제 판단은 고용센터의 공식 결과를 따릅니다.")
 
 if __name__ == "__main__":
     main()
