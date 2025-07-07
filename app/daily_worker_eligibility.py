@@ -3,9 +3,15 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
-    # 이전에 있던 페이지 상단 제목과 공통 안내 문구는 main.py에서 처리하므로 여기서는 삭제합니다.
-    # st.markdown("<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>", unsafe_allow_html=True)
-    # st.markdown("<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<span style='font-size:22px; font-weight:600;'>🏗️ 일용직 신청 가능 시점 판단</span>",
+        unsafe_allow_html=True
+    )
+    
+    st.markdown(
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
+    )
 
     # 한국 시간으로 오늘 날짜 설정
     today_kst = datetime.utcnow() + timedelta(hours=9)
@@ -50,7 +56,6 @@ def daily_worker_eligibility_app():
             <div class="day-header">목</div>
             <div class="day-header">금</div>
             <div class="day-header saturday">토</div>
-        </div>
         """
         # 달력 첫 주 공백 채우기
         start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): 월0~일6 -> 일0~토6으로 변경
@@ -207,6 +212,7 @@ def daily_worker_eligibility_app():
                 <h3>📌 최종 판단</h3>
                 <p>✅ 일반일용근로자: 신청 가능</p>
                 <p>✅ 건설일용근로자: 신청 가능</p>
+                <h3>📌 종합 신청 가능일</h3>
                 <p>근무일이 없으므로, 현재(${INPUT_DATE_STR}) 바로 신청 가능합니다.</p>
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
@@ -226,6 +232,7 @@ def daily_worker_eligibility_app():
                 <h3 style="color: red;">📌 최종 판단</h3>
                 <p style="color: red;">❌ 일반일용근로자: 신청 불가능</p>
                 <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
+                <h3>📌 종합 신청 가능일</h3>
                 <p style="color: red;">${fixedSpecialDate} 근무 기록으로 인해 현재 신청 불가능합니다.</p>
                 <p style="color: red;">(이 경우, ${fixedSpecialDate}이 마지막 근무일이라면 ${formatDateToYYYYMMDD(new Date(new Date(fixedSpecialDate).setDate(new Date(fixedSpecialDate).getDate() + 14 + 1)))} 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
@@ -339,7 +346,7 @@ def daily_worker_eligibility_app():
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         
-        # 제일 하단의 이 문구는 특정 계산 결과에 대한 중요한 안내이므로 유지하는 것이 좋습니다.
+        // 최종 HTML 구성 및 출력
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
@@ -412,3 +419,7 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+# Streamlit 앱 실행
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
