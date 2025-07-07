@@ -12,35 +12,38 @@ def main():
     st.markdown(
         """
         <style>
-        .custom-select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background: #f0f4f8 url('https://cdn-icons-png.flaticon.com/512/54/54712.png') no-repeat 8px center;
-            background-size: 20px 20px;
-            border: 2px solid #2196F3;
-            border-radius: 6px;
-            padding: 8px 12px 8px 40px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
+        div[data-baseweb="select"] {
+            border: 2px solid #2196F3 !important;
+            border-radius: 6px !important;
         }
-        .custom-select:focus {
-            border-color: #0d47a1;
-            outline: none;
+        div[data-baseweb="select"]:focus-within {
+            border: 2px solid #0d47a1 !important;
             box-shadow: 0 0 0 2px rgba(33,150,243,0.3);
+        }
+        .menu-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
         </style>
         """,
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        '<div class="menu-label">'
+        '<img src="https://cdn-icons-png.flaticon.com/512/54/54712.png" width="24"/>'
+        '<span>메뉴 선택</span>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
     selected_menu = st.selectbox(
-        label="",
+        label="",  # 👉 라벨 제거
         options=["조기재취업수당", "일용직(건설일용포함)"],
-        index=0,
-        key="menu_selector"
+        index=0
     )
 
     if selected_menu == "조기재취업수당":
