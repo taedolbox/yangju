@@ -1,5 +1,4 @@
-# main.py
-
+# main.py (GOOD EXAMPLE)
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
