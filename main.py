@@ -8,13 +8,14 @@ def main():
     menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)"]
 
     # URL 쿼리 파라미터에서 메뉴 인덱스 가져오기
-    menu_param = st.query_params.get("menu", [None])[0]
+    # st.query_params를 사용하여 읽기
+    menu_param = st.query_params.get("menu", None) # Changed to get a single string or None
+
+    default_idx = 0
     if menu_param and menu_param.isdigit():
-        default_idx = int(menu_param) - 1
-        if default_idx < 0 or default_idx >= len(menus):
-            default_idx = 0
-    else:
-        default_idx = 0
+        parsed_menu_idx = int(menu_param) - 1
+        if 0 <= parsed_menu_idx < len(menus):
+            default_idx = parsed_menu_idx
 
     st.markdown("""
     <style>
@@ -38,17 +39,22 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    selected_menu = st.selectbox("📋 메뉴 선택", menus, index=default_idx)
+    # st.selectbox의 index를 초기화하기 위해 selected_menu 변수 사용
+    selected_menu = st.selectbox("📋 메뉴 선택", menus, index=default_idx, key="main_menu_select")
 
     # 선택된 메뉴명으로 인덱스 변환
     selected_idx = menus.index(selected_menu)
 
-    if st.session_state.get("last_selected_idx") != selected_idx:
-        if selected_idx == 0:
-            st.experimental_set_query_params()  # 메뉴 선택(첫 항목)이면 URL 쿼리파라미터 삭제
-        else:
-            st.experimental_set_query_params(menu=[str(selected_idx + 1)])
-        st.session_state.last_selected_idx = selected_idx
+    # URL 쿼리 파라미터 업데이트
+    # st.query_params를 사용하여 쓰기 (할당)
+    if selected_idx == 0:
+        if "menu" in st.query_params: # 메뉴 선택(첫 항목)이면 URL 쿼리파라미터 삭제
+            del st.query_params["menu"]
+    else:
+        st.query_params["menu"] = str(selected_idx + 1)
+    
+    # 세션 상태에 마지막 선택된 인덱스 저장 (선택 사항이지만 일관성을 위해 유지)
+    st.session_state.last_selected_idx = selected_idx
 
     # 메뉴별 화면 출력
     if selected_idx == 0:
