@@ -69,7 +69,8 @@ def daily_worker_eligibility_app():
 
     calendar_html += """
     </div>
-    <div id="resultContainer"></div> <style>
+    <div id="resultContainer"></div>
+    <style>
     /* CSS 스타일 */
     .calendar {
         display: grid; grid-template-columns: repeat(7, 40px); grid-gap: 5px;
@@ -137,8 +138,8 @@ def daily_worker_eligibility_app():
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';     
-    const INPUT_DATE_STR = '""" + input_date_str + """';                     
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
+    const INPUT_DATE_STR = '""" + input_date_str + """';             
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -211,21 +212,23 @@ def daily_worker_eligibility_app():
             return;
         }
 
-        // --- 특수 케이스 2: 7월 7일 (예시에서 고정된 조건 불충족 날짜)이 선택된 경우 ---
-        // (이 부분은 예시를 위한 것으로, 실제 앱에서는 제거하거나 사용자가 설정하도록 변경할 수 있습니다.)
-        const currentYear = inputDate.getFullYear();
-        const fixedSpecialDate = `${currentYear}-07-07`; 
-        if (selectedFullDates.includes(fixedSpecialDate)) {
+        // --- 특수 케이스 2: 기준 날짜(INPUT_DATE_STR)가 근무일로 선택된 경우 ---
+        // (사용자가 Streamlit 날짜 선택기에서 고른 날짜가 달력에서 근무일로 체크된 경우)
+        if (selectedFullDates.includes(INPUT_DATE_STR)) {
+            // 기준 날짜가 근무일이므로 조건 1, 2 모두 불충족으로 간주 (사용자 요청)
+            const nextPossibleApplicationDate = new Date(INPUT_DATE_STR);
+            nextPossibleApplicationDate.setDate(nextPossibleApplicationDate.getDate() + 14 + 1); // 기준 날짜 + 14일 무근무 후 +1일
+
             const finalHtml = `
                 <h3 style="color: red;">📌 조건 판단</h3>
-                <p style="color: red;">❌ 조건 1 불충족: ${fixedSpecialDate} 근무로 인한 미충족</p>
-                <p style="color: red;">❌ 조건 2 불충족: ${fixedSpecialDate} 근무로 인한 미충족</p>
+                <p style="color: red;">❌ 조건 1 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
+                <p style="color: red;">❌ 조건 2 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
                 <h3 style="color: red;">📌 최종 판단</h3>
                 <p style="color: red;">❌ 일반일용근로자: 신청 불가능</p>
                 <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
                 <h3>📌 종합 신청 가능일</h3>
-                <p style="color: red;">${fixedSpecialDate} 근무 기록으로 인해 현재 신청 불가능합니다.</p>
-                <p style="color: red;">(이 경우, ${fixedSpecialDate}이 마지막 근무일이라면 ${formatDateToYYYYMMDD(new Date(new Date(fixedSpecialDate).setDate(new Date(fixedSpecialDate).getDate() + 14 + 1)))} 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
+                <p style="color: red;">기준 날짜(${INPUT_DATE_STR})에 근무 기록이 있으므로 현재 신청 불가능합니다.</p>
+                <p style="color: red;">(이 경우, ${INPUT_DATE_STR}이 마지막 근무일이라면 **${formatDateToYYYYMMDD(nextPossibleApplicationDate)}** 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
