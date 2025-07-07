@@ -111,8 +111,10 @@ def daily_worker_eligibility_app():
     </div>
 
     <div id="resultContainer" style="margin-top:20px; padding:10px; border:1px solid #ddd; border-radius:5px;">
-      <b>선택된 날짜: <span id="selectedCount">0</span>일</b>
+      <h4>📌 조건 기준</h4>
       <div id="resultDetails"></div>
+      <h4>📌 최종 판단</h4>
+      <div id="finalDecision"></div>
     </div>
 
     <script>
@@ -127,7 +129,6 @@ def daily_worker_eligibility_app():
         document.querySelectorAll(".day.selected").forEach(e => {{
           selected.push(e.getAttribute("data-date"));
         }});
-        document.getElementById("selectedCount").innerText = selected.length;
 
         let totalDays = CALENDAR_DATES.length;
         let threshold = totalDays / 3;
@@ -139,16 +140,28 @@ def daily_worker_eligibility_app():
         let nextPossible1 = workedDays >= threshold ? `📅 조건1 충족 위해 ${NEXT_POSSIBLE1_DATE} 이후 신청` : "";
         let nextPossible2 = !noWork14Days ? `📅 조건2 충족 위해 ${FOURTEEN_DAYS_END} 이후 14일 무근무 필요` : "";
 
+        let condition1 = workedDays < threshold ? "✅ 조건1 충족" : "❌ 조건1 불충족";
+        let condition2 = noWork14Days ? "✅ 조건2 충족" : "❌ 조건2 불충족";
+
+        let generalOk = workedDays < threshold ? "✅ 일반일용 신청 가능" : "❌ 일반일용 신청 불가";
+        let constructionOk = (workedDays < threshold || noWork14Days) ? "✅ 건설일용 신청 가능" : "❌ 건설일용 신청 불가";
+
         let html = `
-          <p>조건1: ${workedDays < threshold ? "✅ 충족" : "❌ 불충족"} (${workedDays}일 / 기준 ${threshold.toFixed(1)})</p>
-          <p>조건2: ${noWork14Days ? "✅ 충족" : "❌ 불충족"}</p>
-          <p>${nextPossible1}</p>
-          <p>${nextPossible2}</p>
+          <p>총 기간: ${totalDays}일, 1/3 기준: ${threshold.toFixed(1)}일, 선택: ${workedDays}일</p>
+          <p>${condition1}</p>
+          <p>${condition2}</p>
+          ${nextPossible1 ? `<p>${nextPossible1}</p>` : ""}
+          ${nextPossible2 ? `<p>${nextPossible2}</p>` : ""}
         `;
         document.getElementById("resultDetails").innerHTML = html;
+
+        let final = `
+          <p>${generalOk}</p>
+          <p>${constructionOk}</p>
+        `;
+        document.getElementById("finalDecision").innerHTML = final;
       }}
     </script>
     """
 
-    st.components.v1.html(html, height=800, scrolling=False)
-
+    st.components.v1.html(html, height=1000, scrolling=False)
