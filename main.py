@@ -1,6 +1,6 @@
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app  # 조기재취업수당 페이지용
+from app.early_reemployment import early_reemployment_app  # 만약 사용한다면
 
 def main():
     st.set_page_config(
@@ -8,10 +8,8 @@ def main():
         page_icon="💼",
         layout="centered"
     )
-
     st.title("💼 실업급여 지원 시스템")
 
-    # 상단 메뉴
     menu = st.radio(
         "메뉴 선택",
         ["조기재취업수당", "일용직(건설일용포함)"],
@@ -24,7 +22,7 @@ def main():
         daily_worker_eligibility_app()
 
     st.markdown("---")
-    st.caption("ⓘ 참고용입니다. 실제 판단은 고용센터의 공식 결과를 따르십시오.")
+    st.caption("ⓘ 참고용입니다. 실제 가능 여부는 고용센터 판단을 따르십시오.")
 
 if __name__ == "__main__":
     main()
