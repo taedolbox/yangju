@@ -10,7 +10,7 @@ def main():
     # 1. 초기 메뉴 인덱스 결정 (URL 또는 세션 상태)
     # URL 쿼리 파라미터에서 메뉴 인덱스 가져오기 (앱 최초 로드 시)
     menu_param_from_url = st.query_params.get("menu", None)
-    
+
     # 세션 상태에 'current_menu_idx'가 없으면 URL 파라미터에서 초기값 설정
     if "current_menu_idx" not in st.session_state:
         if menu_param_from_url and menu_param_from_url.isdigit():
@@ -21,38 +21,67 @@ def main():
                 st.session_state.current_menu_idx = 0 # 유효하지 않으면 기본값
         else:
             st.session_state.current_menu_idx = 0 # URL 파라미터 없으면 기본값
-    
-    # 스타일은 그대로 유지
+
+    # --- CSS 스타일 변경 ---
     st.markdown("""
     <style>
-    div[data-baseweb="select"] > div {
-        border: 2px solid #2196F3 !important;
-        color: #2196F3 !important;
+    /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
+    div[data-baseweb="select"] > div:first-child {
+        border: 2px solid #2196F3 !important; /* 기존 테두리 유지 */
+        color: #2196F3 !important;           /* 기존 텍스트 색상 유지 */
         font-weight: 600 !important;
+        background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
     }
+    
+    /* 콤보박스 내부 텍스트 (현재 선택된 값) */
     div[data-baseweb="select"] span {
         color: #2196F3 !important;
         font-weight: 600 !important;
     }
+    
+    /* 드롭다운 리스트 컨테이너 */
+    div[data-baseweb="popover"] {
+        z-index: 9999 !important; /* 다른 요소 위에 오도록 z-index 높임 */
+        background-color: #FFFFFF !important; /* 드롭다운 배경색 하얀색으로 명확하게 */
+        border: 1px solid #2196F3 !important; /* 테두리 추가 */
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; /* 그림자 추가 */
+    }
+
+    /* 드롭다운 리스트 항목 */
     div[data-baseweb="select"] ul[role="listbox"] li {
         color: #2196F3 !important;
         font-weight: 600 !important;
+        padding: 10px 15px !important; /* 패딩 조정 */
     }
+    
+    /* 드롭다운 리스트 항목 호버 시 */
     div[data-baseweb="select"] ul[role="listbox"] li:hover {
         background-color: #2196F3 !important;
         color: white !important;
     }
+    
+    /* 스크롤바 스타일링 (선택 사항, 깔끔하게 보이게) */
+    div[data-baseweb="popover"]::-webkit-scrollbar {
+        width: 8px;
+    }
+    div[data-baseweb="popover"]::-webkit-scrollbar-thumb {
+        background-color: #bbdefb; /* 연한 파랑 */
+        border-radius: 4px;
+    }
+    div[data-baseweb="popover"]::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
     </style>
     """, unsafe_allow_html=True)
 
     # 2. st.selectbox에서 값 변경 시 세션 상태 업데이트
-    # on_change 콜백 함수 정의
     def on_menu_change():
         selected_menu_name = st.session_state.main_menu_select_key # key로 접근
         st.session_state.current_menu_idx = menus.index(selected_menu_name)
         
         # 메뉴 변경 시 URL 쿼리 파라미터도 업데이트 (옵션)
-        # 이 부분은 즉시 화면 전환에 영향을 주지 않고, URL 공유 시 유용
         if st.session_state.current_menu_idx == 0:
             if "menu" in st.query_params:
                 del st.query_params["menu"]
@@ -60,7 +89,6 @@ def main():
             st.query_params["menu"] = str(st.session_state.current_menu_idx + 1)
 
     # st.selectbox의 index를 현재 세션 상태 값으로 설정
-    # on_change 콜백을 사용하여 선택 변경 시 세션 상태 업데이트
     st.selectbox(
         "📋 메뉴 선택", 
         menus, 
