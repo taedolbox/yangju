@@ -1,14 +1,6 @@
 import streamlit as st
-
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
-
-def update_selected_menu(all_menus):
-    selected_menu = st.session_state.menu_selector
-    if selected_menu in all_menus:
-        st.session_state.selected_menu = selected_menu
-        menu_id = all_menus.index(selected_menu) + 1
-        st.query_params["menu"] = str(menu_id)
 
 def main():
     st.set_page_config(
@@ -17,72 +9,50 @@ def main():
         layout="centered"
     )
 
-    # 콤보박스 테두리 + 선택 텍스트 파란색 CSS
     st.markdown(
         """
         <style>
-        div[data-baseweb="select"] > div {
-            border: 2px solid #007bff !important;
+        div[data-baseweb="select"] {
+            border: 2px solid #2196F3 !important;
             border-radius: 6px !important;
         }
-        div[data-baseweb="select"] span {
-            color: #007bff !important;
+        div[data-baseweb="select"]:focus-within {
+            border: 2px solid #0d47a1 !important;
+            box-shadow: 0 0 0 2px rgba(33,150,243,0.3);
+        }
+        .menu-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             font-weight: 600;
+            margin-bottom: 10px;
         }
         </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-    all_menus = [
-        "조기재취업수당",
-        "일용직(건설일용포함)"
-    ]
+    st.markdown(
+        '<div class="menu-label">'
+        '<img src="https://cdn-icons-png.flaticon.com/512/54/54712.png" width="24"/>'
+        '<span>메뉴 선택</span>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
-    menu_functions = {
-        "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app
-    }
-
-    # 세션 초기화
-    if "selected_menu" not in st.session_state:
-        query_params = st.query_params
-        url_menu_id = query_params.get("menu", [None])[0]
-        default_menu = None
-        if url_menu_id:
-            try:
-                menu_idx = int(url_menu_id) - 1
-                if 0 <= menu_idx < len(all_menus):
-                    default_menu = all_menus[menu_idx]
-            except ValueError:
-                pass
-        st.session_state.selected_menu = default_menu if default_menu in all_menus else all_menus[0]
-
-    selected_index = all_menus.index(st.session_state.selected_menu) if st.session_state.selected_menu in all_menus else 0
-
-    # ✅ 본문에 콤보박스만
     selected_menu = st.selectbox(
-        "📋 메뉴 선택",
-        all_menus,
-        index=selected_index,
-        key="menu_selector",
-        on_change=lambda: update_selected_menu(all_menus)
+        label="",  # 👉 라벨 제거
+        options=["조기재취업수당", "일용직(건설일용포함)"],
+        index=0
     )
 
-    if selected_menu != st.session_state.selected_menu:
-        st.session_state.selected_menu = selected_menu
-        menu_id = all_menus.index(selected_menu) + 1
-        st.query_params["menu"] = str(menu_id)
+    if selected_menu == "조기재취업수당":
+        early_reemployment_app()
+    else:
+        daily_worker_eligibility_app()
 
     st.markdown("---")
-
-    if st.session_state.selected_menu:
-        menu_functions.get(
-            st.session_state.selected_menu,
-            lambda: st.info("메뉴를 선택하세요.")
-        )()
-    else:
-        st.info("메뉴를 선택하세요.")
+    st.caption("ⓘ 참고용입니다. 실제 판단은 고용센터의 공식 결과를 따르십시오.")
 
 if __name__ == "__main__":
     main()
