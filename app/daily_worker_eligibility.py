@@ -5,20 +5,6 @@ import json
 
 def daily_worker_eligibility_app():
 
-    # static/styles.css 파일 로드
-    # 이 부분이 모든 CSS를 앱에 적용합니다.
-    try:
-        # 현재 스크립트 파일 (daily_worker_eligibility.py)의 디렉토리를 기준으로 static/styles.css 경로를 구성
-        script_dir = os.path.dirname(__file__)
-        css_file_path = os.path.join(script_dir, "static", "styles.css")
-        with open(css_file_path, "r", encoding="utf-8") as f: # 인코딩 추가
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.error("오류: static/styles.css 파일을 찾을 수 없습니다. 파일이 올바른 디렉토리에 있는지 확인하세요.")
-    except Exception as e:
-        st.error(f"CSS 파일을 로드하는 중 오류 발생: {e}")
-
-
     # 한국 시간으로 오늘 날짜 설정
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
