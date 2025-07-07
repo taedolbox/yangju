@@ -8,10 +8,9 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
     
-    # 상단 고지문
     st.markdown(
-    "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-    unsafe_allow_html=True
+        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
     )
 
     today_kst = datetime.utcnow() + timedelta(hours=9)
@@ -29,9 +28,7 @@ def daily_worker_eligibility_app():
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
-        if ym not in calendar_groups:
-            calendar_groups[ym] = []
-        calendar_groups[ym].append(date)
+        calendar_groups.setdefault(ym, []).append(date)
 
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -43,24 +40,30 @@ def daily_worker_eligibility_app():
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
-        calendar_html += "<h4>" + year + "년 " + month + "월</h4>"
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
         calendar_html += """
         <div class="calendar">
-            <div class="day-header">일</div>
+            <div class="day-header sunday">일</div>
             <div class="day-header">월</div>
             <div class="day-header">화</div>
             <div class="day-header">수</div>
             <div class="day-header">목</div>
             <div class="day-header">금</div>
-            <div class="day-header">토</div>
+            <div class="day-header saturday">토</div>
         """
         start_day_offset = (dates[0].weekday() + 1) % 7
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         for date in dates:
+            wd = date.weekday()  # 월:0 ~ 일:6
+            extra_cls = ""
+            if wd == 5:
+                extra_cls = "saturday"
+            elif wd == 6:
+                extra_cls = "sunday"
             day_num = date.day
             date_str = date.strftime("%m/%d")
-            calendar_html += f'<div class="day" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
+            calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
     calendar_html += """
@@ -77,6 +80,11 @@ def daily_worker_eligibility_app():
         width: 40px; height: 40px; line-height: 40px; text-align: center;
         font-weight: bold; color: #555;
     }
+    .day-header.sunday { color: red; }
+    .day-header.saturday { color: blue; }
+    .day.sunday { color: red; }
+    .day.saturday { color: blue; }
+
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 14px; }
     .empty-day { background: transparent; border: none; }
     .day {
@@ -96,14 +104,8 @@ def daily_worker_eligibility_app():
         font-size: 15px;
         line-height: 1.6;
     }
-    #resultContainer h3 {
-        color: #0d47a1;
-        margin-top: 20px;
-        margin-bottom: 10px;
-    }
-    #resultContainer p {
-        margin: 6px 0;
-    }
+    #resultContainer h3 { color: #0d47a1; margin-top: 20px; margin-bottom: 10px; }
+    #resultContainer p { margin: 6px 0; }
     </style>
 
     <script>
