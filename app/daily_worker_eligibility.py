@@ -13,50 +13,6 @@ def daily_worker_eligibility_app():
         unsafe_allow_html=True
     )
 
-    # ---- 단일 콤보박스 메뉴 ----
-    menu_options = [
-        "메뉴 선택",
-        "조기재취업수당",
-        "일용직(건설일용포함)"
-    ]
-
-    selected_menu = st.selectbox(
-        "",
-        menu_options,
-        key="menu_selector"
-    )
-
-    # 콤보박스 스타일 적용
-    st.markdown(
-        """
-        <style>
-        div[data-baseweb="select"] > div {
-            border: 2px solid #007bff !important;
-            border-radius: 6px !important;
-        }
-        div[data-baseweb="select"] span {
-            color: #007bff !important;
-            font-weight: 600;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # 메뉴별 화면 내용 분기 처리
-    if selected_menu == "조기재취업수당":
-        st.markdown("<h3>조기재취업수당 관련 내용이 여기에 표시됩니다.</h3>", unsafe_allow_html=True)
-        # 필요한 조기재취업수당 관련 UI 및 로직 추가
-
-    elif selected_menu == "일용직(건설일용포함)":
-        # 여기서 기존 일용직 달력 및 조건판단 UI 전체 출력
-        show_daily_worker_eligibility()
-
-    else:
-        st.info("메뉴를 선택해 주세요.")
-
-def show_daily_worker_eligibility():
-    # 기존 일용직 달력 + 조건 판단 로직 전체 복붙
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
@@ -188,8 +144,8 @@ def show_daily_worker_eligibility():
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
         const condition2Text = noWork14Days
-            ? "✅ 조건 2 충족: 신청일 직전 14일간 무근무"
-            : "❌ 조건 2 불충족: 신청일 직전 14일간 근무기록 존재";
+            ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
+            : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
 
         const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
@@ -234,7 +190,4 @@ def show_daily_worker_eligibility():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
 
