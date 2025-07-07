@@ -5,10 +5,8 @@ from app.early_reemployment import early_reemployment_app
 def main():
     st.set_page_config(page_title="실업급여 지원 시스템", page_icon="💼", layout="centered")
 
-    # 메뉴 리스트 (조기재취업수당, 일용직(건설일용포함)만)
     menus = ["조기재취업수당", "일용직(건설일용포함)"]
 
-    # 콤보박스에 메뉴 출력 (파란색 텍스트는 CSS로)
     menu_css = """
     <style>
     div[data-baseweb="select"] > div {
@@ -41,4 +39,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
