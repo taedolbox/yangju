@@ -1,72 +1,86 @@
 import streamlit as st
 from datetime import datetime, timedelta
+import json
 
 def daily_worker_eligibility_app():
-    st.markdown("<h3>🏗️ 일용직 신청 가능 시점 판단</h3>", unsafe_allow_html=True)
+    st.markdown(
+        "<h3>🏗️ 일용직 신청 가능 시점 판단</h3>",
+        unsafe_allow_html=True
+    )
 
-    today = datetime.today()
-    first_day = today.replace(day=1)
-    last_day = today.replace(day=28) + timedelta(days=4)
-    last_day = last_day - timedelta(days=last_day.day)
+    st.markdown(
+        "<p style='font-size:16px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
+        unsafe_allow_html=True
+    )
 
-    html = """
+    today_kst = datetime.utcnow() + timedelta(hours=9)
+    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
+
+    first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+    last_day = input_date
+
+    cal_dates = []
+    current_date = first_day_prev_month
+    while current_date <= last_day:
+        cal_dates.append(current_date)
+        current_date += timedelta(days=1)
+
+    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
+    fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
+    fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+    next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+    next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
+
+    html = f"""
     <style>
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      background: #fff;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .day-header {
-      aspect-ratio: 1/1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #333;
-    }
-    .day-header.sunday { color: red; }
-    .day-header.saturday { color: blue; }
+      .calendar {{
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        width: 100%;
+        max-width: 100%;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+      }}
+      .day-header {{
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+      }}
+      .day-header.sunday {{ color: red; }}
+      .day-header.saturday {{ color: blue; }}
 
-    .day {
-      aspect-ratio: 1/1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
-      color: #333;
-      cursor: pointer;
-    }
-    .day.sunday { color: red; }
-    .day.saturday { color: blue; }
+      .day {{
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        color: #333;
+        cursor: pointer;
+      }}
+      .day.sunday {{ color: red; }}
+      .day.saturday {{ color: blue; }}
 
-    .day.selected {
-      background: #2196F3;
-      color: #fff;
-      font-weight: bold;
-    }
+      .day.selected {{
+        background: #2196F3;
+        color: #fff;
+        font-weight: bold;
+      }}
 
-    .day.empty {
-      border: none;
-      background: none;
-    }
-
-    @media (max-width: 600px) {
-      .calendar {
-        padding: 5px;
-        gap: 3px;
-      }
-    }
+      .day.empty {{
+        border: none;
+        background: none;
+      }}
     </style>
 
     <div class="calendar">
@@ -80,41 +94,61 @@ def daily_worker_eligibility_app():
     """
 
     # 시작 요일 offset
-    start_offset = (first_day.weekday() + 1) % 7
+    start_offset = (cal_dates[0].weekday() + 1) % 7
     for _ in range(start_offset):
         html += '<div class="day empty"></div>'
 
-    # 날짜
-    current = first_day
-    while current <= last_day:
-        weekday = current.weekday()
-        dow = (weekday + 1) % 7
+    for date in cal_dates:
+        weekday = (date.weekday() + 1) % 7
         cls = ""
-        if dow == 0:
+        if weekday == 0:
             cls = "sunday"
-        elif dow == 6:
+        elif weekday == 6:
             cls = "saturday"
-        html += f'<div class="day {cls}" onclick="toggleDate(this)">{current.day}</div>'
-        current += timedelta(days=1)
+        html += f'<div class="day {cls}" onclick="toggleDate(this)" data-date="{date.strftime("%Y-%m-%d")}">{date.day}</div>'
 
-    html += """
+    html += f"""
     </div>
 
     <div id="resultContainer" style="margin-top:20px; padding:10px; border:1px solid #ddd; border-radius:5px;">
       <b>선택된 날짜: <span id="selectedCount">0</span>일</b>
+      <div id="resultDetails"></div>
     </div>
 
     <script>
-      function toggleDate(el) {
+      const CALENDAR_DATES = {calendar_dates_json};
+      const FOURTEEN_DAYS_START = '{fourteen_days_prior_start}';
+      const FOURTEEN_DAYS_END = '{fourteen_days_prior_end}';
+      const NEXT_POSSIBLE1_DATE = '{next_possible1_str}';
+
+      function toggleDate(el) {{
         el.classList.toggle("selected");
         let selected = [];
-        document.querySelectorAll(".day.selected").forEach(e => {
-          selected.push(e.innerText);
-        });
+        document.querySelectorAll(".day.selected").forEach(e => {{
+          selected.push(e.getAttribute("data-date"));
+        }});
         document.getElementById("selectedCount").innerText = selected.length;
-      }
+
+        let totalDays = CALENDAR_DATES.length;
+        let threshold = totalDays / 3;
+        let workedDays = selected.length;
+
+        let fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
+        let noWork14Days = fourteenDays.every(date => !selected.includes(date));
+
+        let nextPossible1 = workedDays >= threshold ? `📅 조건1 충족 위해 ${NEXT_POSSIBLE1_DATE} 이후 신청` : "";
+        let nextPossible2 = !noWork14Days ? `📅 조건2 충족 위해 ${FOURTEEN_DAYS_END} 이후 14일 무근무 필요` : "";
+
+        let html = `
+          <p>조건1: ${workedDays < threshold ? "✅ 충족" : "❌ 불충족"} (${workedDays}일 / 기준 ${threshold.toFixed(1)})</p>
+          <p>조건2: ${noWork14Days ? "✅ 충족" : "❌ 불충족"}</p>
+          <p>${nextPossible1}</p>
+          <p>${nextPossible2}</p>
+        `;
+        document.getElementById("resultDetails").innerHTML = html;
+      }}
     </script>
     """
 
-    st.components.v1.html(html, height=700, scrolling=False)
+    st.components.v1.html(html, height=800, scrolling=False)
 
