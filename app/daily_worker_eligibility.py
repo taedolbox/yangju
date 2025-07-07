@@ -1,9 +1,7 @@
 # app/daily_worker_eligibility.py
-
 import streamlit as st
 from datetime import datetime, timedelta
 import json
-import os # os 모듈 임포트
 
 def daily_worker_eligibility_app():
 
