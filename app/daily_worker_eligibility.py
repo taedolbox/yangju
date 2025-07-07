@@ -36,6 +36,9 @@ def daily_worker_eligibility_app():
     next_possible1_date = (input_date.replace(day=1) + timedelta(days=32)).replace(day=1)
     next_possible1_str = next_possible1_date.strftime("%Y-%m-%d")
 
+    # 오늘 기준 yyyy-mm-dd
+    today_str = today_kst.strftime("%Y-%m-%d")
+
     calendar_html = "<div id='calendar-container'>"
 
     for ym, dates in calendar_groups.items():
@@ -55,7 +58,7 @@ def daily_worker_eligibility_app():
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         for date in dates:
-            wd = date.weekday()  # 월:0 ~ 일:6
+            wd = date.weekday()
             extra_cls = ""
             if wd == 5:
                 extra_cls = "saturday"
@@ -113,6 +116,8 @@ def daily_worker_eligibility_app():
     const FOURTEEN_DAYS_START = '""" + fourteen_days_prior_start + """';
     const FOURTEEN_DAYS_END = '""" + fourteen_days_prior_end + """';
     const NEXT_POSSIBLE1_DATE = '""" + next_possible1_str + """';
+    const TODAY_DATE = '""" + today_str + """';
+    const SELECTED_DATE = '""" + input_date.strftime("%Y-%m-%d") + """';
 
     function saveToLocalStorage(data) {
         localStorage.setItem('selectedDates', JSON.stringify(data));
@@ -123,8 +128,15 @@ def daily_worker_eligibility_app():
         const threshold = totalDays / 3;
         const workedDays = selected.length;
 
-        const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
-        const noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
+        let noWork14Days = true;
+
+        if (SELECTED_DATE === TODAY_DATE) {
+            // 오늘이면 무조건 조건2 불충족
+            noWork14Days = false;
+        } else {
+            const fourteenDays = CALENDAR_DATES.filter(date => date >= FOURTEEN_DAYS_START && date <= FOURTEEN_DAYS_END);
+            noWork14Days = fourteenDays.every(date => !selected.includes(date.substring(5).replace("-", "/")));
+        }
 
         let nextPossible1 = "";
         if (workedDays >= threshold) {
@@ -139,7 +151,7 @@ def daily_worker_eligibility_app():
             nextPossible2 = "📅 조건 2를 충족하려면 오늘 이후에 근로제공이 없는 경우 " + nextDateStr + " 이후에 신청하면 조건 2를 충족할 수 있습니다.";
         }
 
-        const condition1Text = workedDays < threshold
+        const condition1Text = workedDays < threshold && SELECTED_DATE !== TODAY_DATE
             ? "✅ 조건 1 충족: 근무일 수(" + workedDays + ") < 기준(" + threshold.toFixed(1) + ")"
             : "❌ 조건 1 불충족: 근무일 수(" + workedDays + ") ≥ 기준(" + threshold.toFixed(1) + ")";
 
@@ -147,8 +159,8 @@ def daily_worker_eligibility_app():
             ? "✅ 조건 2 충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 무근무"
             : "❌ 조건 2 불충족: 신청일 직전 14일간(" + FOURTEEN_DAYS_START + " ~ " + FOURTEEN_DAYS_END + ") 내 근무기록이 존재";
 
-        const generalWorkerText = workedDays < threshold ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = (workedDays < threshold || noWork14Days) ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = workedDays < threshold && SELECTED_DATE !== TODAY_DATE ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = (workedDays < threshold || noWork14Days) && SELECTED_DATE !== TODAY_DATE ? "✅ 신청 가능" : "❌ 신청 불가능";
 
         const finalHtml = `
             <h3>📌 조건 기준</h3>
