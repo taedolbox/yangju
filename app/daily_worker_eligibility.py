@@ -3,38 +3,39 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
-    # Set today's date in KST
+
+    # 한국 시간으로 오늘 날짜 설정
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    # Set period for calendar display (from the first day of the previous month to the selected date)
+    # 달력 표시를 위한 기간 설정 (직전 달 첫날부터 선택된 날짜까지)
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
     cal_dates = []
     current_date_for_cal = first_day_prev_month
-    while current_date_for_cal <= input_date: # Include up to the selected date
+    while current_date_for_cal <= input_date: # 선택된 날짜까지 포함하여 달력에 표시
         cal_dates.append(current_date_for_cal)
         current_date_for_cal += timedelta(days=1)
 
-    # Group calendar by month
+    # 달력을 월별로 그룹화
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
         calendar_groups.setdefault(ym, []).append(date)
 
-    # Date data for JavaScript (JSON array string)
+    # JavaScript로 전달할 날짜 데이터 (JSON 배열 문자열)
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     
-    # 14 days prior date needed for Condition 2 calculation (depends on the base date)
+    # 조건 2 계산에 필요한 14일 전 날짜 (기준 날짜에 따라 달라짐)
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     
     input_date_str = input_date.strftime("%Y-%m-%d")
 
-    # Streamlit HTML/JavaScript component insertion
+    # Streamlit에 HTML/JavaScript 컴포넌트 삽입
     calendar_html = "<div id='calendar-container'>"
 
-    # Add the Clear Calendar button here, above the month headers
+    # ★★★ 달력 초기화 버튼 추가 ★★★
     calendar_html += """
     <div style="text-align: right; margin-bottom: 15px;">
         <button onclick="clearCalendar()" style="
@@ -51,7 +52,7 @@ def daily_worker_eligibility_app():
             🔄 달력 초기화
         </button>
     </div>
-    """
+    """ # ★★★ 여기까지 추가 ★★★
 
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
@@ -66,12 +67,12 @@ def daily_worker_eligibility_app():
             <div class="day-header">금</div>
             <div class="day-header saturday">토</div>
         """
-        # Fill empty days for the first week of the month
-        start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): Mon0~Sun6 -> Sun0~Sat6
+        # 달력 첫 주 공백 채우기
+        start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): 월0~일6 -> 일0~토6으로 변경
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         
-        # Create day buttons
+        # 각 날짜 버튼 생성
         for date in dates:
             wd = date.weekday()
             extra_cls = ""
@@ -80,8 +81,8 @@ def daily_worker_eligibility_app():
             elif wd == 6:
                 extra_cls = "sunday"
             day_num = date.day
-            date_str = date.strftime("%m/%d") # MM/DD format (for local storage key and JS)
-            date_full_str = date.strftime("%Y-%m-%d") #YYYY-MM-DD format (for JS calculation)
+            date_str = date.strftime("%m/%d") # MM/DD 형식 (로컬 스토리지 키 및 JS에서 사용)
+            date_full_str = date.strftime("%Y-%m-%d") #YYYY-MM-DD 형식 (JS에서 계산용)
             calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" data-full-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
@@ -89,19 +90,19 @@ def daily_worker_eligibility_app():
     </div>
     <div id="resultContainer"></div>
     <style>
-    /* CSS styles */
+    /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 44px); /* 40px -> 45px: increased column width */
+        grid-template-columns: repeat(7, 44px); /* 40px -> 45px: 각 열 너비 증가 */
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
-        padding: 10px 1px; /* Maintain 10px top/bottom, 1px left/right */
+        padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
-        width: 44px; height: 44px; /* 40px -> 45px: increased header size */
-        line-height: 45px; /* 40px -> 45px: maintain vertical text alignment */
+        width: 44px; height: 44px; /* 40px -> 45px: 요일 헤더 크기 증가 */
+        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         font-weight: bold; color: #555;
     }
@@ -112,8 +113,8 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; /* 14px -> 16px */ }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 44px; height: 44px; /* 40px -> 45px: increased day cell size */
-        line-height: 45px; /* 40px -> 45px: maintain vertical text alignment */
+        width: 44px; height: 44px; /* 40px -> 45px: 날짜 칸 크기 증가 */
+        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
         transition: background 0.1s ease, border 0.1s ease; font-size: 18px; /* 16px -> 18px */ color: #333;
@@ -132,12 +133,12 @@ def daily_worker_eligibility_app():
     #resultContainer h3 { color: #0d47a1; margin-top: 20px; margin-bottom: 10px; }
     #resultContainer p { margin: 6px 0; }
 
-    /* Adjust spacing between year/month text and calendar container */
+    /* 년월 텍스트와 달력 컨테이너 사이 간격 조정 */
     #calendar-container h4 {
-        margin-bottom: 5px; /* Reduce bottom margin of year/month text to be closer to the calendar. */
+        margin-bottom: 5px; /* 년월 텍스트 아래 여백을 5px로 줄여 달력에 더 가깝게 붙입니다. */
     }
 
-    /* Dark mode styles */
+    /* 다크 모드 스타일 */
     html[data-theme="dark"] #resultContainer {
         background: #262730;
         color: #FAFAFA;
@@ -145,9 +146,9 @@ def daily_worker_eligibility_app():
     html[data-theme="dark"] #resultContainer h3 {
         color: #90CAF9;
     }
-    /* ★★★ This part has been changed: Force color for year/month text in dark mode ★★★ */
+    /* ★★★ 이 부분이 변경되었습니다: 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 ★★★ */
     html[data-theme="dark"] h4 {
-        color: #FFFFFF !important; /* Set bright color for all h4 and force with !important */
+        color: #FFFFFF !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
     }
     html[data-theme="dark"] .day {
         background-color: #31333F;
@@ -168,24 +169,24 @@ def daily_worker_eligibility_app():
     </style>
 
     <script>
-    // Python-passed date data (injected as JSON array string)
+    // Python에서 넘겨받은 날짜 데이터 (JSON 배열 문자열로 주입)
     const CALENDAR_DATES_RAW = """ + calendar_dates_json + """;
     const CALENDAR_DATES = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr)); 
 
-    // Python-passed base date related strings
+    // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
     const INPUT_DATE_STR = '""" + input_date_str + """';          
 
     // --- Helper Functions ---
-    // Calculate days between two dates (inclusive of start and end dates)
+    // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
     function getDaysBetween(startDate, endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
         if (start > end) return 0;
         let count = 0;
         let current = new Date(start); 
-        // Set time to 00:00:00 for accurate date comparison
+        // 시간을 00:00:00으로 맞추어 날짜 비교의 정확성 높임
         current.setHours(0,0,0,0); 
         end.setHours(0,0,0,0);
         while (current <= end) {
@@ -195,7 +196,7 @@ def daily_worker_eligibility_app():
         return count;
     }
 
-    // Get the first day of the month prior to the given date
+    // 특정 날짜가 속한 달의 직전 달 1일 구하기
     function getFirstDayOfPrevMonth(date) {
         const d = new Date(date);
         d.setDate(1); 
@@ -203,7 +204,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Format Date object to YYYY-MM-DD string
+    // Date 객체를YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -211,15 +212,15 @@ def daily_worker_eligibility_app():
         return `${year}-${month}-${day}`;
     }
 
-    // --- Core Logic: Calculation and Result Display ---
+    // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // Convert selected MM/DD dates to YYYY-MM-DD format
+        // MM/DD 형식의 선택된 날짜들을YYYY-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
-        }).filter(Boolean); // Remove empty strings (if storedDates contained dates not in the current calendar)
+        }).filter(Boolean); // 빈 문자열 제거 (만약 달력에 없는 날짜가 storedDates에 있었다면 제거)
 
-        // Find the latest worked day among selected working days (assuming no further work)
+        // 선택된 근무일 중 가장 최근 날짜 찾기 (이후 근무 없음을 전제하기 위함)
         let latestWorkedDay = null;
         if (selectedFullDates.length > 0) {
             latestWorkedDay = selectedFullDates.reduce((maxDate, currentDateStr) => {
@@ -228,10 +229,10 @@ def daily_worker_eligibility_app():
             }, null);
         }
 
-        const inputDate = new Date(INPUT_DATE_STR); // User selected base date (today's date)
-        inputDate.setHours(0,0,0,0); // Initialize time
+        const inputDate = new Date(INPUT_DATE_STR); // 사용자가 선택한 기준 날짜 (오늘 날짜)
+        inputDate.setHours(0,0,0,0); // 시간 초기화
 
-        // --- Special Case 1: No working days selected ---
+        // --- 특수 케이스 1: 근무일이 전혀 없는 경우 ---
         if (selectedFullDates.length === 0) {
             const finalHtml = `
                 <h3>📌 조건 판단</h3>
@@ -248,12 +249,12 @@ def daily_worker_eligibility_app():
             return;
         }
 
-        // --- Special Case 2: Base date (INPUT_DATE_STR) is selected as a working day ---
-        // (If the date selected by the user in the Streamlit date picker is checked as a working day in the calendar)
+        // --- 특수 케이스 2: 기준 날짜(INPUT_DATE_STR)가 근무일로 선택된 경우 ---
+        // (사용자가 Streamlit 날짜 선택기에서 고른 날짜가 달력에서 근무일로 체크된 경우)
         if (selectedFullDates.includes(INPUT_DATE_STR)) {
-            // If base date is a working day, both Condition 1 and 2 are considered unfulfilled (user request)
+            // 기준 날짜가 근무일이므로 조건 1, 2 모두 불충족으로 간주 (사용자 요청)
             const nextPossibleApplicationDate = new Date(INPUT_DATE_STR);
-            nextPossibleApplicationDate.setDate(nextPossibleApplicationDate.getDate() + 14 + 1); // Base date + 14 days no work + 1 day
+            nextPossibleApplicationDate.setDate(nextPossibleApplicationDate.getDate() + 14 + 1); // 기준 날짜 + 14일 무근무 후 +1일
 
             const finalHtml = `
                 <h3 style="color: red;">📌 조건 판단</h3>
@@ -272,18 +273,18 @@ def daily_worker_eligibility_app():
         }
 
 
-        // --- Condition 1 Current Judgment (based on base date) ---
+        // --- 조건 1 현재 판단 (기준 날짜 기준) ---
         const currentPeriodStartForCond1 = getFirstDayOfPrevMonth(inputDate);
-        currentPeriodStartForCond1.setHours(0,0,0,0); // Initialize time
+        currentPeriodStartForCond1.setHours(0,0,0,0); // 시간 초기화
 
         const currentTotalDaysForCond1 = getDaysBetween(currentPeriodStartForCond1, inputDate);
         const currentThresholdForCond1 = currentTotalDaysForCond1 / 3;
         
-        // Calculate actual working days within Condition 1 period for the current base date
+        // 현재 기준 날짜의 조건 1 기간 내 실제 근무일 수 계산
         const actualWorkedDaysForCond1 = selectedFullDates.filter(dateStr => {
             const date = new Date(dateStr);
-            date.setHours(0,0,0,0); // Initialize time
-            return date >= currentPeriodStartForCond1 && date <= latestWorkedDay; // Count only up to latestWorkedDay (assuming no further work)
+            date.setHours(0,0,0,0); // 시간 초기화
+            return date >= currentPeriodStartForCond1 && date <= latestWorkedDay; // latestWorkedDay까지만 카운트 (이후 근무 없음을 전제)
         }).length;
 
         const condition1Met = actualWorkedDaysForCond1 < currentThresholdForCond1;
@@ -292,39 +293,39 @@ def daily_worker_eligibility_app():
             : `❌ 조건 1 불충족: 근무일 수(${actualWorkedDaysForCond1}) ≥ 기준(${currentThresholdForCond1.toFixed(1)})`;
 
         let nextPossible1Message = "";
-        let nextPossible1Date = null; // Store as Date object
+        let nextPossible1Date = null; // Date 객체로 저장
 
-        if (!condition1Met) { // If Condition 1 is not met for the current base date, calculate the earliest possible date
+        if (!condition1Met) { // 현재 기준 날짜에 조건 1이 불충족이라면, 가장 빠른 가능일 계산
             let testApplicationDate = new Date(inputDate);
-            testApplicationDate.setDate(testApplicationDate.getDate() + 1); // Start checking from tomorrow
-            testApplicationDate.setHours(0,0,0,0); // Initialize time
+            testApplicationDate.setDate(testApplicationDate.getDate() + 1); // 내일부터 확인 시작
+            testApplicationDate.setHours(0,0,0,0); // 시간 초기화
 
             let loopCount = 0;
-            const maxLoopDays = 365; // Max search days to prevent infinite loop (generously 1 year)
+            const maxLoopDays = 365; // 무한 루프 방지를 위한 최대 탐색 일수 (넉넉히 1년)
 
             while (loopCount < maxLoopDays) {
                 const testPeriodStart = getFirstDayOfPrevMonth(testApplicationDate);
-                testPeriodStart.setHours(0,0,0,0); // Initialize time
+                testPeriodStart.setHours(0,0,0,0); // 시간 초기화
 
                 const testTotalDays = getDaysBetween(testPeriodStart, testApplicationDate);
                 
-                // Actual working days within the test period (only reflecting records up to the latest worked day)
+                // 테스트 기간 내 실제 근무일 수 (가장 최근 근무일까지의 기록만 반영)
                 let effectiveWorkedDaysForCond1Test = 0;
-                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // If latestWorkedDay is after the test period start
+                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
                     effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
                         const date = new Date(dateStr);
-                        date.setHours(0,0,0,0); // Initialize time
-                        return date >= testPeriodStart && date <= latestWorkedDay; // Count only work between test period start and latestWorkedDay
+                        date.setHours(0,0,0,0); // 시간 초기화
+                        return date >= testPeriodStart && date <= latestWorkedDay; // 테스트 기간 시작일 ~ latestWorkedDay 사이 근무만 카운트
                     }).length;
                 }
-                // If latestWorkedDay is before testPeriodStart, effectiveWorkedDaysForCond1Test will be 0 (correct behavior)
+                // 만약 latestWorkedDay가 testPeriodStart보다 이전이라면, effectiveWorkedDaysForCond1Test는 0이 됨 (정상 동작)
 
                 if (effectiveWorkedDaysForCond1Test < testTotalDays / 3) {
-                    nextPossible1Date = testApplicationDate; // Found the earliest date that satisfies the condition
+                    nextPossible1Date = testApplicationDate; // 조건을 만족하는 가장 빠른 날짜 발견
                     break;
                 }
 
-                testApplicationDate.setDate(testApplicationDate.getDate() + 1); // Move to the next day
+                testApplicationDate.setDate(testApplicationDate.getDate() + 1); // 다음 날짜로 이동
                 loopCount++;
             }
 
@@ -336,12 +337,12 @@ def daily_worker_eligibility_app():
         }
 
 
-        // --- Condition 2 Current Judgment (based on base date) ---
+        // --- 조건 2 현재 판단 (기준 날짜 기준) ---
         const fourteenDaysRangeForCurrentInput = [];
         const fourteenDaysStartForCurrentInput = new Date(FOURTEEN_DAYS_START_STR);
-        fourteenDaysStartForCurrentInput.setHours(0,0,0,0); // Initialize time
+        fourteenDaysStartForCurrentInput.setHours(0,0,0,0); // 시간 초기화
         const fourteenDaysEndForCurrentInput = new Date(FOURTEEN_DAYS_END_STR);
-        fourteenDaysEndForCurrentInput.setHours(0,0,0,0); // Initialize time
+        fourteenDaysEndForCurrentInput.setHours(0,0,0,0); // 시간 초기화
 
         let tempDateForRange = new Date(fourteenDaysStartForCurrentInput);
         while (tempDateForRange <= fourteenDaysEndForCurrentInput) {
@@ -349,34 +350,34 @@ def daily_worker_eligibility_app():
             tempDateForRange.setDate(tempDateForRange.getDate() + 1);
         }
 
-        const noWork14Days = fourteenDaysRangeForCurrentInput.every(dateStr => !selectedFullDates.includes(dateStr)); // Check for 14 days of no work
+        const noWork14Days = fourteenDaysRangeForCurrentInput.every(dateStr => !selectedFullDates.includes(dateStr)); // 14일 무근무 여부 확인
         
         let condition2Text = noWork14Days
             ? `✅ 조건 2 충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 무근무`
             : `❌ 조건 2 불충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 내 근무기록 존재`;
 
         let nextPossible2Message = "";
-        let nextPossible2Date = null; // Store as Date object
+        let nextPossible2Date = null; // Date 객체로 저장
 
-        if (!noWork14Days) { // If Condition 2 is not met for the current base date, calculate the earliest possible date
-            if (latestWorkedDay) { // If there is a latest worked day
+        if (!noWork14Days) { // 현재 기준 날짜에 조건 2가 불충족이라면, 가장 빠른 가능일 계산
+            if (latestWorkedDay) { // 가장 최근 근무일이 있다면
                 nextPossible2Date = new Date(latestWorkedDay);
-                nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1); // Last worked day + 14 days no work + 1 day (possible application date)
-                nextPossible2Date.setHours(0,0,0,0); // Initialize time
+                nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1); // 마지막 근무일 + 14일 무근무 후 +1일 (신청 가능일)
+                nextPossible2Date.setHours(0,0,0,0); // 시간 초기화
                 nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준) (이후 근로제공이 없다는 전제)`;
             } else {
                 nextPossible2Message = `🤔 조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 확인 필요)`;
             }
         }
 
-        // --- Final Application Eligibility Judgment (based on current base date) ---
+        // --- 최종 신청 가능 여부 판단 (현재 기준 날짜 기준) ---
         const generalWorkerEligible = condition1Met;
-        const constructionWorkerEligible = condition1Met || noWork14Days; // Construction daily workers only need to meet one of the two conditions
-        
+        const constructionWorkerEligible = condition1Met || noWork14Days; // 건설일용근로자는 둘 중 하나만 충족해도 됨
+
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         
-        // Construct and display final HTML
+        // 최종 HTML 구성 및 출력
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
@@ -397,7 +398,7 @@ def daily_worker_eligibility_app():
         document.getElementById('resultContainer').innerHTML = finalHtml;
     }
 
-    // Toggle date selection/deselection function
+    // 날짜 선택/해제 토글 함수
     function toggleDate(element) {
         element.classList.toggle('selected');
         const selected = [];
@@ -407,29 +408,29 @@ def daily_worker_eligibility_app():
                 selected.push(days[i].getAttribute('data-date'));
             }
         }
-        saveToLocalStorage(selected); // Save to local storage
-        calculateAndDisplayResult(selected); // Recalculate result
+        saveToLocalStorage(selected); // 로컬 스토리지에 저장
+        calculateAndDisplayResult(selected); // 결과 다시 계산
     }
 
-    // Load selected dates from local storage
+    // 로컬 스토리지에서 선택된 날짜 불러오기
     function loadSelectedDates() {
         try {
             const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
             storedDates.forEach(mmdd => {
-                // Add 'selected' class only to dates present in the current calendar
+                // 현재 달력에 있는 날짜만 selected 클래스 추가
                 const dayElement = document.querySelector(`.day[data-date="${mmdd}"]`);
                 if (dayElement) {
                     dayElement.classList.add('selected');
                 }
             });
-            calculateAndDisplayResult(storedDates); // Calculate initial result with loaded dates
+            calculateAndDisplayResult(storedDates); // 불러온 날짜로 초기 결과 계산
         } catch (e) {
             console.error("Failed to load selected dates from localStorage or calculate result:", e);
-            calculateAndDisplayResult([]); // Initialize with empty state on error
+            calculateAndDisplayResult([]); // 오류 발생 시 빈 상태로 초기화
         }
     }
 
-    // Save selected dates to local storage
+    // 로컬 스토리지에 선택된 날짜 저장
     function saveToLocalStorage(data) {
         try {
             localStorage.setItem('selectedDates', JSON.stringify(data));
@@ -438,22 +439,21 @@ def daily_worker_eligibility_app():
         }
     }
 
-    // Function to clear all selected dates
-    // 이 함수가 window 객체에 할당되어야 HTML 버튼에서 직접 호출 가능합니다.
-    window.clearCalendar = function() { // Added 'window.'
-        // Remove 'selected' class from all days
+    // ★★★ 달력 초기화 함수 (window 객체에 할당하여 HTML에서 호출 가능하도록 함) ★★★
+    window.clearCalendar = function() {
+        // 모든 'selected' 클래스 제거
         const days = document.getElementsByClassName('day');
         for (let i = 0; i < days.length; i++) {
             days[i].classList.remove('selected');
         }
-        // Clear local storage
+        // 로컬 스토리지 초기화
         saveToLocalStorage([]);
-        // Recalculate and display result
+        // 결과 다시 계산 및 표시
         calculateAndDisplayResult([]);
     };
+    // ★★★ 여기까지 추가 ★★★
 
-
-    // DOMContentLoaded event listener: Execute script after HTML document is fully loaded and parsed
+    // DOMContentLoaded 이벤트 리스너: HTML 문서가 완전히 로드되고 파싱된 후 스크립트 실행
     document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
     });
@@ -461,6 +461,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
