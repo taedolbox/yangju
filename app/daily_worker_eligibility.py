@@ -74,7 +74,7 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 45px); /* 40px -> 45px: 각 열 너비 증가 */
+        grid-template-columns: repeat(7, 46px); /* 40px -> 45px: 각 열 너비 증가 */
         grid-gap: 4px;
         margin-bottom: 20px; background: #fff; 
         padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */
