@@ -3,11 +3,13 @@
 import streamlit as st
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
+from app.job_search_duty import job_search_duty_app # 새로 추가: 구직 활동 의무 앱 임포트
 
 def main():
     st.set_page_config(page_title="실업급여 지원 시스템", page_icon="💼", layout="centered")
 
-    menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)"]
+    # menus 리스트에 "구직 활동 의무" 추가
+    menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)", "구직 활동 의무"] # 변경된 부분
 
     # 1. 초기 메뉴 인덱스 결정 (URL 또는 세션 상태)
     menu_param_from_url = st.query_params.get("menu", None)
@@ -28,7 +30,7 @@ def main():
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
     div[data-baseweb="select"] > div:first-child {
         border: 2px solid #2196F3 !important; /* 기존 테두리 유지 */
-        color: #2196F3 !important;             /* 기존 텍스트 색상 유지 */
+        color: #2196F3 !important;           /* 기존 텍스트 색상 유지 */
         font-weight: 600 !important;
         background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
     }
@@ -104,7 +106,13 @@ def main():
         pass 
     else:
         # 선택된 메뉴 이름으로 동적 타이틀 생성
-        display_title = selected_menu_title + " 요건 판단" if selected_menu_title != "일용직(건설일용포함)" else "일용직(건설일용포함) 실업급여 요건 판단"
+        if selected_menu_title == "일용직(건설일용포함)":
+            display_title = "일용직(건설일용포함) 실업급여 요건 판단"
+        elif selected_menu_title == "구직 활동 의무": # 새로 추가된 메뉴의 타이틀
+            display_title = "구직 활동 의무 안내"
+        else:
+            display_title = selected_menu_title + " 요건 판단"
+            
         st.markdown(
             f"<span style='font-size:22px; font-weight:600;'>🏗️ {display_title}</span>",
             unsafe_allow_html=True
@@ -133,7 +141,7 @@ def main():
                 </p>
                 <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px; color: #333333;"> <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
                     <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
-                </ul>
+                    <li>🔹 <b>구직 활동 의무:</b> 실업급여 수급 중 구직 활동 인정 범위와 증빙 서류를 안내합니다.</li> </ul>
                 <p style="font-size: 14px; color: #555; margin-top: 20px;">
                     💡 <b>주의:</b> 본 시스템의 결과는 참고용이며, 최종적인 실업급여 수급 여부는 관할 고용센터의 판단에 따릅니다.
                 </p>
@@ -145,6 +153,8 @@ def main():
         early_reemployment_app() # 조기재취업수당 페이지 함수 호출
     elif selected_idx == 2:
         daily_worker_eligibility_app() # 일용직 페이지 함수 호출
+    elif selected_idx == 3: # 새로 추가된 "구직 활동 의무" 메뉴의 인덱스
+        job_search_duty_app() # 구직 활동 의무 페이지 함수 호출
 
 if __name__ == "__main__":
     main()
