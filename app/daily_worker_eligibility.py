@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
-
     # 한국 시간으로 오늘 날짜 설정
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
@@ -74,19 +73,16 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 45px); /* 7열, 각 45px 너비 */
-        grid-gap: 5px; /* 열 사이 5px 간격 */
-        margin-bottom: 20px;
-        background: #fff; 
-        padding: 10px 1px; /* 상하 10px, 좌우 1px */
+        grid-template-columns: repeat(7, 47px); /* 45px -> 47px: 각 열 너비 증가 */
+        grid-gap: 5px;
+        margin-bottom: 20px; background: #fff; 
+        padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        box-sizing: border-box; /* 패딩과 보더를 포함하여 너비 계산 */
-        width: 349px; /* ★★★ 347px에서 349px로 2px 증가 ★★★ */
     }
     .day-header, .empty-day {
-        width: 45px; height: 45px;
-        line-height: 45px;
+        width: 47px; height: 45px; /* 45px -> 47px: 요일 헤더 크기 증가 */
+        line-height: 45px; /* 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         font-weight: bold; color: #555;
     }
@@ -97,8 +93,8 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 45px; height: 45px;
-        line-height: 45px;
+        width: 47px; height: 45px; /* 45px -> 47px: 날짜 칸 크기 증가 */
+        line-height: 45px; /* 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
         transition: background 0.1s ease, border 0.1s ease; font-size: 18px; color: #333;
@@ -119,7 +115,7 @@ def daily_worker_eligibility_app():
 
     /* 년월 텍스트와 달력 컨테이너 사이 간격 조정 */
     #calendar-container h4 {
-        margin-bottom: 5px;
+        margin-bottom: 5px; /* 년월 텍스트 아래 여백을 5px로 줄여 달력에 더 가깝게 붙입니다. */
     }
 
     /* 다크 모드 스타일 */
@@ -130,8 +126,9 @@ def daily_worker_eligibility_app():
     html[data-theme="dark"] #resultContainer h3 {
         color: #90CAF9;
     }
+    /* 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 */
     html[data-theme="dark"] h4 {
-        color: #FAFAFA !important;
+        color: #FAFAFA !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
     }
     html[data-theme="dark"] .day {
         background-color: #31333F;
@@ -159,7 +156,7 @@ def daily_worker_eligibility_app():
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';             
+    const INPUT_DATE_STR = '""" + input_date_str + """';           
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -187,7 +184,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를曌-MM-DD 형식 문자열로 포맷
+    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -197,7 +194,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을曌-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
@@ -294,7 +291,7 @@ def daily_worker_eligibility_app():
                 
                 // 테스트 기간 내 실제 근무일 수 (가장 최근 근무일까지의 기록만 반영)
                 let effectiveWorkedDaysForCond1Test = 0;
-                if (latestWorkedDay and latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
+                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
                     effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
                         const date = new Date(dateStr);
                         date.setHours(0,0,0,0); // 시간 초기화
@@ -360,7 +357,7 @@ def daily_worker_eligibility_app():
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         
-        #Final HTML 구성 및 출력
+        // 최종 HTML 구성 및 출력
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
