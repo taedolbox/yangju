@@ -174,30 +174,21 @@ def daily_worker_eligibility_app():
             st.rerun() # 기준 날짜 변경 시 앱 재실행하여 달력 데이터 업데이트
 
     with col2:
-        # '달력 초기화' 버튼 - 이 버튼 클릭 시 JavaScript 로컬 스토리지를 비우고 Streamlit을 재실행합니다.
-        # Streamlit 앱을 강제로 rerun하여 JavaScript 컴포넌트가 처음부터 다시 로드되도록 합니다.
+        # '달력 초기화' 버튼 - 이 버튼 클릭 시 JavaScript 로컬 스토리지를 비우고 페이지를 새로 고칩니다.
+        # 기존 st.rerun() 대신 window.location.reload()를 사용하여 완전히 초기화합니다.
         if st.button("🔄 달력 초기화", key="reset_calendar_button"):
-            # JavaScript를 실행하여 로컬 스토리지 'selectedDates'를 비우고
-            # 현재 페이지의 DOM에 있는 모든 'selected' 클래스를 제거합니다.
             st.components.v1.html(
                 """
                 <script>
                     localStorage.removeItem('selectedDates');
-                    const selectedDays = document.querySelectorAll('.day.selected');
-                    selectedDays.forEach(day => day.classList.remove('selected'));
-                    // 결과 컨테이너도 초기화
-                    document.getElementById('resultContainer').innerHTML = '';
-                    // loadSelectedDates 함수를 다시 호출하여 UI와 로컬 스토리지를 동기화
-                    // (단, st.rerun()이 발생하므로 이 부분의 직접적인 효과는 제한적일 수 있음)
-                    // window.parent.postMessage({ type: 'streamlit:setComponentValue', key: 'reset_calendar_button', value: Math.random() }, '*');
+                    // 페이지를 완전히 새로 고쳐 Streamlit 앱과 JavaScript DOM 모두 초기 상태로 만듭니다.
+                    window.location.reload(); 
                 </script>
                 """,
                 height=0, # 이 컴포넌트는 보이지 않게 처리
                 scrolling=False
             )
-            # st.rerun()을 호출하여 Streamlit 앱 전체를 재실행합니다.
-            # 이렇게 하면 JavaScript 컴포넌트도 처음부터 다시 로드되어 상태가 완전히 초기화됩니다.
-            st.rerun()
+            # st.rerun()을 호출하지 않습니다. window.location.reload()가 페이지를 새로 고칩니다.
             
     st.success(f"현재 선택된 기준 날짜: **{input_date.strftime('%Y년 %m월 %d일')}**")
 
@@ -247,7 +238,7 @@ def daily_worker_eligibility_app():
         start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): 월0~일6 -> 일0~토6으로 변경
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
-        
+            
         # 각 날짜 버튼 생성
         for date in dates:
             wd = date.weekday()
@@ -274,7 +265,7 @@ def daily_worker_eligibility_app():
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """'; 
-    const INPUT_DATE_STR = '""" + input_date_str + """';           
+    const INPUT_DATE_STR = '""" + input_date_str + """';         
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -553,3 +544,7 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+# 앱 실행
+if __name__ == "__main__":
+    daily_worker_eligibility_app()
