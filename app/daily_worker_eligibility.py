@@ -3,41 +3,206 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
+    # CSS 스타일은 그대로 유지합니다.
+    st.markdown("""
+    <style>
+    /* 페이지 전반적인 스타일 */
+    h2 {
+        color: #2196F3; /* 파란색 제목 */
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .stDateInput > label {
+        font-weight: bold;
+        color: #333;
+    }
+    .stButton > button {
+        background-color: #f0f2f6;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 8px 15px;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    .stButton > button:hover {
+        background-color: #e0e0e0;
+    }
+    /* 특정 안내 문구 스타일 */
+    .info-box {
+        background-color: #e3f2fd; /* 밝은 파랑 배경 */
+        border-left: 5px solid #2196F3; /* 파란색 왼쪽 테두리 */
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #333;
+    }
+    .info-box strong {
+        color: #0d47a1; /* 진한 파랑 강조 */
+    }
 
-    # 한국 시간으로 오늘 날짜 설정
+    /* 다크 모드 스타일 */
+    html[data-theme="dark"] .info-box {
+        background-color: #1a2a3e; /* 어두운 파랑 배경 */
+        border-left-color: #64B5F6; /* 밝은 파랑 테두리 */
+        color: #FAFAFA;
+    }
+    html[data-theme="dark"] .info-box strong {
+        color: #90CAF9;
+    }
+    html[data-theme="dark"] .stButton > button {
+        background-color: #31333F;
+        color: #FAFAFA;
+        border: 1px solid #4B4B4B;
+    }
+    html[data-theme="dark"] .stButton > button:hover {
+        background-color: #4B4B4B;
+    }
+
+    /* 달력 관련 스타일 */
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 44px);
+        grid-gap: 5px;
+        margin-bottom: 20px; background: #fff;
+        padding: 10px 1px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .day-header, .empty-day {
+        width: 44px; height: 44px;
+        line-height: 45px;
+        text-align: center;
+        font-weight: bold; color: #555;
+    }
+    .day-header.sunday { color: red; }
+    .day-header.saturday { color: blue; }
+    .day.sunday { color: red; }
+    .day.saturday { color: blue; }
+    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; }
+    .empty-day { background: transparent; border: none; }
+    .day {
+        width: 44px; height: 44px;
+        line-height: 45px;
+        text-align: center;
+        border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
+        transition: background 0.1s ease, border 0.1s ease; font-size: 18px; color: #333;
+    }
+    .day:hover { background: #f0f0f0; }
+    .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
+    #resultContainer {
+        color: #121212;
+        background: #fff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    #resultContainer h3 { color: #0d47a1; margin-top: 20px; margin-bottom: 10px; }
+    #resultContainer p { margin: 6px 0; }
+
+    /* 년월 텍스트와 달력 컨테이너 사이 간격 조정 */
+    #calendar-container h4 {
+        margin-bottom: 5px;
+    }
+
+    /* 다크 모드 스타일 */
+    html[data-theme="dark"] #resultContainer {
+        background: #262730;
+        color: #FAFAFA;
+    }
+    html[data-theme="dark"] #resultContainer h3 {
+        color: #90CAF9;
+    }
+    html[data-theme="dark"] h4 {
+        color: #FFFFFF !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
+    }
+    html[data-theme="dark"] .day {
+        background-color: #31333F;
+        color: #FAFAFA;
+        border: 1px solid #4B4B4B;
+    }
+    html[data-theme="dark"] .day:hover {
+        background-color: #45475A;
+    }
+    html[data-theme="dark"] .day.selected {
+        background: #2196F3;
+        color: #fff;
+    }
+    html[data-theme="dark"] .day-header {
+        background: #31333F;
+        color: #BBBBBB;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 페이지 제목 및 안내 문구
+    st.markdown("<h2>일용직 실업급여 수급 가능 시점 판단</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("""
+    <div class="info-box">
+        일용직(건설일용포함) 근로자의 실업급여는 일반 실업급여와 조건이 다릅니다.<br>
+        아래 정보를 입력하여 수급 가능 시점을 판단해 보세요.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 한국 시간으로 오늘 날짜 설정 (Streamlit의 input_date 위젯용)
     today_kst = datetime.utcnow() + timedelta(hours=9)
-    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    # --- START OF NEW CODE FOR RESET BUTTON ---
-    # Reset button placement - above the calendar groups, but below the date input
-    # We use a unique key for the button to ensure it renders correctly with the HTML component
-    if st.button("🔄 달력 초기화", key="reset_calendar_button"):
-        # This will inject JavaScript to clear selections and localStorage
-        st.components.v1.html(
-            """
-            <script>
-                function clearAllSelectionsAndReload() {
+    # 캘린더를 위한 기준 날짜 (st.date_input 사용)
+    # 세션 상태로 input_date를 관리하여 초기화 버튼과 연동
+    if 'daily_worker_input_date' not in st.session_state:
+        st.session_state.daily_worker_input_date = today_kst.date()
+
+    col1, col2 = st.columns([0.7, 0.3])
+
+    with col1:
+        # st.date_input은 Streamlit의 기준 날짜 선택 위젯으로만 사용합니다.
+        # 이 위젯의 값은 JavaScript 달력의 상태와 직접 연결되지 않습니다.
+        # JavaScript 달력의 초기화는 JS 코드 내에서 처리됩니다.
+        input_date = st.date_input(
+            "📅 기준 날짜 선택",
+            value=st.session_state.daily_worker_input_date,
+            key="daily_worker_date_input_widget"
+        )
+        # 사용자가 st.date_input 값을 변경하면 세션 상태도 업데이트
+        if input_date != st.session_state.daily_worker_input_date:
+            st.session_state.daily_worker_input_date = input_date
+            st.rerun() # 기준 날짜 변경 시 앱 재실행하여 달력 데이터 업데이트
+
+    with col2:
+        # '달력 초기화' 버튼 - 이 버튼 클릭 시 JavaScript 로컬 스토리지를 비우고 Streamlit을 재실행합니다.
+        # Streamlit 앱을 강제로 rerun하여 JavaScript 컴포넌트가 처음부터 다시 로드되도록 합니다.
+        if st.button("🔄 달력 초기화", key="reset_calendar_button"):
+            # JavaScript를 실행하여 로컬 스토리지 'selectedDates'를 비우고
+            # 현재 페이지의 DOM에 있는 모든 'selected' 클래스를 제거합니다.
+            st.components.v1.html(
+                """
+                <script>
                     localStorage.removeItem('selectedDates');
-                    // Force a re-run of the Streamlit component to reflect changes
-                    // This is a common pattern for reacting to button clicks within custom components
-                    // A simple window.location.reload() might work, but this is more targeted
                     const selectedDays = document.querySelectorAll('.day.selected');
                     selectedDays.forEach(day => day.classList.remove('selected'));
-                    // Re-calculate the result to show an empty state
-                    window.dispatchEvent(new Event('DOMContentLoaded')); // Re-trigger loadSelectedDates
-                }
-                clearAllSelectionsAndReload();
-            </script>
-            """,
-            height=0, # Make this component invisible as it's just for script execution
-            scrolling=False
-        )
-        # Rerun the Streamlit app to clear the displayed state as well
-        st.rerun()
-    # --- END OF NEW CODE FOR RESET BUTTON ---
-
+                    // 결과 컨테이너도 초기화
+                    document.getElementById('resultContainer').innerHTML = '';
+                    // loadSelectedDates 함수를 다시 호출하여 UI와 로컬 스토리지를 동기화
+                    // (단, st.rerun()이 발생하므로 이 부분의 직접적인 효과는 제한적일 수 있음)
+                    // window.parent.postMessage({ type: 'streamlit:setComponentValue', key: 'reset_calendar_button', value: Math.random() }, '*');
+                </script>
+                """,
+                height=0, # 이 컴포넌트는 보이지 않게 처리
+                scrolling=False
+            )
+            # st.rerun()을 호출하여 Streamlit 앱 전체를 재실행합니다.
+            # 이렇게 하면 JavaScript 컴포넌트도 처음부터 다시 로드되어 상태가 완전히 초기화됩니다.
+            st.rerun()
+            
+    st.success(f"현재 선택된 기준 날짜: **{input_date.strftime('%Y년 %m월 %d일')}**")
 
     # 달력 표시를 위한 기간 설정 (직전 달 첫날부터 선택된 날짜까지)
+    # input_date는 st.date_input에서 선택된 날짜 (Python 백엔드에서 관리)
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
     cal_dates = []
@@ -56,11 +221,12 @@ def daily_worker_eligibility_app():
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     
     # 조건 2 계산에 필요한 14일 전 날짜 (기준 날짜에 따라 달라짐)
+    # input_date는 Streamlit에서 선택된 파이썬 datetime.date 객체
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     
-    input_date_str = input_date.strftime("%Y-%m-%d")
-
+    input_date_str = input_date.strftime("%Y-%m-%d") # Python의 input_date를 JS로 전달할 문자열
+    
     # Streamlit에 HTML/JavaScript 컴포넌트 삽입
     calendar_html = "<div id='calendar-container'>" 
 
@@ -92,92 +258,14 @@ def daily_worker_eligibility_app():
                 extra_cls = "sunday"
             day_num = date.day
             date_str = date.strftime("%m/%d") # MM/DD 형식 (로컬 스토리지 키 및 JS에서 사용)
-            date_full_str = date.strftime("%Y-%m-%d") #YYYY-MM-DD 형식 (JS에서 계산용)
+            date_full_str = date.strftime("%Y-%m-%d") # YYYY-MM-DD 형식 (JS에서 계산용)
             calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" data-full-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
         calendar_html += "</div>"
 
     calendar_html += """
     </div>
     <div id="resultContainer"></div>
-    <style>
-    /* CSS 스타일 */
-    .calendar {
-        display: grid; 
-        grid-template-columns: repeat(7, 44px); /* 40px -> 45px: 각 열 너비 증가 */
-        grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; 
-        padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .day-header, .empty-day {
-        width: 44px; height: 44px; /* 40px -> 45px: 요일 헤더 크기 증가 */
-        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
-        text-align: center;
-        font-weight: bold; color: #555;
-    }
-    .day-header.sunday { color: red; }
-    .day-header.saturday { color: blue; }
-    .day.sunday { color: red; }
-    .day.saturday { color: blue; }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; /* 14px -> 16px */ }
-    .empty-day { background: transparent; border: none; }
-    .day {
-        width: 44px; height: 44px; /* 40px -> 45px: 날짜 칸 크기 증가 */
-        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
-        text-align: center;
-        border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 18px; /* 16px -> 18px */ color: #333;
-    }
-    .day:hover { background: #f0f0f0; }
-    .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
-    #resultContainer {
-        color: #121212;
-        background: #fff;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    #resultContainer h3 { color: #0d47a1; margin-top: 20px; margin-bottom: 10px; }
-    #resultContainer p { margin: 6px 0; }
-
-    /* 년월 텍스트와 달력 컨테이너 사이 간격 조정 */
-    #calendar-container h4 {
-        margin-bottom: 5px; /* 년월 텍스트 아래 여백을 5px로 줄여 달력에 더 가깝게 붙입니다. */
-    }
-
-    /* 다크 모드 스타일 */
-    html[data-theme="dark"] #resultContainer {
-        background: #262730;
-        color: #FAFAFA;
-    }
-    html[data-theme="dark"] #resultContainer h3 {
-        color: #90CAF9;
-    }
-    /* ★★★ 이 부분이 변경되었습니다: 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 ★★★ */
-    html[data-theme="dark"] h4 {
-        color: #FFFFFF !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
-    }
-    html[data-theme="dark"] .day {
-        background-color: #31333F;
-        color: #FAFAFA;
-        border: 1px solid #4B4B4B;
-    }
-    html[data-theme="dark"] .day:hover {
-        background-color: #45475A;
-    }
-    html[data-theme="dark"] .day.selected {
-        background: #2196F3;
-        color: #fff;
-    }
-    html[data-theme="dark"] .day-header {
-        background: #31333F;
-        color: #BBBBBB;
-    }
-    </style>
-
+    
     <script>
     // Python에서 넘겨받은 날짜 데이터 (JSON 배열 문자열로 주입)
     const CALENDAR_DATES_RAW = """ + calendar_dates_json + """;
@@ -185,7 +273,7 @@ def daily_worker_eligibility_app():
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';  
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """'; 
     const INPUT_DATE_STR = '""" + input_date_str + """';           
 
     // --- Helper Functions ---
@@ -239,7 +327,7 @@ def daily_worker_eligibility_app():
             }, null);
         }
 
-        const inputDate = new Date(INPUT_DATE_STR); // 사용자가 선택한 기준 날짜 (오늘 날짜)
+        const inputDate = new Date(INPUT_DATE_STR); // 사용자가 선택한 기준 날짜 (Streamlit date_input)
         inputDate.setHours(0,0,0,0); // 시간 초기화
 
         // --- 특수 케이스 1: 근무일이 전혀 없는 경우 ---
@@ -294,7 +382,8 @@ def daily_worker_eligibility_app():
         const actualWorkedDaysForCond1 = selectedFullDates.filter(dateStr => {
             const date = new Date(dateStr);
             date.setHours(0,0,0,0); // 시간 초기화
-            return date >= currentPeriodStartForCond1 && date <= latestWorkedDay; // latestWorkedDay까지만 카운트 (이후 근무 없음을 전제)
+            // 근무일이 기준 기간 안에 있고, latestWorkedDay보다 같거나 이전인 경우만 카운트
+            return date >= currentPeriodStartForCond1 && date <= inputDate; // 여기서는 inputDate까지의 근무일 카운트
         }).length;
 
         const condition1Met = actualWorkedDaysForCond1 < currentThresholdForCond1;
@@ -320,15 +409,18 @@ def daily_worker_eligibility_app():
                 const testTotalDays = getDaysBetween(testPeriodStart, testApplicationDate);
                 
                 // 테스트 기간 내 실제 근무일 수 (가장 최근 근무일까지의 기록만 반영)
-                let effectiveWorkedDaysForCond1Test = 0;
-                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
-                    effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
-                        const date = new Date(dateStr);
-                        date.setHours(0,0,0,0); // 시간 초기화
-                        return date >= testPeriodStart && date <= latestWorkedDay; // 테스트 기간 시작일 ~ latestWorkedDay 사이 근무만 카운트
-                    }).length;
-                }
+                let effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
+                    const date = new Date(dateStr);
+                    date.setHours(0,0,0,0); // 시간 초기화
+                    // 테스트 기간 시작일 ~ (lastWorkedDay 또는 testApplicationDate 중 빠른 날) 사이 근무만 카운트
+                    // 이후 근무가 없다는 전제이므로, 선택된 가장 마지막 근무일까지만 고려
+                    return date >= testPeriodStart && date <= testApplicationDate && (latestWorkedDay ? date <= latestWorkedDay : true);
+                }).length;
+                
                 // 만약 latestWorkedDay가 testPeriodStart보다 이전이라면, effectiveWorkedDaysForCond1Test는 0이 됨 (정상 동작)
+                // 그런데 만약 선택된 날짜들 중 testApplicationDate 이후의 날짜가 있다면, 그 날짜는 계산에 포함되지 않아야 함.
+                // 위 필터 조건에 'date <= testApplicationDate'가 포함되어 있으므로 이미 걸러짐.
+                // 즉, 사용자가 달력에 표시한 근무일 중 testApplicationDate 시점까지만 고려하는 것임.
 
                 if (effectiveWorkedDaysForCond1Test < testTotalDays / 3) {
                     nextPossible1Date = testApplicationDate; // 조건을 만족하는 가장 빠른 날짜 발견
@@ -376,6 +468,8 @@ def daily_worker_eligibility_app():
                 nextPossible2Date.setHours(0,0,0,0); // 시간 초기화
                 nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준) (이후 근로제공이 없다는 전제)`;
             } else {
+                // 이 경우는 selectedFullDates에 근무일이 있는데, latestWorkedDay가 null인 모순적인 상황이므로 발생하지 않아야 함.
+                // 또는 선택된 근무일이 전혀 없는 상태 (이 경우는 특수 케이스 1에서 처리됨).
                 nextPossible2Message = `🤔 조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 확인 필요)`;
             }
         }
@@ -451,6 +545,7 @@ def daily_worker_eligibility_app():
 
 
     // DOMContentLoaded 이벤트 리스너: HTML 문서가 완전히 로드되고 파싱된 후 스크립트 실행
+    // 이 시점에 로컬 스토리지를 읽어 달력을 초기화하고 결과를 계산합니다.
     document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
     });
