@@ -74,17 +74,20 @@ def daily_worker_eligibility_app():
     /* CSS 스타일 */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 45px); /* 40px -> 45px: 각 열 너비 증가 */
-        grid-gap: 5px;
-        margin-bottom: 20px; background: #fff; 
-        /* padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */ */
-        padding: 10px; /* ★★★ 이 부분을 10px로 변경하여 사방에 균일한 패딩 적용 ★★★ */
+        grid-template-columns: repeat(7, 45px); /* 7열, 각 45px 너비 */
+        grid-gap: 5px; /* 열 사이 5px 간격 */
+        margin-bottom: 20px;
+        background: #fff; 
+        padding: 10px 1px; /* ★★★ 상하 10px, 좌우 1px로 다시 설정 ★★★ */
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        /* ★★★ 추가: box-sizing 및 명시적 너비 설정 (계산: 7*45px + 6*5px (gap) + 2*1px (padding) = 315 + 30 + 2 = 347px) ★★★ */
+        box-sizing: border-box; /* 패딩과 보더를 포함하여 너비 계산 */
+        width: 347px; /* 명시적으로 전체 너비 지정 (각 요소 너비 + gap + padding) */
     }
     .day-header, .empty-day {
-        width: 45px; height: 45px; /* 40px -> 45px: 요일 헤더 크기 증가 */
-        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
+        width: 45px; height: 45px;
+        line-height: 45px;
         text-align: center;
         font-weight: bold; color: #555;
     }
@@ -92,14 +95,14 @@ def daily_worker_eligibility_app():
     .day-header.saturday { color: blue; }
     .day.sunday { color: red; }
     .day.saturday { color: blue; }
-    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; /* 14px -> 16px */ }
+    .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 45px; height: 45px; /* 40px -> 45px: 날짜 칸 크기 증가 */
-        line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
+        width: 45px; height: 45px;
+        line-height: 45px;
         text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
-        transition: background 0.1s ease, border 0.1s ease; font-size: 18px; /* 16px -> 18px */ color: #333;
+        transition: background 0.1s ease, border 0.1s ease; font-size: 18px; color: #333;
     }
     .day:hover { background: #f0f0f0; }
     .day.selected { border: 2px solid #2196F3; background: #2196F3; color: #fff; font-weight: bold; }
@@ -117,7 +120,7 @@ def daily_worker_eligibility_app():
 
     /* 년월 텍스트와 달력 컨테이너 사이 간격 조정 */
     #calendar-container h4 {
-        margin-bottom: 5px; /* 년월 텍스트 아래 여백을 5px로 줄여 달력에 더 가깝게 붙입니다. */
+        margin-bottom: 5px;
     }
 
     /* 다크 모드 스타일 */
@@ -128,9 +131,8 @@ def daily_worker_eligibility_app():
     html[data-theme="dark"] #resultContainer h3 {
         color: #90CAF9;
     }
-    /* ★★★ 이 부분이 변경되었습니다: 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 ★★★ */
     html[data-theme="dark"] h4 {
-        color: #FAFAFA !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
+        color: #FAFAFA !important;
     }
     html[data-theme="dark"] .day {
         background-color: #31333F;
@@ -293,7 +295,7 @@ def daily_worker_eligibility_app():
                 
                 // 테스트 기간 내 실제 근무일 수 (가장 최근 근무일까지의 기록만 반영)
                 let effectiveWorkedDaysForCond1Test = 0;
-                if (latestWorkedDay and latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
+                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
                     effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
                         const date = new Date(dateStr);
                         date.setHours(0,0,0,0); // 시간 초기화
@@ -359,7 +361,7 @@ def daily_worker_eligibility_app():
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         
-        // 최종 HTML 구성 및 출력
+        #Final HTML 구성 및 출력
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
