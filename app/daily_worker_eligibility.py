@@ -82,7 +82,7 @@ def daily_worker_eligibility_app():
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .day-header, .empty-day {
-        width: 45px; height: 45px; /* 40px -> 45px: 요일 헤더 크기 증가 */
+        width: 44px; height: 44px; /* 40px -> 45px: 요일 헤더 크기 증가 */
         line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         font-weight: bold; color: #555;
@@ -94,7 +94,7 @@ def daily_worker_eligibility_app():
     .day-header { background: #e0e0e0; border-radius: 5px; font-size: 16px; /* 14px -> 16px */ }
     .empty-day { background: transparent; border: none; }
     .day {
-        width: 45px; height: 45px; /* 40px -> 45px: 날짜 칸 크기 증가 */
+        width: 44px; height: 44px; /* 40px -> 45px: 날짜 칸 크기 증가 */
         line-height: 45px; /* 40px -> 45px: 텍스트 수직 중앙 정렬 유지 */
         text-align: center;
         border: 1px solid #ddd; border-radius: 5px; cursor: pointer; user-select: none;
