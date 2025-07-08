@@ -77,7 +77,8 @@ def daily_worker_eligibility_app():
         grid-template-columns: repeat(7, 45px); /* 40px -> 45px: 각 열 너비 증가 */
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
-        padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */
+        /* padding: 10px 1px; /* 상하 10px, 좌우 1px 유지 */ */
+        padding: 10px; /* ★★★ 이 부분을 10px로 변경하여 사방에 균일한 패딩 적용 ★★★ */
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
@@ -185,7 +186,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를曌-MM-DD 형식 문자열로 포맷
+    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -195,7 +196,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을曌-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
@@ -292,7 +293,7 @@ def daily_worker_eligibility_app():
                 
                 // 테스트 기간 내 실제 근무일 수 (가장 최근 근무일까지의 기록만 반영)
                 let effectiveWorkedDaysForCond1Test = 0;
-                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
+                if (latestWorkedDay and latestWorkedDay >= testPeriodStart) { // latestWorkedDay가 테스트 기간 시작일 이후라면
                     effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
                         const date = new Date(dateStr);
                         date.setHours(0,0,0,0); // 시간 초기화
@@ -429,7 +430,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-# Streamlit 앱 실행
-# if __name__ == "__main__":
-#    daily_worker_eligibility_app()
