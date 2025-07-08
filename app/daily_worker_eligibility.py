@@ -8,6 +8,35 @@ def daily_worker_eligibility_app():
     today_kst = datetime.utcnow() + timedelta(hours=9)
     input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
+    # --- START OF NEW CODE FOR RESET BUTTON ---
+    # Reset button placement - above the calendar groups, but below the date input
+    # We use a unique key for the button to ensure it renders correctly with the HTML component
+    if st.button("🔄 달력 초기화", key="reset_calendar_button"):
+        # This will inject JavaScript to clear selections and localStorage
+        st.components.v1.html(
+            """
+            <script>
+                function clearAllSelectionsAndReload() {
+                    localStorage.removeItem('selectedDates');
+                    // Force a re-run of the Streamlit component to reflect changes
+                    // This is a common pattern for reacting to button clicks within custom components
+                    // A simple window.location.reload() might work, but this is more targeted
+                    const selectedDays = document.querySelectorAll('.day.selected');
+                    selectedDays.forEach(day => day.classList.remove('selected'));
+                    // Re-calculate the result to show an empty state
+                    window.dispatchEvent(new Event('DOMContentLoaded')); // Re-trigger loadSelectedDates
+                }
+                clearAllSelectionsAndReload();
+            </script>
+            """,
+            height=0, # Make this component invisible as it's just for script execution
+            scrolling=False
+        )
+        # Rerun the Streamlit app to clear the displayed state as well
+        st.rerun()
+    # --- END OF NEW CODE FOR RESET BUTTON ---
+
+
     # 달력 표시를 위한 기간 설정 (직전 달 첫날부터 선택된 날짜까지)
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
@@ -156,8 +185,8 @@ def daily_worker_eligibility_app():
 
     // Python에서 넘겨받은 기준 날짜 관련 문자열
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
-    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';             
+    const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';  
+    const INPUT_DATE_STR = '""" + input_date_str + """';           
 
     // --- Helper Functions ---
     // 두 날짜 사이의 일수 계산 (시작일과 종료일 포함)
@@ -185,7 +214,7 @@ def daily_worker_eligibility_app():
         return d;
     }
 
-    // Date 객체를曌-MM-DD 형식 문자열로 포맷
+    // Date 객체를 YYYY-MM-DD 형식 문자열로 포맷
     function formatDateToYYYYMMDD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -195,7 +224,7 @@ def daily_worker_eligibility_app():
 
     // --- Core Logic: 계산 및 결과 표시 ---
     function calculateAndDisplayResult(selectedMMDD) {
-        // MM/DD 형식의 선택된 날짜들을曌-MM-DD 형식으로 변환하여 사용
+        // MM/DD 형식의 선택된 날짜들을 YYYY-MM-DD 형식으로 변환하여 사용
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
             return foundDate || '';
