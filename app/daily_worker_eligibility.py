@@ -129,7 +129,7 @@ def daily_worker_eligibility_app():
     }
     /* ★★★ 이 부분이 변경되었습니다: 다크 모드에서 년월 텍스트 보이도록 색상 강제 적용 ★★★ */
     html[data-theme="dark"] h4 {
-        color: #FAFAFA !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
+        color: #FFFFFF !important; /* 모든 h4에 대해 밝은 색으로 설정하고 !important로 강제 적용 */
     }
     html[data-theme="dark"] .day {
         background-color: #31333F;
