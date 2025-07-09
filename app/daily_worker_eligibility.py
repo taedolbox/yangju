@@ -460,6 +460,3 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
