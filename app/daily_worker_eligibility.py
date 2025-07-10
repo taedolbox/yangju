@@ -3,53 +3,38 @@ from datetime import datetime, timedelta
 import json
 
 def daily_worker_eligibility_app():
-    st.title("🗓️ 일용근로자 실업급여 수급자격 판단 도구")
-    st.markdown("이 도구는 **일반일용근로자 및 건설일용근로자**의 실업급여 수급자격 조건을 시뮬레이션하고, 신청에 필요한 확인서를 출력할 수 있도록 돕습니다.")
-    st.markdown("---")
-
-    # Set today's date in KST (한국 표준시)
-    # 현재 날짜 및 시간 가져오기 (UTC)
-    now_utc = datetime.utcnow()
-    # UTC를 KST (UTC+9)로 변환
-    today_kst = now_utc + timedelta(hours=9)
-    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date(), help="실업급여를 신청하고자 하는 기준 날짜를 선택해주세요.")
-
-    st.warning("⚠️ **중요**: 달력에서 근무한 날짜를 **클릭하여 선택**해주세요. 선택된 날짜는 파란색으로 표시됩니다. 한번 더 클릭하면 선택이 해제됩니다.")
+    # Set today's date in KST
+    today_kst = datetime.utcnow() + timedelta(hours=9)
+    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
     # Set period for calendar display (from the first day of the previous month to the selected date)
-    # 선택된 날짜가 속한 달의 직전 달의 첫째 날
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
-    # 달력에 표시될 날짜 범위
     cal_dates = []
     current_date_for_cal = first_day_prev_month
-    while current_date_for_cal <= input_date: # 기준 날짜까지 포함
+    while current_date_for_cal <= input_date: # Include up to the selected date
         cal_dates.append(current_date_for_cal)
         current_date_for_cal += timedelta(days=1)
 
-    # Group calendar by month (월별로 달력 그룹화)
+    # Group calendar by month
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
         calendar_groups.setdefault(ym, []).append(date)
 
     # Date data for JavaScript (JSON array string)
-    # JavaScript에서 사용하기 위해 날짜 데이터를 JSON 형식으로 변환
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     
     # 14 days prior date needed for Condition 2 calculation (depends on the base date)
-    # 조건 2 계산을 위한 14일 이전 날짜 범위 (기준 날짜에 따라 달라짐)
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     
-    input_date_str = input_date.strftime("%Y-%m-%d") # 기준 날짜 문자열
+    input_date_str = input_date.strftime("%Y-%m-%d")
 
     # Streamlit HTML/JavaScript component insertion
-    # Streamlit에 삽입될 HTML 및 JavaScript 코드
     calendar_html = "<div id='calendar-container'>"
 
     # Add the Clear Calendar button here, above the month headers
-    # 달력 초기화 버튼 추가
     calendar_html += """
     <div style="text-align: right; margin-bottom: 15px;">
         <button onclick="clearCalendar()" style="
@@ -68,7 +53,6 @@ def daily_worker_eligibility_app():
     </div>
     """
 
-    # 월별 달력 생성
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
         calendar_html += f"<h4>{year}년 {month}월</h4>"
@@ -82,12 +66,12 @@ def daily_worker_eligibility_app():
             <div class="day-header">금</div>
             <div class="day-header saturday">토</div>
         """
-        # 해당 월의 첫 날이 시작되는 요일까지 빈 칸 채우기
-        start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): 월0~일6 -> 일0~토6
+        # Fill empty days for the first week of the month
+        start_day_offset = (dates[0].weekday() + 1) % 7 # weekday(): Mon0~Sun6 -> Sun0~Sat6
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         
-        # 날짜 버튼 생성
+        # Create day buttons
         for date in dates:
             wd = date.weekday()
             extra_cls = ""
@@ -261,17 +245,6 @@ def daily_worker_eligibility_app():
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
-            // Store results in a global variable or hidden input for later report generation
-            window.eligibilityResults = {
-                cond1Met: true,
-                cond2Met: true,
-                generalEligible: true,
-                constructionEligible: true,
-                cond1WorkedDays: 0,
-                cond1Threshold: 0,
-                lastWorkedDay: null,
-                selectedDates: selectedFullDates
-            };
             return;
         }
 
@@ -295,16 +268,6 @@ def daily_worker_eligibility_app():
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
             document.getElementById('resultContainer').innerHTML = finalHtml;
-            window.eligibilityResults = {
-                cond1Met: false,
-                cond2Met: false,
-                generalEligible: false,
-                constructionEligible: false,
-                cond1WorkedDays: null, // Not calculated meaningfully in this case
-                cond1Threshold: null,
-                lastWorkedDay: new Date(INPUT_DATE_STR),
-                selectedDates: selectedFullDates
-            };
             return;
         }
 
@@ -320,9 +283,7 @@ def daily_worker_eligibility_app():
         const actualWorkedDaysForCond1 = selectedFullDates.filter(dateStr => {
             const date = new Date(dateStr);
             date.setHours(0,0,0,0); // Initialize time
-            // IMPORTANT: Only count work up to inputDate for current calculation (not latestWorkedDay)
-            // latestWorkedDay is for future projection if no further work happens
-            return date >= currentPeriodStartForCond1 && date <= inputDate; 
+            return date >= currentPeriodStartForCond1 && date <= latestWorkedDay; // Count only up to latestWorkedDay (assuming no further work)
         }).length;
 
         const condition1Met = actualWorkedDaysForCond1 < currentThresholdForCond1;
@@ -353,8 +314,7 @@ def daily_worker_eligibility_app():
                     effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {
                         const date = new Date(dateStr);
                         date.setHours(0,0,0,0); // Initialize time
-                        // Here, count work between test period start and latestWorkedDay for *future* projection
-                        return date >= testPeriodStart && date <= latestWorkedDay; 
+                        return date >= testPeriodStart && date <= latestWorkedDay; // Count only work between test period start and latestWorkedDay
                     }).length;
                 }
                 // If latestWorkedDay is before testPeriodStart, effectiveWorkedDaysForCond1Test will be 0 (correct behavior)
@@ -435,23 +395,6 @@ def daily_worker_eligibility_app():
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
-
-        // Store results in a global variable or hidden input for later report generation
-        window.eligibilityResults = {
-            cond1Met: condition1Met,
-            cond2Met: noWork14Days,
-            generalEligible: generalWorkerEligible,
-            constructionEligible: constructionWorkerEligible,
-            cond1WorkedDays: actualWorkedDaysForCond1,
-            cond1Threshold: currentThresholdForCond1,
-            cond1TotalDays: currentTotalDaysForCond1,
-            cond1PeriodStart: formatDateToYYYYMMDD(currentPeriodStartForCond1),
-            cond1PeriodEnd: INPUT_DATE_STR,
-            cond2PeriodStart: FOURTEEN_DAYS_START_STR,
-            cond2PeriodEnd: FOURTEEN_DAYS_END_STR,
-            lastWorkedDay: latestWorkedDay ? formatDateToYYYYMMDD(latestWorkedDay) : null,
-            selectedDates: selectedFullDates.sort() // Ensure sorted for consistent display
-        };
     }
 
     // Toggle date selection/deselection function
@@ -508,173 +451,6 @@ def daily_worker_eligibility_app():
         calculateAndDisplayResult([]);
     };
 
-    // --- Report Generation Function ---
-    window.generateReport = function() {
-        console.log("Generating report..."); // Debugging log
-        const results = window.eligibilityResults; // Get the last calculated results
-        if (!results) {
-            alert("먼저 근무일을 선택하여 조건을 확인해주세요.");
-            return;
-        }
-
-        const inputDate = INPUT_DATE_STR;
-        const firstDayPrevMonth = results.cond1PeriodStart;
-        const totalDaysCond1 = results.cond1TotalDays;
-        const workedDaysCond1 = results.cond1WorkedDays;
-        const thresholdCond1 = results.cond1Threshold.toFixed(1);
-        const fourteenDaysStart = results.cond2PeriodStart;
-        const fourteenDaysEnd = results.cond2PeriodEnd;
-        const selectedDates = results.selectedDates;
-
-        let calendarTableHTML = "";
-        let currentMonthNum = null; // To track current month for the table
-        let currentRowFor15Days = []; // To store <td> elements for current 15-day row
-        const datesToDisplay = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr));
-        
-        // Loop through all dates that are part of the calendar display range
-        for (let i = 0; i < datesToDisplay.length; i++) {
-            const tempDate = datesToDisplay[i];
-            const month = tempDate.getMonth() + 1; // getMonth() is 0-indexed
-            const dayNum = tempDate.getDate();
-            const isSelected = selectedDates.includes(formatDateToYYYYMMDD(tempDate));
-            const displayChar = isSelected ? "○" : " "; // Character to display
-
-            if (currentMonthNum === null || month !== currentMonthNum) {
-                // If it's a new month, close the previous month's rows if any
-                if (currentMonthNum !== null) {
-                    while (currentRowFor15Days.length < 15) { // Pad with empty cells if row is not full
-                        currentRowFor15Days.push('<td></td>');
-                    }
-                    calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${new Date(tempDate.getFullYear(), currentMonthNum, 0).getDate()}일</td></tr>`;
-                    currentRowFor15Days = []; // Reset for new month
-                }
-                currentMonthNum = month;
-                // Start new month row header
-                calendarTableHTML += `<tr><td rowspan="2" style="font-weight: bold; text-align: center; vertical-align: middle;">${String(month).padStart(2, '0')}월</td>`;
-                currentRowFor15Days = []; // Reset for new month
-            }
-            
-            currentRowFor15Days.push(`<td style="width: 30px; text-align: center;">${dayNum}<br>${displayChar}</td>`);
-
-            if (currentRowFor15Days.length === 15) {
-                calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days"></td></tr>`; // End 15-day row
-                currentRowFor15Days = []; // Reset for next 15 days or next row
-                if (dayNum < new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0).getDate()) { // If not end of month
-                    calendarTableHTML += `<tr>`; // Start new row if current row is full and month continues
-                }
-            }
-        }
-        // Handle remaining cells for the last month
-        if (currentRowFor15Days.length > 0) {
-            while (currentRowFor15Days.length < 15) {
-                currentRowFor15Days.push('<td></td>');
-            }
-            calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${new Date(datesToDisplay[datesToDisplay.length-1].getFullYear(), datesToDisplay[datesToDisplay.length-1].getMonth() + 1, 0).getDate()}일</td></tr>`;
-        }
-
-        // Generate the formatted table for selected dates
-        let selectedDatesTableHTML = "";
-        if (selectedDates.length > 0) {
-            for (let i = 0; i < selectedDates.length; i += 7) { // Display 7 dates per row
-                const rowDates = selectedDates.slice(i, i + 7);
-                selectedDatesTableHTML += "<tr>";
-                rowDates.forEach(dateStr => {
-                    selectedDatesTableHTML += `<td>${dateStr}</td>`;
-                });
-                // Fill empty cells if row is not full
-                for (let j = rowDates.length; j < 7; j++) {
-                    selectedDatesTableHTML += "<td></td>";
-                }
-                selectedDatesTableHTML += "</tr>";
-            }
-        } else {
-            selectedDatesTableHTML = "<tr><td colspan='7'>근로 제공일 없음</td></tr>";
-        }
-
-
-        const reportContent = `
-            <div class="print-area" style="font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
-                <h2 style="text-align: center; color: #333;">확 &nbsp; 인 &nbsp; 서</h2>
-                <br>
-                <p>본인은 ${inputDate.substring(0,4)}년 ${inputDate.substring(5,7)}월 ${inputDate.substring(8,10)}일 양주고용센터에 방문하여 실업급여 수급자격 인정신청을 하였는바,</p>
-                <br>
-                <p>1. 수급자격 인정신청일이 속한 달의 직전 달 초일부터 수급자격 인정신청일까지 (${firstDayPrevMonth} ~ ${inputDate}) 근로일 수의 합이 (${workedDaysCond1}일) 근무 같은 기간 동안의 총 일수(${totalDaysCond1}일)의 3분의 1 (${thresholdCond1}일) 미만임을 확인합니다.</p>
-                <br>
-                <p>2. (건설일용근로자로서 수급자격 인정신청일이 속한 달의 직전 달 초일부터 수급자격 인정신청일까지의 근로일 수의 합이 같은 기간 동안의 총 일수의 3분의 1 이상인 경우) 수급자격 인정신청일 이전 14일간 (${fourteenDaysStart} ~ ${fourteenDaysEnd})에 근로한 날이 아래와 같이 전혀 없음을 확인합니다.</p>
-                <br>
-                <p style="text-align: center;">※ 반일 근무하여도 1일로 계산</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                    <thead>
-                        <tr style="background-color: #f2f2f2;">
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">구분</th>
-                            <th colspan="15" style="border: 1px solid #ddd; padding: 8px; text-align: center;">달력(근로 제공일에 ○표시)</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">총일수</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${calendarTableHTML}
-                    </tbody>
-                </table>
-                <br><br>
-                <p>근로 제공일: ${selectedDates.join(', ')}</p>
-                <br><br>
-                <p>추후 수급자격 인정신청일이 속한 달의 직전 달 초일부터 수급자격 인정신청일까지의 근로일 수의 합이 같은 기간 동안의 총 일수의 3분의 1 이상인 사실이 확인되는 경우(건설일용근로자는 신청일 이전 14일간에 근로한 날이 1일이라도 있는 경우 포함)에는 수급자격 가인정이 취소되어 실업급여를 받을 수 없다는 사실을 양주고용센터 담당자 박재철로부터 분명히 안내받았음을 확인합니다.</p>
-                <br><br>
-                <p style="text-align: right;">${inputDate.substring(0,4)}년 &nbsp; ${inputDate.substring(5,7)}월 &nbsp; ${inputDate.substring(8,10)}일</p>
-                <p style="text-align: right;">성 명 : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;인</p>
-                <p style="text-align: right;">생년월일 : &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</p>
-                <br>
-                <p>중부지방고용노동청(의정부고용노동지청)장 귀하</p>
-            </div>
-            <style>
-                @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    .print-area, .print-area * {
-                        visibility: visible;
-                    }
-                    .print-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        box-shadow: none;
-                        border: none;
-                        background: white; /* Ensure white background for print */
-                        color: black;
-                    }
-                    .print-area h2, .print-area p, .print-area table, .print-area th, .print-area td {
-                        color: black !important;
-                    }
-                     /* Ensure calendar layout for print */
-                    .print-area table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
-                    .print-area th, .print-area td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: center;
-                    }
-                    .print-area td.total-days {
-                        font-weight: bold;
-                    }
-                }
-            </style>
-        `;
-        
-        // Open in a new window for printing
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(reportContent);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print(); // Trigger print dialog
-    };
-
 
     // DOMContentLoaded event listener: Execute script after HTML document is fully loaded and parsed
     document.addEventListener('DOMContentLoaded', function() {
@@ -683,44 +459,5 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    # Streamlit에 HTML/JS 컴포넌트 삽입
-    # height 값을 조절하여 달력 및 결과 컨테이너가 충분히 보이도록 설정
-    # scrolling=True를 추가하여 필요시 스크롤바가 생기도록 합니다.
-    st.components.v1.html(calendar_html, height=1000, scrolling=True) 
+    st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
-    # --- 보고서 출력 버튼 (자바스크립트 직접 호출 방식) ---
-    st.markdown("---")
-    st.subheader("📄 보고서 출력 및 PDF 저장")
-    st.write("아래 버튼을 클릭하면 확인서 내용이 새 창에 표시되며, 브라우저의 인쇄 기능을 통해 PDF로 저장할 수 있습니다.")
-    st.warning("⚠️ **참고**: 버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
-
-    # Streamlit의 on_click 대신 HTML 컴포넌트 내에서 직접 JavaScript를 호출하도록 변경
-    st.components.v1.html(
-        """
-        <button id="printReportBtn" style="
-            background-color: #28A745; /* Green */
-            color: white;
-            padding: 12px 25px; /* Increased padding for better clickability */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 17px; /* Increased font size */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background-color 0.2s;
-            margin-top: 10px; /* Add some margin from above text */
-        " onmouseover="this.style.backgroundColor='#218838'" onmouseout="this.style.backgroundColor='#28A745'">
-            📄 확인서 출력 (PDF 저장)
-        </button>
-        <script>
-            // 버튼 클릭 시 window.generateReport() 함수를 호출합니다.
-            document.getElementById('printReportBtn').onclick = function() {
-                window.generateReport();
-            };
-        </script>
-        """,
-        height=70 # 버튼이 표시될 충분한 높이
-    )
-
-# Streamlit 앱 실행
-if __name__ == "__main__":
-    daily_worker_eligibility_app()
