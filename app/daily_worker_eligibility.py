@@ -547,6 +547,10 @@ def daily_worker_eligibility_app():
             while (currentRowFor15Days.length < 15) {
                 currentRowFor15Days.push('<td></td>');
             }
+            # 571번째 줄 쯤
+            st.text_area("Debug Calendar HTML", calendar_html, height=300) # 이 줄을 추가합니다.
+            st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component")
+    
             # 마지막 달의 전체 일수 계산
             const lastDateInCalendar = datesToDisplay[datesToDisplay.length - 1];
             const lastDayOfLastMonth = new Date(lastDateInCalendar.getFullYear(), lastDateInCalendar.getMonth() + 1, 0);
