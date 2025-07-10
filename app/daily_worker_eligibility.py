@@ -613,5 +613,3 @@ def daily_worker_eligibility_app():
 if __name__ == "__main__":
     def main():
         daily_worker_eligibility_app()
-
-    main()
