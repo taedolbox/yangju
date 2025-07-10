@@ -4,9 +4,7 @@ import json
 import os 
 
 def daily_worker_eligibility_app():
-    # Streamlit 앱의 제목과 설명은 요청에 따라 제거했습니다.
-
-    # 한국 표준시(KST)로 오늘 날짜 설정
+    # KST (한국 표준시)로 오늘 날짜 설정
     now_utc = datetime.utcnow()
     today_kst = now_utc + timedelta(hours=9)
     input_date = st.date_input("기준 날짜 선택", today_kst.date(), help="실업급여를 신청하고자 하는 기준 날짜를 선택해주세요.")
@@ -38,8 +36,7 @@ def daily_worker_eligibility_app():
     input_date_str = input_date.strftime("%Y-%m-%d")
 
     # --- 보고서 템플릿 파일 읽어오기 ---
-    # 현재 스크립트 파일 (daily_worker_eligibility_app.py)이 'app' 폴더 안에 있으므로,
-    # 'report_template.html'은 같은 폴더에 있다고 가정하고 경로를 설정합니다.
+    # 현재 스크립트 파일 (daily_worker_eligibility.py)의 디렉토리를 기준으로 템플릿 파일 경로 설정
     current_dir = os.path.dirname(__file__)
     template_path = os.path.join(current_dir, "report_template.html") 
     
@@ -422,7 +419,7 @@ def daily_worker_eligibility_app():
             cond1Met: condition1Met,
             cond2Met: noWork14Days,
             generalEligible: generalWorkerEligible,
-            constructionEligible: constructionEligible,
+            constructionEligible: constructionWorkerEligible,
             cond1WorkedDays: actualWorkedDaysForCond1,
             cond1Threshold: currentThresholdForCond1,
             cond1TotalDays: currentTotalDaysForCond1,
@@ -547,10 +544,6 @@ def daily_worker_eligibility_app():
             while (currentRowFor15Days.length < 15) {
                 currentRowFor15Days.push('<td></td>');
             }
-            # 571번째 줄 쯤
-            st.text_area("Debug Calendar HTML", calendar_html, height=300) # 이 줄을 추가합니다.
-            st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component")
-    
             # 마지막 달의 전체 일수 계산
             const lastDateInCalendar = datesToDisplay[datesToDisplay.length - 1];
             const lastDayOfLastMonth = new Date(lastDateInCalendar.getFullYear(), lastDateInCalendar.getMonth() + 1, 0);
@@ -575,7 +568,6 @@ def daily_worker_eligibility_app():
 
     st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component") 
 
-    # 보고서 출력 버튼 설명과 경고는 요청에 따라 제거했습니다.
     st.warning("버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
 
     st.components.v1.html(
