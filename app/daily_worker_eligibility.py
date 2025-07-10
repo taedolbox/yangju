@@ -1,15 +1,12 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import json
-import os # 파일 경로 처리를 위해 os 모듈 추가
+import os 
 
 def daily_worker_eligibility_app():
-    # Streamlit 앱의 제목과 설명은 요청에 따라 제거합니다.
-    # st.title("🗓️ 일용근로자 실업급여 수급자격 판단 도구")
-    # st.markdown("이 도구는 **일반일용근로자 및 건설일용근로자**의 실업급여 수급자격 조건을 시뮬레이션하고, 신청에 필요한 확인서를 출력할 수 있도록 돕습니다.")
-    # st.markdown("---")
+    # Streamlit 앱의 제목과 설명은 요청에 따라 제거했습니다.
 
-    # KST (한국 표준시)로 오늘 날짜 설정
+    # 한국 표준시(KST)로 오늘 날짜 설정
     now_utc = datetime.utcnow()
     today_kst = now_utc + timedelta(hours=9)
     input_date = st.date_input("기준 날짜 선택", today_kst.date(), help="실업급여를 신청하고자 하는 기준 날짜를 선택해주세요.")
@@ -41,9 +38,10 @@ def daily_worker_eligibility_app():
     input_date_str = input_date.strftime("%Y-%m-%d")
 
     # --- 보고서 템플릿 파일 읽어오기 ---
-    # 현재 스크립트 파일의 디렉토리를 기준으로 'app' 폴더 안의 'report_template.html' 경로 설정
+    # 현재 스크립트 파일 (daily_worker_eligibility_app.py)이 'app' 폴더 안에 있으므로,
+    # 'report_template.html'은 같은 폴더에 있다고 가정하고 경로를 설정합니다.
     current_dir = os.path.dirname(__file__)
-    template_path = os.path.join(current_dir, "app", "report_template.html") # 'app' 폴더 추가
+    template_path = os.path.join(current_dir, "report_template.html") 
     
     report_template_content = ""
     try:
@@ -549,7 +547,7 @@ def daily_worker_eligibility_app():
             while (currentRowFor15Days.length < 15) {
                 currentRowFor15Days.push('<td></td>');
             }
-            // 마지막 달의 전체 일수 계산
+            # 마지막 달의 전체 일수 계산
             const lastDateInCalendar = datesToDisplay[datesToDisplay.length - 1];
             const lastDayOfLastMonth = new Date(lastDateInCalendar.getFullYear(), lastDateInCalendar.getMonth() + 1, 0);
             calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${lastDayOfLastMonth.getDate()}일</td></tr>`;
@@ -573,10 +571,7 @@ def daily_worker_eligibility_app():
 
     st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component") 
 
-    # 보고서 출력 버튼
-    # st.markdown("---")
-    # st.subheader("📄 보고서 출력 및 PDF 저장")
-    # st.write("아래 버튼을 클릭하면 확인서 내용이 새 창에 표시되며, 브라우저의 인쇄 기능을 통해 PDF로 저장할 수 있습니다.")
+    # 보고서 출력 버튼 설명과 경고는 요청에 따라 제거했습니다.
     st.warning("버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
 
     st.components.v1.html(
