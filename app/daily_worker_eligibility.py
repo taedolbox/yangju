@@ -36,7 +36,7 @@ def daily_worker_eligibility_app():
 
     # Add the Clear Calendar button here, above the month headers
     calendar_html += """
-    <div style="text-align: right; margin-bottom: 15px;" class="no-print">
+    <div style="text-align: right; margin-bottom: 15px;">
         <button onclick="clearCalendar()" style="
             background-color: #3F51B5; /* Changed from red to indigo blue */
             color: white;
@@ -49,20 +49,6 @@ def daily_worker_eligibility_app():
             transition: background-color 0.2s;
         " onmouseover="this.style.backgroundColor='#303F9F'" onmouseout="this.style.backgroundColor='#3F51B5'">
             🔄 달력 초기화
-        </button>
-        <button onclick="window.print()" style="
-            background-color: #4CAF50; /* Green for print */
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background-color 0.2s;
-            margin-left: 10px; /* Space from clear button */
-        " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
-            🖨️ 인쇄 / PDF 저장
         </button>
     </div>
     """
@@ -103,11 +89,6 @@ def daily_worker_eligibility_app():
     </div>
     <div id="resultContainer"></div>
     <style>
-    /* General Styles */
-    body { font-family: 'Segoe UI', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
-    h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 25px; }
-    p { margin-bottom: 5px; }
-
     /* CSS styles */
     .calendar {
         display: grid; 
@@ -184,82 +165,6 @@ def daily_worker_eligibility_app():
         background: #31333F;
         color: #BBBBBB;
     }
-
-    /* --- Print Specific Styles --- */
-    @media print {
-        /* Hide elements not needed for print */
-        .stDateInput, /* Streamlit date input */
-        .no-print, /* Buttons and other UI elements */
-        .sidebar, /* If Streamlit sidebar exists */
-        header, footer, /* Common page elements */
-        st-emotion-cache-1j0r_p6 /* Streamlit's main app container might need adjustment */
-         {
-            display: none !important;
-        }
-
-        body {
-            background-color: #fff !important; /* Force white background for printing */
-            -webkit-print-color-adjust: exact; /* Ensure background colors are printed */
-            print-color-adjust: exact;
-        }
-
-        /* Ensure text colors are legible on print */
-        html[data-theme="dark"] #resultContainer,
-        html[data-theme="dark"] #resultContainer p,
-        html[data-theme="dark"] #resultContainer h3,
-        html[data-theme="dark"] h4,
-        html[data-theme="dark"] .day,
-        html[data-theme="dark"] .day-header {
-            color: #000000 !important; /* Black text for print */
-            background-color: #ffffff !important; /* White background for print */
-        }
-        
-        .day.selected {
-            background: #e0e0e0 !important; /* Selected days in grey for print */
-            color: #000 !important; /* Black text for selected days */
-            border: 1px solid #aaa !important;
-        }
-
-        .calendar {
-            box-shadow: none !important; /* Remove shadow for print */
-            border: 1px solid #ccc; /* Add a border around the calendar for definition */
-            padding: 5px;
-        }
-        .day, .day-header {
-            border: 1px solid #eee !important; /* Lighter borders for day cells */
-            box-shadow: none !important;
-        }
-
-        /* Adjust margins for print */
-        #calendar-container, #resultContainer {
-            margin: 0;
-            padding: 0;
-            box-shadow: none;
-            border-radius: 0;
-        }
-
-        /* Add a title for the printout */
-        body::before {
-            content: "일용근로자 수급자격 신청 가능일 확인";
-            display: block;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #000;
-        }
-        
-        /* Show a clear indication of selected dates when printing */
-        .selected-dates-print {
-            display: block; /* Make it visible only for print */
-            margin-top: 20px;
-            font-size: 14px;
-            color: #555;
-            padding: 10px;
-            border: 1px solid #eee;
-            background-color: #f9f9f9;
-        }
-    }
     </style>
 
     <script>
@@ -270,7 +175,7 @@ def daily_worker_eligibility_app():
     // Python-passed base date related strings
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
-    const INPUT_DATE_STR = '""" + input_date_str + """';           
+    const INPUT_DATE_STR = '""" + input_date_str + """';          
 
     // --- Helper Functions ---
     // Calculate days between two dates (inclusive of start and end dates)
@@ -474,32 +379,19 @@ def daily_worker_eligibility_app():
         // Construct and display final HTML
         const finalHtml = `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
-            <div class="result-section">
-                <p><strong>조건 1:</strong> 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
-                <p>총 기간 일수: <strong>` + currentTotalDaysForCond1 + `일</strong></p>
-                <p>1/3 기준: <strong>` + currentThresholdForCond1.toFixed(1) + `일</strong></p>
-                <p>선택된 근무일 수: <strong>` + actualWorkedDaysForCond1 + `일</strong></p>
-                <p>${condition1Text}</p>
-                ${nextPossible1Message ? "<p>" + nextPossible1Message + "</p>" : ""}
-            </div>
-
-            <div class="result-section">
-                <p><strong>조건 2:</strong> (건설일용근로자만 해당) 신청일 직전 14일간(신청일 제외) 근무 사실 없어야 함</p>
-                <p>${condition2Text}</p>
-                ${nextPossible2Message ? "<p>" + nextPossible2Message + "</p>" : ""}
-            </div>
-
+            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
+            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실 없어야 함</p>
+            <p>총 기간 일수: ` + currentTotalDaysForCond1 + `일</p>
+            <p>1/3 기준: ` + currentThresholdForCond1.toFixed(1) + `일</p>
+            <p>근무일 수: ` + actualWorkedDaysForCond1 + `일</p>
+            <p>` + condition1Text + `</p>
+            <p>` + condition2Text + `</p>
+            ` + (nextPossible1Message ? "<p>" + nextPossible1Message + "</p>" : "") + `
+            ` + (nextPossible2Message ? "<p>" + nextPossible2Message + "</p>" : "") + `
             <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
-            <div class="result-section">
-                <p><strong>일반일용근로자:</strong> ${generalWorkerText}</p>
-                <p><strong>건설일용근로자:</strong> ${constructionWorkerText}</p>
-            </div>
-            <p class="disclaimer">※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
-
-            <div class="selected-dates-print">
-                <h4>선택된 근무일 목록:</h4>
-                <p>${selectedFullDates.sort().join(', ') || '없음'}</p>
-            </div>
+            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
+            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+            <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
@@ -567,10 +459,4 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1500, scrolling=False)
-
-if __name__ == "__main__":
-    st.set_page_config(layout="centered", page_title="일용근로자 수급자격 계산기")
-    st.title("일용근로자 수급자격 계산기")
-    st.write("일용근로자 구직급여 수급자격 판단을 위한 근무일을 선택해주세요.")
-    daily_worker_eligibility_app()
+    st.components.v1.html(calendar_html, height=1200, scrolling=False)
