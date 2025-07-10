@@ -147,18 +147,30 @@ def daily_worker_eligibility_app():
 
         if (selectedFullDates.length === 0) {
             document.getElementById('resultContainer').innerHTML = `
-                <h3>📌 조건 판단</h3><p>✅ 조건 1 충족: 근무일 0일</p><p>✅ 조건 2 충족: 근무일 0일</p>
-                <h3>📌 최종 판단</h3><p>✅ 일반일용근로자: 신청 가능</p><p>✅ 건설일용근로자: 신청 가능</p>
-                <h3>📌 종합 신청 가능일</h3><p>현재(${INPUT_DATE_STR}) 바로 신청 가능</p><p>※ 이후 근로제공이 없다는 전제입니다.</p>`;
+                <h3>📌 조건 판단</h3>
+                <p>✅ 조건 1 충족: 근무일 0일</p>
+                <p>✅ 조건 2 충족: 근무일 0일</p>
+                <h3>📌 최종 판단</h3>
+                <p>✅ 일반일용근로자: 신청 가능</p>
+                <p>✅ 건설일용근로자: 신청 가능</p>
+                <h3>📌 종합 신청 가능일</h3>
+                <p>현재({INPUT_DATE_STR}) 바로 신청 가능</p>
+                <p>※ 이후 근로제공이 없다는 전제입니다.</p>`;
             return;
         }
 
         if (selectedFullDates.includes(INPUT_DATE_STR)) {
             const nextDate = new Date(INPUT_DATE_STR); nextDate.setDate(nextDate.getDate() + 15);
             document.getElementById('resultContainer').innerHTML = `
-                <h3 style="color: red;">📌 조건 판단</h3><p style="color: red;">❌ 조건 1 불충족: ${INPUT_DATE_STR} 근무</p><p style="color: red;">❌ 조건 2 불충족: ${INPUT_DATE_STR} 근무</p>
-                <h3 style="color: red;">📌 최종 판단</h3><p style="color: red;">❌ 일반일용근로자: 신청 불가능</p><p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
-                <h3>📌 종합 신청 가능일</h3><p style="color: red;">${formatDateToYYYYMMDD(nextDate)} 이후 신청 가능</p><p>※ 이후 근로제공이 없다는 전제입니다.</p>`;
+                <h3 style="color: red;">📌 조건 판단</h3>
+                <p style="color: red;">❌ 조건 1 불충족: ${INPUT_DATE_STR} 근무</p>
+                <p style="color: red;">❌ 조건 2 불충족: ${INPUT_DATE_STR} 근무</p>
+                <h3 style="color: red;">📌 최종 판단</h3>
+                <p style="color: red;">❌ 일반일용근로자: 신청 불가능</p>
+                <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
+                <h3>📌 종합 신청 가능일</h3>
+                <p style="color: red;">${formatDateToYYYYMMDD(nextDate)} 이후 신청 가능</p>
+                <p>※ 이후 근로제공이 없다는 전제입니다.</p>`;
             return;
         }
 
@@ -177,9 +189,14 @@ def daily_worker_eligibility_app():
         const constructionWorkerEligible = condition1Met || noWork14Days;
 
         document.getElementById('resultContainer').innerHTML = `
-            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3><p>조건 1: 근무일 수 < ${currentThreshold.toFixed(1)}일</p><p>조건 2: 신청일 직전 14일간 무근무</p>
-            <p>근무일 수: ${actualWorkedDays}일</p><p>${condition1Text}</p><p>${condition2Text}</p>
-            <h3>📌 최종 판단</h3><p>✅ 일반일용근로자: ${generalWorkerEligible ? '신청 가능' : '신청 불가능'}</p><p>✅ 건설일용근로자: ${constructionWorkerEligible ? '신청 가능' : '신청 불가능'}</p>
+            <h3>📌 조건 판단</h3>
+            <p>${condition1Text}</p>
+            <p>${condition2Text}</p>
+            <h3>📌 최종 판단</h3>
+            <p>✅ 일반일용근로자: ${generalWorkerEligible ? '신청 가능' : '신청 불가능'}</p>
+            <p>✅ 건설일용근로자: ${constructionWorkerEligible ? '신청 가능' : '신청 불가능'}</p>
+            <h3>📌 종합 신청 가능일</h3>
+            <p>현재({INPUT_DATE_STR}) 바로 신청 가능</p>
             <p>※ 이후 근로제공이 없다는 전제입니다.</p>`;
     }
 
@@ -219,9 +236,8 @@ def daily_worker_eligibility_app():
     # Generate and download report based on attached file style
     if st.button("보고서 생성 및 다운로드"):
         selected_dates = st.session_state.get('selected_dates', [])
-        latest_worked_day = max([datetime.strptime(d, "%m/%d").replace(year=input_date.year) for d in selected_dates]) if selected_dates else None
         fourteen_days_range = [input_date - timedelta(days=i) for i in range(14)]
-        no_work_14_days = all(d.strftime("%Y-%m-%d") not in selected_dates for d in fourteen_days_range)
+        no_work_14_days = all(d.strftime("%Y-%m-%d") not in [datetime.strptime(d, "%m/%d").replace(year=input_date.year).strftime("%Y-%m-%d") for d in selected_dates] for d in fourteen_days_range)
 
         report_html = f"""
         <html><body style="font-family: Arial, sans-serif; margin: 2cm;">
@@ -235,8 +251,8 @@ def daily_worker_eligibility_app():
         <h3 style="margin-top: 0.5cm;">근무일 확인</h3>
         <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 0.2cm;">
             <tr><th>구분</th><th>달력으로 재공인 ○(사)</th><th colspan="6"></th><th>총일수</th></tr>
-            <tr><td>월</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</td></tr>
-            <tr><td>일</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</td></tr>
+            <tr><td>월</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</tr>
+            <tr><td>일</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</tr>
         </table>
         <p style="margin-top: 0.5cm;">※ 고용보험법 제40조에 따라 최종 1일 이상 근로한 날로부터 실업급여를 신청할 수 있는 날짜를 계산하여 작성된 내용입니다.</p>
         <p style="margin-top: 0.5cm;">※ 본 문서의 내용은 이후 근로제공이 전혀 없다는 전제 하에 작성된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
@@ -247,3 +263,4 @@ def daily_worker_eligibility_app():
         href = f'<a href="data:text/html;base64,{b64}" download="report_{input_date.strftime("%Y%m%d")}.html">보고서 다운로드</a>'
         st.markdown(href, unsafe_allow_html=True)
         st.markdown("**안내**: 다운로드한 HTML 파일을 열고, 브라우저에서 '인쇄' > 'PDF로 저장'을 선택해 PDF로 변환할 수 있습니다.")
+
