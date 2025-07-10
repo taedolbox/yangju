@@ -578,7 +578,8 @@ def daily_worker_eligibility_app():
     # 디버깅을 위해 calendar_html 내용을 표시하는 코드 (필요 없으면 제거하세요)
     # st.text_area("Debug Calendar HTML", calendar_html, height=300) 
 
-    st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component") 
+    st.text_area("Debug: calendar_html 내용", calendar_html, height=500) 
+    st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component")
 
     st.warning("버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
 
