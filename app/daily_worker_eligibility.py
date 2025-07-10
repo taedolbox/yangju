@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import json
-import pdfkit
+import base64
 
 # Set today's date in KST
 today_kst = datetime.utcnow() + timedelta(hours=9)
@@ -171,8 +171,8 @@ calendar_html += """
 
 st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
-# Generate and download report
-if st.button("보고서 생성 및 PDF 다운로드"):
+# Generate and download report as HTML
+if st.button("보고서 생성 및 HTML 다운로드"):
     selected_dates = json.loads(localStorage.getItem('selectedDates') or '[]')
     latest_worked_day = max([datetime.strptime(d, "%m/%d").replace(year=input_date.year) for d in selected_dates]) if selected_dates else None
     report_html = f"""
@@ -182,7 +182,7 @@ if st.button("보고서 생성 및 PDF 다운로드"):
     <h3>조건 판단</h3>
     <ol>
         <li>수급자 인정신청일이 속한 달의 직전 달 첫날부터 {input_date.strftime('%Y년 %m월 %d일')}까지 근무일 수 {len(selected_dates)}일로, 1/3 미만임을 확인합니다.</li>
-        <li>(건설일용근로자로서) 신청일 직전 14일간 무근무 여부: {'' if noWork14Days else '불'}충족</li>
+        <li>(건설일용근로자로서) 신청일 직전 14일간 무근무 여부: {'' if fourteenDaysRange.every(d => !selectedFullDates.includes(d)) else '불'}충족</li>
     </ol>
     <h3>근무일 확인</h3>
     <table border="1">
@@ -194,7 +194,8 @@ if st.button("보고서 생성 및 PDF 다운로드"):
     <p style="text-align: right;">작성일자: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M')} KST<br>서명: (인)</p>
     </body></html>
     """
-    pdf = pdfkit.from_string(report_html, False)
-    st.download_button("PDF 다운로드", data=pdf, file_name=f"report_{input_date.strftime('%Y%m%d')}.pdf", mime="application/pdf")
+    b64 = base64.b64encode(report_html.encode()).decode()
+    href = f'<a href="data:text/html;base64,{b64}" download="report_{input_date.strftime("%Y%m%d")}.html">보고서 다운로드</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
-# Note: Install pdfkit and wkhtmltopdf: pip install pdfkit, and ensure wkhtmltopdf is installed on your system
+# Note: No external dependencies like pdfkit required
