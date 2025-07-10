@@ -4,60 +4,62 @@ import json
 import os # 파일 경로 처리를 위해 os 모듈 추가
 
 def daily_worker_eligibility_app():
-    st.title("🗓️ 일용근로자 실업급여 수급자격 판단 도구")
-    st.markdown("이 도구는 **일반일용근로자 및 건설일용근로자**의 실업급여 수급자격 조건을 시뮬레이션하고, 신청에 필요한 확인서를 출력할 수 있도록 돕습니다.")
-    st.markdown("---")
+    # Streamlit 앱의 제목과 설명은 요청에 따라 제거합니다.
+    # st.title("🗓️ 일용근로자 실업급여 수급자격 판단 도구")
+    # st.markdown("이 도구는 **일반일용근로자 및 건설일용근로자**의 실업급여 수급자격 조건을 시뮬레이션하고, 신청에 필요한 확인서를 출력할 수 있도록 돕습니다.")
+    # st.markdown("---")
 
-    # Set today's date in KST (한국 표준시)
+    # KST (한국 표준시)로 오늘 날짜 설정
     now_utc = datetime.utcnow()
     today_kst = now_utc + timedelta(hours=9)
-    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date(), help="실업급여를 신청하고자 하는 기준 날짜를 선택해주세요.")
+    input_date = st.date_input("기준 날짜 선택", today_kst.date(), help="실업급여를 신청하고자 하는 기준 날짜를 선택해주세요.")
 
-    st.warning("⚠️ **중요**: 달력에서 근무한 날짜를 **클릭하여 선택**해주세요. 선택된 날짜는 파란색으로 표시됩니다. 한번 더 클릭하면 선택이 해제됩니다.")
+    st.warning("달력에서 근무한 날짜를 **클릭하여 선택**해주세요. 선택된 날짜는 파란색으로 표시됩니다. 한번 더 클릭하면 선택이 해제됩니다.")
 
-    # Set period for calendar display (from the first day of the previous month to the selected date)
+    # 달력 표시 기간 설정 (선택된 날짜의 직전 달 첫날부터 선택된 날짜까지)
     first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
     cal_dates = []
     current_date_for_cal = first_day_prev_month
-    while current_date_for_cal <= input_date: # Include up to the selected date
+    while current_date_for_cal <= input_date:
         cal_dates.append(current_date_for_cal)
         current_date_for_cal += timedelta(days=1)
 
-    # Group calendar by month
+    # 월별로 달력 그룹화
     calendar_groups = {}
     for date in cal_dates:
         ym = date.strftime("%Y-%m")
         calendar_groups.setdefault(ym, []).append(date)
 
-    # Date data for JavaScript (JSON array string)
+    # JavaScript에서 사용하기 위한 날짜 데이터 (JSON 배열 문자열)
     calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
     
-    # 14 days prior date needed for Condition 2 calculation (depends on the base date)
+    # 조건 2 계산을 위한 14일 이전 날짜 범위 (기준 날짜에 따라 달라짐)
     fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
     fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
     
     input_date_str = input_date.strftime("%Y-%m-%d")
 
     # --- 보고서 템플릿 파일 읽어오기 ---
-    # 현재 스크립트 파일의 디렉토리를 기준으로 템플릿 파일 경로 설정
+    # 현재 스크립트 파일의 디렉토리를 기준으로 'app' 폴더 안의 'report_template.html' 경로 설정
     current_dir = os.path.dirname(__file__)
-    template_path = os.path.join(current_dir, "report_template.html")
+    template_path = os.path.join(current_dir, "app", "report_template.html") # 'app' 폴더 추가
     
     report_template_content = ""
     try:
         with open(template_path, "r", encoding="utf-8") as f:
             report_template_content = f.read()
     except FileNotFoundError:
-        st.error(f"오류: 보고서 템플릿 파일 '{template_path}'을(를) 찾을 수 없습니다.")
-        return # 파일이 없으면 앱 실행 중단 또는 에러 처리
+        st.error(f"오류: 보고서 템플릿 파일 '{template_path}'을(를) 찾을 수 없습니다. 경로를 확인해주세요.")
+        return 
     
     # JavaScript로 보고서 템플릿 내용을 전달하기 위해 JSON 문자열로 인코딩
     report_template_json = json.dumps(report_template_content)
 
-    # Streamlit HTML/JavaScript component insertion
+    # Streamlit HTML/JavaScript 컴포넌트 삽입
     calendar_html = "<div id='calendar-container'>"
 
+    # 달력 초기화 버튼
     calendar_html += """
     <div style="text-align: right; margin-bottom: 15px;">
         <button onclick="clearCalendar()" style="
@@ -76,6 +78,7 @@ def daily_worker_eligibility_app():
     </div>
     """
 
+    # 월별 달력 생성
     for ym, dates in calendar_groups.items():
         year, month = ym.split("-")
         calendar_html += f"<h4>{year}년 {month}월</h4>"
@@ -89,10 +92,12 @@ def daily_worker_eligibility_app():
             <div class="day-header">금</div>
             <div class="day-header saturday">토</div>
         """
+        # 해당 월의 첫 날이 시작되는 요일까지 빈 칸 채우기
         start_day_offset = (dates[0].weekday() + 1) % 7
         for _ in range(start_day_offset):
             calendar_html += '<div class="empty-day"></div>'
         
+        # 날짜 버튼 생성
         for date in dates:
             wd = date.weekday()
             extra_cls = ""
@@ -113,7 +118,7 @@ def daily_worker_eligibility_app():
     /* CSS styles */
     .calendar {
         display: grid; 
-        grid-template-columns: repeat(7, 44px);
+        grid-template-columns: repeat(7, 44px); 
         grid-gap: 5px;
         margin-bottom: 20px; background: #fff; 
         padding: 10px 1px;
@@ -186,19 +191,15 @@ def daily_worker_eligibility_app():
     </style>
 
     <script>
-    // Python-passed date data (injected as JSON array string)
     const CALENDAR_DATES_RAW = """ + calendar_dates_json + """;
     const CALENDAR_DATES = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr)); 
 
-    // Python-passed base date related strings
     const FOURTEEN_DAYS_START_STR = '""" + fourteen_days_prior_start + """'; 
     const FOURTEEN_DAYS_END_STR = '""" + fourteen_days_prior_end + """';    
     const INPUT_DATE_STR = '""" + input_date_str + """';          
     
-    // --- 보고서 템플릿 내용을 JavaScript 변수로 전달 ---
     const REPORT_TEMPLATE = JSON.parse(`""" + report_template_json + """`);
 
-    // --- Helper Functions ---
     function getDaysBetween(startDate, endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -228,7 +229,6 @@ def daily_worker_eligibility_app():
         return `${year}-${month}-${day}`;
     }
 
-    // --- Core Logic: Calculation and Result Display ---
     function calculateAndDisplayResult(selectedMMDD) {
         const selectedFullDates = selectedMMDD.map(mmdd => {
             const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
@@ -248,13 +248,13 @@ def daily_worker_eligibility_app():
 
         if (selectedFullDates.length === 0) {
             const finalHtml = `
-                <h3>📌 조건 판단</h3>
-                <p>✅ 조건 1 충족: 근무일 0일 (선택 없음)</p>
-                <p>✅ 조건 2 충족: 근무일 0일 (선택 없음)</p>
-                <h3>📌 최종 판단</h3>
-                <p>✅ 일반일용근로자: 신청 가능</p>
-                <p>✅ 건설일용근로자: 신청 가능</p>
-                <h3>📌 종합 신청 가능일</h3>
+                <h3>조건 판단</h3>
+                <p>조건 1 충족: 근무일 0일 (선택 없음)</p>
+                <p>조건 2 충족: 근무일 0일 (선택 없음)</p>
+                <h3>최종 판단</h3>
+                <p>일반일용근로자: 신청 가능</p>
+                <p>건설일용근로자: 신청 가능</p>
+                <h3>종합 신청 가능일</h3>
                 <p>근무일이 없으므로, 현재(${INPUT_DATE_STR}) 바로 신청 가능합니다.</p>
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
             `;
@@ -277,13 +277,13 @@ def daily_worker_eligibility_app():
             nextPossibleApplicationDate.setDate(nextPossibleApplicationDate.getDate() + 14 + 1);
 
             const finalHtml = `
-                <h3 style="color: red;">📌 조건 판단</h3>
-                <p style="color: red;">❌ 조건 1 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
-                <p style="color: red;">❌ 조건 2 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
-                <h3 style="color: red;">📌 최종 판단</h3>
-                <p style="color: red;">❌ 일반일용근로자: 신청 불가능</p>
-                <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
-                <h3>📌 종합 신청 가능일</h3>
+                <h3 style="color: red;">조건 판단</h3>
+                <p style="color: red;">조건 1 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
+                <p style="color: red;">조건 2 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
+                <h3 style="color: red;">최종 판단</h3>
+                <p style="color: red;">일반일용근로자: 신청 불가능</p>
+                <p style="color: red;">건설일용근로자: 신청 불가능</p>
+                <h3>종합 신청 가능일</h3>
                 <p style="color: red;">기준 날짜(${INPUT_DATE_STR})에 근무 기록이 있으므로 현재 신청 불가능합니다.</p>
                 <p style="color: red;">(이 경우, ${INPUT_DATE_STR}이 마지막 근무일이라면 **${formatDateToYYYYMMDD(nextPossibleApplicationDate)}** 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
                 <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
@@ -317,8 +317,8 @@ def daily_worker_eligibility_app():
 
         const condition1Met = actualWorkedDaysForCond1 < currentThresholdForCond1;
         let condition1Text = condition1Met
-            ? `✅ 조건 1 충족: 근무일 수(${actualWorkedDaysForCond1}) < 기준(${currentThresholdForCond1.toFixed(1)})`
-            : `❌ 조건 1 불충족: 근무일 수(${actualWorkedDaysForCond1}) ≥ 기준(${currentThresholdForCond1.toFixed(1)})`;
+            ? `조건 1 충족: 근무일 수(${actualWorkedDaysForCond1}) < 기준(${currentThresholdForCond1.toFixed(1)})`
+            : `조건 1 불충족: 근무일 수(${actualWorkedDaysForCond1}) ≥ 기준(${currentThresholdForCond1.toFixed(1)})`;
 
         let nextPossible1Message = "";
         let nextPossible1Date = null;
@@ -356,9 +356,9 @@ def daily_worker_eligibility_app():
             }
 
             if (nextPossible1Date) {
-                nextPossible1Message = `📅 조건 1 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible1Date)}** (이후 근로제공이 없다는 전제)`;
+                nextPossible1Message = `조건 1 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible1Date)}** (이후 근로제공이 없다는 전제)`;
             } else {
-                nextPossible1Message = `🤔 조건 1 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (선택된 근무일이 매우 많거나 계산 범위(${maxLoopDays}일) 초과)`;
+                nextPossible1Message = `조건 1 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (선택된 근무일이 매우 많거나 계산 범위(${maxLoopDays}일) 초과)`;
             }
         }
 
@@ -378,8 +378,8 @@ def daily_worker_eligibility_app():
         const noWork14Days = fourteenDaysRangeForCurrentInput.every(dateStr => !selectedFullDates.includes(dateStr));
         
         let condition2Text = noWork14Days
-            ? `✅ 조건 2 충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 무근무`
-            : `❌ 조건 2 불충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 내 근무기록 존재`;
+            ? `조건 2 충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 무근무`
+            : `조건 2 불충족: 신청일 직전 14일간(${FOURTEEN_DAYS_START_STR} ~ ${FOURTEEN_DAYS_END_STR}) 내 근무기록 존재`;
 
         let nextPossible2Message = "";
         let nextPossible2Date = null;
@@ -389,20 +389,20 @@ def daily_worker_eligibility_app():
                 nextPossible2Date = new Date(latestWorkedDay);
                 nextPossible2Date.setDate(nextPossible2Date.getDate() + 14 + 1);
                 nextPossible2Date.setHours(0,0,0,0);
-                nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준) (이후 근로제공이 없다는 전제)`;
+                nextPossible2Message = `조건 2 충족을 위한 가장 빠른 신청 가능일: **${formatDateToYYYYMMDD(nextPossible2Date)}** (마지막 근로일(${formatDateToYYYYMMDD(latestWorkedDay)}) 기준) (이후 근로제공이 없다는 전제)`;
             } else {
-                nextPossible2Message = `🤔 조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 확인 필요)`;
+                nextPossible2Message = `조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 확인 필요)`;
             }
         }
 
         const generalWorkerEligible = condition1Met;
         const constructionWorkerEligible = condition1Met || noWork14Days;
         
-        const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
-        const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const generalWorkerText = generalWorkerEligible ? "신청 가능" : "신청 불가능";
+        const constructionWorkerText = constructionWorkerEligible ? "신청 가능" : "신청 불가능";
         
         const finalHtml = `
-            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
+            <h3>기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
             <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
             <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 근무 사실 없어야 함</p>
             <p>총 기간 일수: ` + currentTotalDaysForCond1 + `일</p>
@@ -412,9 +412,9 @@ def daily_worker_eligibility_app():
             <p>` + condition2Text + `</p>
             ` + (nextPossible1Message ? "<p>" + nextPossible1Message + "</p>" : "") + `
             ` + (nextPossible2Message ? "<p>" + nextPossible2Message + "</p>" : "") + `
-            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
-            <p>✅ 일반일용근로자: ` + generalWorkerText + `</p>
-            <p>✅ 건설일용근로자: ` + constructionWorkerText + `</p>
+            <h3>기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
+            <p>일반일용근로자: ` + generalWorkerText + `</p>
+            <p>건설일용근로자: ` + constructionWorkerText + `</p>
             <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
         `;
 
@@ -483,24 +483,20 @@ def daily_worker_eligibility_app():
         calculateAndDisplayResult([]);
     };
 
-    // --- Report Generation Function (수정된 부분) ---
     window.generateReport = function() {
-        console.log("Generating report from template...");
         const results = window.eligibilityResults;
         if (!results) {
             alert("먼저 근무일을 선택하여 조건을 확인해주세요.");
             return;
         }
 
-        let reportHtml = REPORT_TEMPLATE; // 전역 변수로 선언된 템플릿 내용을 가져옴
+        let reportHtml = REPORT_TEMPLATE;
 
-        // 날짜 데이터 파싱
         const inputDateObj = new Date(INPUT_DATE_STR);
         const inputYear = inputDateObj.getFullYear();
         const inputMonth = String(inputDateObj.getMonth() + 1).padStart(2, '0');
         const inputDay = String(inputDateObj.getDate()).padStart(2, '0');
 
-        // 플레이스홀더를 실제 데이터로 대체
         reportHtml = reportHtml.replace(/{{INPUT_DATE_YEAR}}/g, inputYear);
         reportHtml = reportHtml.replace(/{{INPUT_DATE_MONTH}}/g, inputMonth);
         reportHtml = reportHtml.replace(/{{INPUT_DATE_DAY}}/g, inputDay);
@@ -512,25 +508,26 @@ def daily_worker_eligibility_app():
         reportHtml = reportHtml.replace(/{{COND2_PERIOD_START}}/g, results.cond2PeriodStart);
         reportHtml = reportHtml.replace(/{{COND2_PERIOD_END}}/g, results.cond2PeriodEnd);
         
-        // --- 캘린더 테이블 생성 ---
         let calendarTableHTML = "";
         let currentMonthNum = null;
         let currentRowFor15Days = [];
-        const datesToDisplay = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr)); // 현재 달력에 표시된 모든 날짜
+        const datesToDisplay = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr));
 
         for (let i = 0; i < datesToDisplay.length; i++) {
             const tempDate = datesToDisplay[i];
             const month = tempDate.getMonth() + 1;
             const dayNum = tempDate.getDate();
-            const isSelected = results.selectedDates.includes(formatDateToYYYYMMDD(tempDate)); // results에서 선택된 날짜 확인
-            const displayChar = isSelected ? "○" : " "; // 근무일은 ○, 아니면 공백
+            const isSelected = results.selectedDates.includes(formatDateToYYYYMMDD(tempDate));
+            const displayChar = isSelected ? "○" : " ";
 
             if (currentMonthNum === null || month !== currentMonthNum) {
                 if (currentMonthNum !== null) {
                     while (currentRowFor15Days.length < 15) {
                         currentRowFor15Days.push('<td></td>');
                     }
-                    calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${new Date(tempDate.getFullYear(), currentMonthNum, 0).getDate()}일</td></tr>`;
+                    // 마지막 달의 전체 일수 계산을 더 정확하게
+                    const lastDayOfPrevMonth = new Date(tempDate.getFullYear(), currentMonthNum, 0);
+                    calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${lastDayOfPrevMonth.getDate()}일</td></tr>`;
                     currentRowFor15Days = [];
                 }
                 currentMonthNum = month;
@@ -552,11 +549,13 @@ def daily_worker_eligibility_app():
             while (currentRowFor15Days.length < 15) {
                 currentRowFor15Days.push('<td></td>');
             }
-            calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${new Date(datesToDisplay[datesToDisplay.length-1].getFullYear(), datesToDisplay[datesToDisplay.length-1].getMonth() + 1, 0).getDate()}일</td></tr>`;
+            // 마지막 달의 전체 일수 계산
+            const lastDateInCalendar = datesToDisplay[datesToDisplay.length - 1];
+            const lastDayOfLastMonth = new Date(lastDateInCalendar.getFullYear(), lastDateInCalendar.getMonth() + 1, 0);
+            calendarTableHTML += `<tr>${currentRowFor15Days.join('')}<td></td><td class="total-days">${lastDayOfLastMonth.getDate()}일</td></tr>`;
         }
-        reportHtml = reportHtml.replace(/{{CALENDAR_TABLE}}/g, calendarTableHTML); // 템플릿에 캘린더 테이블 삽입
+        reportHtml = reportHtml.replace(/{{CALENDAR_TABLE}}/g, calendarTableHTML);
 
-        // 선택된 날짜 목록 삽입
         reportHtml = reportHtml.replace(/{{SELECTED_DATES_LIST}}/g, results.selectedDates.join(', '));
 
         const printWindow = window.open('', '_blank');
@@ -566,28 +565,19 @@ def daily_worker_eligibility_app():
         printWindow.print();
     };
 
-
     document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
-        // ★★★ printReportBtn 이벤트 리스너는 HTML 컴포넌트 내부에서 직접 연결되어 있으므로,
-        // 여기 DOMContentLoaded에서는 달력 초기화만 수행합니다.
-        // 하지만 혹시 모를 경우를 대비해 아래 코드를 남겨둡니다.
-        // const printBtn = document.getElementById('printReportBtn');
-        // if (printBtn) {
-        //     printBtn.onclick = function() {
-        //         window.generateReport();
-        //     };
-        // }
     });
     </script>
     """
 
     st.components.v1.html(calendar_html, height=1000, scrolling=True, key="my_calendar_component") 
 
-    st.markdown("---")
-    st.subheader("📄 보고서 출력 및 PDF 저장")
-    st.write("아래 버튼을 클릭하면 확인서 내용이 새 창에 표시되며, 브라우저의 인쇄 기능을 통해 PDF로 저장할 수 있습니다.")
-    st.warning("⚠️ **참고**: 버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
+    # 보고서 출력 버튼
+    # st.markdown("---")
+    # st.subheader("📄 보고서 출력 및 PDF 저장")
+    # st.write("아래 버튼을 클릭하면 확인서 내용이 새 창에 표시되며, 브라우저의 인쇄 기능을 통해 PDF로 저장할 수 있습니다.")
+    st.warning("버튼 클릭 후 새 창(팝업)이 뜨지 않는다면, 브라우저에서 팝업이 차단되었을 수 있습니다. 브라우저 주소창 근처의 팝업 차단 아이콘을 확인하고 **팝업을 허용**해주세요.")
 
     st.components.v1.html(
         """
@@ -606,7 +596,6 @@ def daily_worker_eligibility_app():
             📄 확인서 출력 (PDF 저장)
         </button>
         <script>
-            // 버튼 클릭 시 window.generateReport() 함수를 호출합니다.
             document.getElementById('printReportBtn').onclick = function() {
                 window.generateReport();
             };
@@ -617,4 +606,7 @@ def daily_worker_eligibility_app():
     )
 
 if __name__ == "__main__":
-    daily_worker_eligibility_app()
+    def main():
+        daily_worker_eligibility_app()
+
+    main()
