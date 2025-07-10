@@ -397,7 +397,7 @@ def daily_worker_eligibility_app():
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
 
-        // Pass selected dates to a hidden input for Streamlit to access
+        // Pass selected dates to a hidden input for Streamlit to access via form
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'selected_dates';
@@ -466,12 +466,16 @@ def daily_worker_eligibility_app():
     </script>
     """
 
-    st.components.v1.html(calendar_html, height=1500, scrolling=False)
+    # Use st.form to capture hidden input data
+    with st.form(key="calendar_form"):
+        st.components.v1.html(calendar_html, height=1500, scrolling=False)
+        selected_dates = st.form_submit_button("제출")  # Form submission to trigger state update
+        if selected_dates and 'selected_dates' in st.session_state:
+            selected_dates = json.loads(st.session_state['selected_dates'])
+        else:
+            selected_dates = []
 
     # Generate and download report based on selected dates
-    selected_dates_input = st.components.v1.html("<input type='hidden' id='selected_dates_input' name='selected_dates'>", height=0)
-    selected_dates = json.loads(st.session_state.get('selected_dates', '[]')) if 'selected_dates' in st.session_state else []
-
     if st.button("보고서 생성 및 다운로드"):
         if not selected_dates:
             st.error("선택된 날짜가 없습니다. 달력에서 날짜를 선택해 주세요.")
@@ -504,4 +508,9 @@ def daily_worker_eligibility_app():
         href = f'<a href="data:text/html;base64,{b64}" download="report_{input_date.strftime("%Y%m%d")}.html">보고서 다운로드</a>'
         st.markdown(href, unsafe_allow_html=True)
         st.markdown("**안내**: 다운로드한 HTML 파일을 열고, 브라우저에서 '인쇄' > 'PDF로 저장'을 선택해 PDF로 변환할 수 있습니다.")
+
+    # Update session state with form data
+    if 'selected_dates' in st.session_state:
+        selected_dates = json.loads(st.session_state['selected_dates'])
+
 
