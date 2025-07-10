@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import json
+import base64
 
 def daily_worker_eligibility_app():
     # Set today's date in KST
@@ -451,7 +452,6 @@ def daily_worker_eligibility_app():
         calculateAndDisplayResult([]);
     };
 
-
     // DOMContentLoaded event listener: Execute script after HTML document is fully loaded and parsed
     document.addEventListener('DOMContentLoaded', function() {
         loadSelectedDates();
@@ -460,3 +460,34 @@ def daily_worker_eligibility_app():
     """
 
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
+    # Generate and download report based on selected dates
+    if st.button("보고서 생성 및 다운로드"):
+        selected_dates = json.loads(localStorage.getItem('selectedDates')) or []
+        fourteen_days_range = [input_date - timedelta(days=i) for i in range(14)]
+        no_work_14_days = all(d.strftime("%Y-%m-%d") not in [datetime.strptime(d, "%m/%d").replace(year=input_date.year).strftime("%Y-%m-%d") for d in selected_dates] for d in fourteen_days_range)
+
+        report_html = f"""
+        <html><body style="font-family: Arial, sans-serif; margin: 2cm;">
+        <h2 style="text-align: center;">휴업 사유서</h2>
+        <p style="text-align: center;">본인은 {input_date.strftime('%Y년 %m월 %d일')} ○○고용센터에 방문하여 실업급여 수급자 인정신청을 하였습니다.</p>
+        <h3 style="margin-top: 0.5cm;">조건 판단</h3>
+        <ol style="margin-left: 1cm;">
+            <li>수급자 인정신청일이 속한 달의 직전 달 초일부터 {input_date.strftime('%Y년 %m월 %d일')}까지 근무일 수의 합이 {len(selected_dates)}일로, 1/3 미만임을 확인합니다.</li>
+            <li>(건설일용근로자로서 수급자 인정신청일이 속한 달의 직전 달 초일부터 수급자 인정신청일까지 근무일이 없는 기간이 14일간 이상인 경우) 수급자 인정신청일 전 14일 동안 근무하지 않음이 {'' if no_work_14_days else '불'}확인됩니다.</li>
+        </ol>
+        <h3 style="margin-top: 0.5cm;">근무일 확인</h3>
+        <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 0.2cm;">
+            <tr><th>구분</th><th>달력으로 재공인 ○(사)</th><th colspan="6"></th><th>총일수</th></tr>
+            <tr><td>월</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</tr>
+            <tr><td>일</td>{''.join(f'<td>{d.day}</td>' for d in cal_dates[:7])}</tr>
+        </table>
+        <p style="margin-top: 0.5cm;">※ 고용보험법 제40조에 따라 최종 1일 이상 근로한 날로부터 실업급여를 신청할 수 있는 날짜를 계산하여 작성된 내용입니다.</p>
+        <p style="margin-top: 0.5cm;">※ 본 문서의 내용은 이후 근로제공이 전혀 없다는 전제 하에 작성된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
+        <p style="text-align: right; margin-top: 1cm;">작성일자: {datetime.now().strftime('%Y년 %m월 %d일')}<br>서명: (인)</p>
+        </body></html>
+        """
+        b64 = base64.b64encode(report_html.encode()).decode()
+        href = f'<a href="data:text/html;base64,{b64}" download="report_{input_date.strftime("%Y%m%d")}.html">보고서 다운로드</a>'
+        st.markdown(href, unsafe_allow_html=True)
+        st.markdown("**안내**: 다운로드한 HTML 파일을 열고, 브라우저에서 '인쇄' > 'PDF로 저장'을 선택해 PDF로 변환할 수 있습니다.")
