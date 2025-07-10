@@ -396,6 +396,13 @@ def daily_worker_eligibility_app():
         `;
 
         document.getElementById('resultContainer').innerHTML = finalHtml;
+
+        // Pass selected dates to a hidden input for Streamlit to access
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'selected_dates';
+        input.value = JSON.stringify(selectedMMDD);
+        document.body.appendChild(input);
     }
 
     // Toggle date selection/deselection function
@@ -462,8 +469,14 @@ def daily_worker_eligibility_app():
     st.components.v1.html(calendar_html, height=1500, scrolling=False)
 
     # Generate and download report based on selected dates
+    selected_dates_input = st.components.v1.html("<input type='hidden' id='selected_dates_input' name='selected_dates'>", height=0)
+    selected_dates = json.loads(st.session_state.get('selected_dates', '[]')) if 'selected_dates' in st.session_state else []
+
     if st.button("보고서 생성 및 다운로드"):
-        selected_dates = json.loads(localStorage.getItem('selectedDates')) or []
+        if not selected_dates:
+            st.error("선택된 날짜가 없습니다. 달력에서 날짜를 선택해 주세요.")
+            return
+
         fourteen_days_range = [input_date - timedelta(days=i) for i in range(14)]
         no_work_14_days = all(d.strftime("%Y-%m-%d") not in [datetime.strptime(d, "%m/%d").replace(year=input_date.year).strftime("%Y-%m-%d") for d in selected_dates] for d in fourteen_days_range)
 
@@ -491,3 +504,4 @@ def daily_worker_eligibility_app():
         href = f'<a href="data:text/html;base64,{b64}" download="report_{input_date.strftime("%Y%m%d")}.html">보고서 다운로드</a>'
         st.markdown(href, unsafe_allow_html=True)
         st.markdown("**안내**: 다운로드한 HTML 파일을 열고, 브라우저에서 '인쇄' > 'PDF로 저장'을 선택해 PDF로 변환할 수 있습니다.")
+
