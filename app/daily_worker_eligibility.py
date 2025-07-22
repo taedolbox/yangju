@@ -371,7 +371,7 @@ def daily_worker_eligibility_app():
 
         // --- Final Application Eligibility Judgment (based on current base date) ---
         const generalWorkerEligible = condition1Met;
-        const constructionWorkerEligible = condition1Met || noWork14Days; // Construction daily workers only need to meet one of the two conditions
+        const constructionWorkerEligible = noWork14Days; // Construction daily workers only need to meet one of the two conditions
         
         const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
         const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
