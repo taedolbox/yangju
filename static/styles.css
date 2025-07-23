@@ -1,5 +1,9 @@
 /* 기존 스타일 유지 + Streamlit 오른쪽 상단, 하단 메뉴 숨기기 */
-
+div[data-baseweb="select"] {
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 5px;
+}
 /* 기본 텍스트 스타일 */
 .header-title {
     font-size: 22px;
