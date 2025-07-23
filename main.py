@@ -253,3 +253,6 @@ def main():
         else:
             st.error("선택된 메뉴에 해당하는 페이지를 찾을 수 없습니다.")
             st.info("다시 메뉴를 선택해주세요.")
+
+if __name__ == "__main__":
+    main()
