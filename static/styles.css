@@ -1,54 +1,37 @@
-/* 달력 그리드 */
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  width: 100%;
-  background: #fff;
-  padding: 10px;
-  border-radius: 8px;
+/* 기본 Streamlit UI 제거 */
+.stAppHeader, [data-testid="stToolbar"], [data-testid="stMainMenu"] {
+    display: none !important;
 }
 
-/* 요일 헤더 */
-.day-header {
-  aspect-ratio: 1/1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #333;
-}
-.day-header.sunday {
-  color: red;
-}
-.day-header.saturday {
-  color: blue;
+/* 상단 고정 텍스트 박스 */
+.custom-header {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #2196F3;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 2px solid #2196F3;
+    border-radius: 6px;
+    padding: 8px 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 10000;
 }
 
-/* 날짜 */
-.day {
-  aspect-ratio: 1/1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  color: #333;
+/* 반응형 (모바일 대응) */
+@media (max-width: 768px) {
+    .custom-header {
+        font-size: 18px;
+        right: 10px;
+        padding: 6px 15px;
+    }
 }
 
-.day.sunday {
-  color: red;
-}
-.day.saturday {
-  color: blue;
-}
-
-/* 빈칸 */
-.day.empty {
-  border: none;
-  background: none;
+/* 콤보박스 스타일 */
+div[data-baseweb="select"] > div:first-child {
+    border: 2px solid #2196F3 !important;
+    background-color: #E3F2FD !important;
+    font-weight: 600 !important;
+    color: #2196F3 !important;
 }
