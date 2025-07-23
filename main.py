@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 # 필요한 앱 함수들만 임포트
 from app.daily_worker_eligibility import daily_worker_eligibility_app
