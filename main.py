@@ -12,18 +12,14 @@ def main():
         layout="centered" # 페이지 내용을 중앙에 정렬
     )
 
+    # 스타일 로드 및 상단 안내 텍스트
+    load_css("static/styles.css")
+    st.markdown('<div class="custom-header">실업급여 도우미</div>', unsafe_allow_html=True)
+
     # 모든 CSS 스타일 (오른쪽 상단 메뉴 숨기기 추가)
     st.markdown("""
     <style>
-    /* 오른쪽 상단 메뉴(햄버거 메뉴) 숨기기 */
-    [data-testid="stToolbar"] {
-        display: none !important;
-    }
-    /* 오른쪽 상단 메뉴 버튼(햄버거 아이콘) 숨기기 */
-    [data-testid="stToolbarActions"] {
-        display: none !important;
-    }
-
+    
     /* 기존 스타일 유지 */
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
     div[data-baseweb="select"] > div:first-child {
