@@ -1,160 +1,349 @@
-# main.py
-
 import streamlit as st
-from app.daily_worker_eligibility import daily_worker_eligibility_app
-from app.early_reemployment import early_reemployment_app
-from app.job_search_duty import job_search_duty_app # 새로 추가: 구직 활동 의무 앱 임포트
+from datetime import datetime, timedelta
+import json
 
-def main():
-    st.set_page_config(page_title="실업급여 지원 시스템", page_icon="💼", layout="centered")
+def daily_worker_eligibility_app():
+    # 외부 CSS 파일 링크 삽입
+    st.markdown('<link rel="stylesheet" href="/static/styles.css">', unsafe_allow_html=True)
 
-    # menus 리스트에 "구직 활동 의무" 추가
-    menus = ["메뉴 선택", "조기재취업수당", "일용직(건설일용포함)", "구직 활동 의무"] # 변경된 부분
+    # 오늘 날짜(KST) 기준 날짜 선택
+    today_kst = datetime.utcnow() + timedelta(hours=9)
+    input_date = st.date_input("📅 기준 날짜 선택", today_kst.date())
 
-    # 1. 초기 메뉴 인덱스 결정 (URL 또는 세션 상태)
-    menu_param_from_url = st.query_params.get("menu", None)
-
-    if "current_menu_idx" not in st.session_state:
-        if menu_param_from_url and menu_param_from_url.isdigit():
-            parsed_menu_idx = int(menu_param_from_url) - 1
-            if 0 <= parsed_menu_idx < len(menus):
-                st.session_state.current_menu_idx = parsed_menu_idx
-            else:
-                st.session_state.current_menu_idx = 0
-        else:
-            st.session_state.current_menu_idx = 0
-
-    # CSS 스타일
-    st.markdown("""
-    <style>
-    /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
-    div[data-baseweb="select"] > div:first-child {
-        border: 2px solid #2196F3 !important; /* 기존 테두리 유지 */
-        color: #2196F3 !important;           /* 기존 텍스트 색상 유지 */
-        font-weight: 600 !important;
-        background-color: #E3F2FD !important; /* 콤보박스 배경색 변경 (밝은 파랑) */
-    }
-
-    /* 콤보박스 내부 텍스트 (현재 선택된 값) */
-    div[data-baseweb="select"] span {
-        color: #2196F3 !important;
-        font-weight: 600 !important;
-    }
-
-    /* 드롭다운 리스트 컨테이너 */
-    div[data-baseweb="popover"] {
-        z-index: 9999 !important; /* 다른 요소 위에 오도록 z-index 높임 */
-        background-color: #FFFFFF !important; /* 드롭다운 배경색 하얀색으로 명확하게 */
-        border: 1px solid #2196F3 !important; /* 테두리 추가 */
-        border-radius: 8px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; /* 그림자 추가 */
-    }
-
-    /* 드롭다운 리스트 항목 */
-    div[data-baseweb="select"] ul[role="listbox"] li {
-        color: #2196F3 !important;
-        font-weight: 600 !important;
-        padding: 10px 15px !important; /* 패딩 조정 */
-    }
-
-    /* 드롭다운 리스트 항목 호버 시 */
-    div[data-baseweb="select"] ul[role="listbox"] li:hover {
-        background-color: #2196F3 !important;
-        color: white !important;
-    }
-
-    /* 스크롤바 스타일링 (선택 사항, 깔끔하게 보이게) */
-    div[data-baseweb="popover"]::-webkit-scrollbar {
-        width: 8px;
-    }
-    div[data-baseweb="popover"]::-webkit-scrollbar-thumb {
-        background-color: #bbdefb; /* 연한 파랑 */
-        border-radius: 4px;
-    }
-    div[data-baseweb="popover"]::-webkit-scrollbar-track {
-        background-color: #f1f1f1;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 2. st.selectbox에서 값 변경 시 세션 상태 업데이트
-    def on_menu_change():
-        selected_menu_name = st.session_state.main_menu_select_key
-        st.session_state.current_menu_idx = menus.index(selected_menu_name)
-
-        if st.session_state.current_menu_idx == 0:
-            if "menu" in st.query_params:
-                del st.query_params["menu"] # "메뉴 선택" 시 URL 파라미터 제거
-        else:
-            st.query_params["menu"] = str(st.session_state.current_menu_idx + 1) # 선택된 메뉴의 인덱스를 URL 파라미터로 저장
-
-    # 메뉴 선택 콤보박스
-    st.selectbox(
-        "📋 메뉴 선택",
-        menus,
-        index=st.session_state.current_menu_idx,
-        key="main_menu_select_key",
-        on_change=on_menu_change
-    )
-
-    # --- 동적 타이틀을 추가합니다 ---
-    selected_menu_title = menus[st.session_state.current_menu_idx]
+    # 기준 날짜로 달력 표시 범위 계산 (이전 달 1일부터 입력 날짜까지)
+    first_day_prev_month = (input_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     
-    if selected_menu_title == "메뉴 선택":
-        # 초기 화면이므로 별도의 타이틀을 넣지 않거나, 환영 메시지 안에 포함
-        pass 
-    else:
-        # 선택된 메뉴 이름으로 동적 타이틀 생성
-        if selected_menu_title == "일용직(건설일용포함)":
-            display_title = "일용직(건설일용포함) 실업급여 요건 판단"
-        elif selected_menu_title == "구직 활동 의무": # 새로 추가된 메뉴의 타이틀
-            display_title = "구직 활동 의무 안내"
-        else:
-            display_title = selected_menu_title + " 요건 판단"
-            
-        st.markdown(
-            f"<span style='font-size:22px; font-weight:600;'>🏗️ {display_title}</span>",
-            unsafe_allow_html=True
-        )
+    cal_dates = []
+    current_date_for_cal = first_day_prev_month
+    while current_date_for_cal <= input_date:
+        cal_dates.append(current_date_for_cal)
+        current_date_for_cal += timedelta(days=1)
 
-    # 모든 페이지에 공통으로 표시될 안내 문구
-    st.markdown(
-        "<p style='font-size:18px; font-weight:700; margin-bottom:10px;'>ⓘ 실업급여 도우미는 참고용입니다. 실제 가능 여부는 고용센터 판단을 따릅니다.</p>",
-        unsafe_allow_html=True
-    )
-    # --- 동적 타이틀 추가 종료 ---
+    # 월별로 그룹핑
+    calendar_groups = {}
+    for date in cal_dates:
+        ym = date.strftime("%Y-%m")
+        calendar_groups.setdefault(ym, []).append(date)
 
-    # 3. 세션 상태의 current_menu_idx에 따라 화면 출력
-    selected_idx = st.session_state.current_menu_idx
+    # JS에서 쓸 날짜 JSON 문자열 생성
+    calendar_dates_json = json.dumps([d.strftime("%Y-%m-%d") for d in cal_dates])
 
-    if selected_idx == 0:
-        # "메뉴 선택" 시 보여줄 초기 화면 내용
-        st.markdown("---") # 시각적 구분선 추가
-        st.markdown(
-            """
-            <div style="padding: 20px; border-radius: 10px; background-color: #f0f8ff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <h3 style="color: #0d47a1; margin-bottom: 15px;">🌟 실업급여 지원 시스템에 오신 것을 환영합니다!</h3>
-                <p style="font-size: 16px; line-height: 1.6; color: #333333;">  이 시스템은 <b>실업급여 수급 자격</b> 및 <b>조기재취업수당</b>과 관련된 정보를 쉽고 빠르게 확인하실 수 있도록 돕습니다.
-                    <br><br>
-                    궁금한 기능을 위에 있는 <b>'📋 메뉴 선택' 콤보박스에서 선택</b>해 주세요.
-                </p>
-                <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px; color: #333333;"> <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
-                    <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
-                    <li>🔹 <b>구직 활동 의무:</b> 실업급여 수급 중 구직 활동 인정 범위와 증빙 서류를 안내합니다.</li> </ul>
-                <p style="font-size: 14px; color: #555; margin-top: 20px;">
-                    💡 <b>주의:</b> 본 시스템의 결과는 참고용이며, 최종적인 실업급여 수급 여부는 관할 고용센터의 판단에 따릅니다.
-                </p>
-            </div>
-            """, unsafe_allow_html=True
-        )
-        st.markdown("---") # 또 다른 시각적 구분선
-    elif selected_idx == 1:
-        early_reemployment_app() # 조기재취업수당 페이지 함수 호출
-    elif selected_idx == 2:
-        daily_worker_eligibility_app() # 일용직 페이지 함수 호출
-    elif selected_idx == 3: # 새로 추가된 "구직 활동 의무" 메뉴의 인덱스
-        job_search_duty_app() # 구직 활동 의무 페이지 함수 호출
+    # 조건2 계산용 14일 전 기간
+    fourteen_days_prior_end = (input_date - timedelta(days=1)).strftime("%Y-%m-%d")
+    fourteen_days_prior_start = (input_date - timedelta(days=14)).strftime("%Y-%m-%d")
+    input_date_str = input_date.strftime("%Y-%m-%d")
+
+    # 달력 + 결과 + 스크립트 HTML 생성 (기존 코드를 거의 그대로 유지)
+    calendar_html = "<div id='calendar-container'>"
+
+    # 초기화 버튼 추가
+    calendar_html += """
+    <div style="text-align: right; margin-bottom: 15px;">
+        <button onclick="clearCalendar()" style="
+            background-color: #3F51B5;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.2s;
+        " onmouseover="this.style.backgroundColor='#303F9F'" onmouseout="this.style.backgroundColor='#3F51B5'">
+            🔄 달력 초기화
+        </button>
+    </div>
+    """
+
+    for ym, dates in calendar_groups.items():
+        year, month = ym.split("-")
+        calendar_html += f"<h4>{year}년 {month}월</h4>"
+        calendar_html += """
+        <div class="calendar">
+            <div class="day-header sunday">일</div>
+            <div class="day-header">월</div>
+            <div class="day-header">화</div>
+            <div class="day-header">수</div>
+            <div class="day-header">목</div>
+            <div class="day-header">금</div>
+            <div class="day-header saturday">토</div>
+        """
+        start_day_offset = (dates[0].weekday() + 1) % 7
+        for _ in range(start_day_offset):
+            calendar_html += '<div class="empty-day"></div>'
+        for date in dates:
+            wd = date.weekday()
+            extra_cls = ""
+            if wd == 5:
+                extra_cls = "saturday"
+            elif wd == 6:
+                extra_cls = "sunday"
+            day_num = date.day
+            date_str = date.strftime("%m/%d")
+            date_full_str = date.strftime("%Y-%m-%d")
+            calendar_html += f'<div class="day {extra_cls}" data-date="{date_str}" data-full-date="{date_full_str}" onclick="toggleDate(this)">{day_num}</div>'
+        calendar_html += "</div>"
+
+    calendar_html += "</div><div id='resultContainer'></div>"
+
+    # 자바스크립트 코드 (조건 계산, 날짜 선택 등 기존 로직 전부 삽입)
+    calendar_html += f"""
+    <script>
+    const CALENDAR_DATES_RAW = {calendar_dates_json};
+    const CALENDAR_DATES = CALENDAR_DATES_RAW.map(dateStr => new Date(dateStr));
+    const FOURTEEN_DAYS_START_STR = '{fourteen_days_prior_start}';
+    const FOURTEEN_DAYS_END_STR = '{fourteen_days_prior_end}';
+    const INPUT_DATE_STR = '{input_date_str}';
+
+    function getDaysBetween(startDate, endDate) {{
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (start > end) return 0;
+        let count = 0;
+        let current = new Date(start);
+        current.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
+        while (current <= end) {{
+            count++;
+            current.setDate(current.getDate() + 1);
+        }}
+        return count;
+    }}
+
+    function getFirstDayOfPrevMonth(date) {{
+        const d = new Date(date);
+        d.setDate(1);
+        d.setMonth(d.getMonth() - 1);
+        return d;
+    }}
+
+    function formatDateToYYYYMMDD(date) {{
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${{year}}-${{month}}-${{day}}`;
+    }}
+
+    function calculateAndDisplayResult(selectedMMDD) {{
+        const selectedFullDates = selectedMMDD.map(mmdd => {{
+            const foundDate = CALENDAR_DATES_RAW.find(d => d.endsWith(mmdd.replace('/', '-')));
+            return foundDate || '';
+        }}).filter(Boolean);
+
+        let latestWorkedDay = null;
+        if (selectedFullDates.length > 0) {{
+            latestWorkedDay = selectedFullDates.reduce((maxDate, currentDateStr) => {{
+                const currentDate = new Date(currentDateStr);
+                return maxDate === null || currentDate > maxDate ? currentDate : maxDate;
+            }}, null);
+        }}
+
+        const inputDate = new Date(INPUT_DATE_STR);
+        inputDate.setHours(0,0,0,0);
+
+        if (selectedFullDates.length === 0) {{
+            document.getElementById('resultContainer').innerHTML = `
+                <h3>📌 조건 판단</h3>
+                <p>✅ 조건 1 충족: 근무일 0일 (선택 없음)</p>
+                <p>✅ 조건 2 충족: 근무일 0일 (선택 없음)</p>
+                <h3>📌 최종 판단</h3>
+                <p>✅ 일반일용근로자: 신청 가능</p>
+                <p>✅ 건설일용근로자: 신청 가능</p>
+                <h3>📌 종합 신청 가능일</h3>
+                <p>근무일이 없으므로, 현재(${INPUT_DATE_STR}) 바로 신청 가능합니다.</p>
+                <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
+            `;
+            return;
+        }}
+
+        if (selectedFullDates.includes(INPUT_DATE_STR)) {{
+            const nextPossibleApplicationDate = new Date(INPUT_DATE_STR);
+            nextPossibleApplicationDate.setDate(nextPossibleApplicationDate.getDate() + 15);
+
+            document.getElementById('resultContainer').innerHTML = `
+                <h3 style="color: red;">📌 조건 판단</h3>
+                <p style="color: red;">❌ 조건 1 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
+                <p style="color: red;">❌ 조건 2 불충족: 기준 날짜(${INPUT_DATE_STR}) 근무로 인한 미충족</p>
+                <h3 style="color: red;">📌 최종 판단</h3>
+                <p style="color: red;">❌ 일반일용근로자: 신청 불가능</p>
+                <p style="color: red;">❌ 건설일용근로자: 신청 불가능</p>
+                <h3>📌 종합 신청 가능일</h3>
+                <p style="color: red;">기준 날짜(${INPUT_DATE_STR})에 근무 기록이 있으므로 현재 신청 불가능합니다.</p>
+                <p style="color: red;">(이 경우, ${INPUT_DATE_STR}이 마지막 근무일이라면 <b>${formatDateToYYYYMMDD(nextPossibleApplicationDate)}</b> 이후 신청 가능) (이후 근로제공이 없다는 전제)</p>
+                <p>※ 위의 '신청 가능일'은 이후 근로제공이 전혀 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과는 다를 수 있습니다.</p>
+            `;
+            return;
+        }}
+
+        const currentPeriodStartForCond1 = getFirstDayOfPrevMonth(inputDate);
+        currentPeriodStartForCond1.setHours(0,0,0,0);
+
+        const currentTotalDaysForCond1 = getDaysBetween(currentPeriodStartForCond1, inputDate);
+        const currentThresholdForCond1 = currentTotalDaysForCond1 / 3;
+
+        const actualWorkedDaysForCond1 = selectedFullDates.filter(dateStr => {{
+            const date = new Date(dateStr);
+            date.setHours(0,0,0,0);
+            return date >= currentPeriodStartForCond1 && date <= latestWorkedDay;
+        }}).length;
+
+        const condition1Met = actualWorkedDaysForCond1 < currentThresholdForCond1;
+        let condition1Text = condition1Met
+            ? `✅ 조건 1 충족: 근무일 수(${actualWorkedDaysForCond1}) < 기준(${currentThresholdForCond1.toFixed(1)})`
+            : `❌ 조건 1 불충족: 근무일 수(${actualWorkedDaysForCond1}) ≥ 기준(${currentThresholdForCond1.toFixed(1)})`;
+
+        let nextPossible1Message = "";
+        let nextPossible1Date = null;
+
+        if (!condition1Met) {{
+            let testApplicationDate = new Date(inputDate);
+            testApplicationDate.setDate(testApplicationDate.getDate() + 1);
+            testApplicationDate.setHours(0,0,0,0);
+
+            let loopCount = 0;
+            const maxLoopDays = 365;
+
+            while (loopCount < maxLoopDays) {{
+                const testPeriodStart = getFirstDayOfPrevMonth(testApplicationDate);
+                testPeriodStart.setHours(0,0,0,0);
+
+                const testTotalDays = getDaysBetween(testPeriodStart, testApplicationDate);
+
+                let effectiveWorkedDaysForCond1Test = 0;
+                if (latestWorkedDay && latestWorkedDay >= testPeriodStart) {{
+                    effectiveWorkedDaysForCond1Test = selectedFullDates.filter(dateStr => {{
+                        const date = new Date(dateStr);
+                        date.setHours(0,0,0,0);
+                        return date >= testPeriodStart && date <= latestWorkedDay;
+                    }}).length;
+                }}
+
+                if (effectiveWorkedDaysForCond1Test < testTotalDays / 3) {{
+                    nextPossible1Date = testApplicationDate;
+                    break;
+                }}
+
+                testApplicationDate.setDate(testApplicationDate.getDate() + 1);
+                loopCount++;
+            }}
+
+            if (nextPossible1Date) {{
+                nextPossible1Message = `📅 조건 1 충족을 위한 가장 빠른 신청 가능일: <b>${formatDateToYYYYMMDD(nextPossible1Date)}</b> (이후 근로제공이 없다는 전제)`;
+            }} else {{
+                nextPossible1Message = `🤔 조건 1 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (선택된 근무일이 많거나 계산 범위 초과)`;
+            }}
+        }}
+
+        const fourteenDaysRangeForCurrentInput = [];
+        const fourteenDaysStartForCurrentInput = new Date(FOURTEEN_DAYS_START_STR);
+        fourteenDaysStartForCurrentInput.setHours(0,0,0,0);
+        const fourteenDaysEndForCurrentInput = new Date(FOURTEEN_DAYS_END_STR);
+        fourteenDaysEndForCurrentInput.setHours(0,0,0,0);
+
+        let tempDateForRange = new Date(fourteenDaysStartForCurrentInput);
+        while (tempDateForRange <= fourteenDaysEndForCurrentInput) {{
+            fourteenDaysRangeForCurrentInput.push(formatDateToYYYYMMDD(tempDateForRange));
+            tempDateForRange.setDate(tempDateForRange.getDate() + 1);
+        }}
+
+        const noWork14Days = fourteenDaysRangeForCurrentInput.every(dateStr => !selectedFullDates.includes(dateStr));
+
+        let condition2Text = noWork14Days
+            ? `✅ 조건 2 충족: 신청일 직전 14일간 무근무`
+            : `❌ 조건 2 불충족: 신청일 직전 14일간 근무 기록 존재`;
+
+        let nextPossible2Message = "";
+        let nextPossible2Date = null;
+
+        if (!noWork14Days) {{
+            if (latestWorkedDay) {{
+                nextPossible2Date = new Date(latestWorkedDay);
+                nextPossible2Date.setDate(nextPossible2Date.getDate() + 15);
+                nextPossible2Date.setHours(0,0,0,0);
+                nextPossible2Message = `📅 조건 2 충족을 위한 가장 빠른 신청 가능일: <b>${formatDateToYYYYMMDD(nextPossible2Date)}</b> (마지막 근로일 기준) (이후 근로제공 없다는 전제)`;
+            }} else {{
+                nextPossible2Message = `🤔 조건 2 충족을 위한 빠른 신청 가능일을 찾을 수 없습니다. (근무 기록 필요)`;
+            }}
+        }}
+
+        const generalWorkerEligible = condition1Met;
+        const constructionWorkerEligible = noWork14Days;
+
+        const generalWorkerText = generalWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
+        const constructionWorkerText = constructionWorkerEligible ? "✅ 신청 가능" : "❌ 신청 불가능";
+
+        document.getElementById('resultContainer').innerHTML = `
+            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 조건 판단</h3>
+            <p>조건 1: 신청일이 속한 달의 직전 달 첫날부터 신청일까지 근무일 수가 전체 기간의 1/3 미만</p>
+            <p>조건 2: 건설일용근로자만 해당, 신청일 직전 14일간(신청일 제외) 무근무</p>
+            <p>총 기간 일수: ${{currentTotalDaysForCond1}}일</p>
+            <p>1/3 기준: ${{currentThresholdForCond1.toFixed(1)}}일</p>
+            <p>근무일 수: ${{actualWorkedDaysForCond1}}일</p>
+            <p>${condition1Text}</p>
+            <p>${condition2Text}</p>
+            ${nextPossible1Message ? `<p>${nextPossible1Message}</p>` : ""}
+            ${nextPossible2Message ? `<p>${nextPossible2Message}</p>` : ""}
+            <h3>📌 기준 날짜(${INPUT_DATE_STR}) 기준 최종 판단</h3>
+            <p>✅ 일반일용근로자: ${{generalWorkerText}}</p>
+            <p>✅ 건설일용근로자: ${{constructionWorkerText}}</p>
+            <p>※ 위 '신청 가능일'은 이후 근로제공이 없다는 전제 하에 계산된 것이며, 실제 고용센터 판단과 다를 수 있음.</p>
+        `;
+    }}
+
+    function toggleDate(element) {{
+        element.classList.toggle('selected');
+        const selected = [];
+        const days = document.getElementsByClassName('day');
+        for (let i = 0; i < days.length; i++) {{
+            if (days[i].classList.contains('selected')) {{
+                selected.push(days[i].getAttribute('data-date'));
+            }}
+        }}
+        saveToLocalStorage(selected);
+        calculateAndDisplayResult(selected);
+    }}
+
+    function loadSelectedDates() {{
+        try {{
+            const storedDates = JSON.parse(localStorage.getItem('selectedDates')) || [];
+            storedDates.forEach(mmdd => {{
+                const dayElement = document.querySelector(`.day[data-date="${{mmdd}}"]`);
+                if (dayElement) {{
+                    dayElement.classList.add('selected');
+                }}
+            }});
+            calculateAndDisplayResult(storedDates);
+        }} catch (e) {{
+            console.error("Failed to load selected dates from localStorage or calculate result:", e);
+            calculateAndDisplayResult([]);
+        }}
+    }}
+
+    function saveToLocalStorage(data) {{
+        try {{
+            localStorage.setItem('selectedDates', JSON.stringify(data));
+        }} catch (e) {{
+            console.error("Failed to save selected dates to localStorage:", e);
+        }}
+    }}
+
+    window.clearCalendar = function() {{
+        const days = document.getElementsByClassName('day');
+        for (let i = 0; i < days.length; i++) {{
+            days[i].classList.remove('selected');
+        }}
+        saveToLocalStorage([]);
+        calculateAndDisplayResult([]);
+    }};
+
+    document.addEventListener('DOMContentLoaded', function() {{
+        loadSelectedDates();
+    }});
+    </script>
+    """
+
+    st.components.v1.html(calendar_html, height=1500, scrolling=False)
+
 
 if __name__ == "__main__":
-    main()
+    daily_worker_eligibility_app()
