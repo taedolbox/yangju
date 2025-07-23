@@ -4,6 +4,7 @@ import os
 # 앱 모듈 불러오기
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
+from app.unemployment_recognition import unemployment_recognition_app
 
 def load_css(file_name):
     """CSS 파일을 읽어 Streamlit에 적용"""
