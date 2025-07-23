@@ -18,6 +18,134 @@ def main():
         page_icon="💼",
         layout="centered"
     )
+    /* 기존 스타일 유지 */
+    /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
+    div[data-baseweb="select"] > div:first-child {
+        border: 2px solid #2196F3 !important;
+        color: #2196F3 !important;
+        font-weight: 600 !important;
+        background-color: #E3F2FD !important;
+    }
+
+    /* 콤보박스 내부 텍스트 (현재 선택된 값) */
+    div[data-baseweb="select"] span {
+        color: #2196F3 !important;
+        font-weight: 600 !important;
+    }
+
+    /* 드롭다운 리스트 컨테이너 */
+    div[data-baseweb="popover"] {
+        z-index: 9999 !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #2196F3 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+
+    /* 드롭다운 리스트 항목 */
+    div[data-baseweb="select"] ul[role="listbox"] li {
+        color: #2196F3 !important;
+        font-weight: 600 !important;
+        padding: 10px 15px !important;
+    }
+
+    /* 드롭다운 리스트 항목 호버 시 */
+    div[data-baseweb="select"] ul[role="listbox"] li:hover {
+        background-color: #2196F3 !important;
+        color: white !important;
+    }
+
+    /* 스크롤바 스타일링 */
+    div[data-baseweb="popover"]::-webkit-scrollbar {
+        width: 8px;
+    }
+    div[data-baseweb="popover"]::-webkit-scrollbar-thumb {
+        background-color: #bbdefb;
+        border-radius: 4px;
+    }
+    div[data-baseweb="popover"]::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
+    /* 다크 모드 스타일 */
+    html[data-theme="dark"] div[data-baseweb="select"] > div:first-child {
+        background-color: #31333F !important;
+        color: #FAFAFA !important;
+        border: 2px solid #4B4B4B !important;
+    }
+    html[data-theme="dark"] div[data-baseweb="select"] span {
+        color: #FAFAFA !important;
+    }
+    html[data-theme="dark"] div[data-baseweb="popover"] {
+        background-color: #262730 !important;
+        border: 1px solid #4B4B4B !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    }
+    html[data-theme="dark"] div[data-baseweb="select"] ul[role="listbox"] li {
+        color: #FAFAFA !important;
+    }
+    html[data-theme="dark"] div[data-baseweb="select"] ul[role="listbox"] li:hover {
+        background-color: #45475A !important;
+        color: white !important;
+    }
+
+    /* 달력 그리드 */
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        width: 100%;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    /* 요일 헤더 */
+    .day-header {
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+    }
+    .day-header.sunday {
+        color: red;
+    }
+    .day-header.saturday {
+        color: blue;
+    }
+
+    /* 날짜 */
+    .day {
+        aspect-ratio: 1/1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .day.sunday {
+        color: red;
+    }
+    .day.saturday {
+        color: blue;
+    }
+
+    /* 빈칸 */
+    .day.empty {
+        border: none;
+        background: none;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 
     # 스타일 로드 및 상단 안내 텍스트
     load_css("static/styles.css")
