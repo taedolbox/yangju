@@ -1,200 +1,54 @@
-/* 기존 스타일 유지 + Streamlit 오른쪽 상단, 하단 메뉴 숨기기 */
-div[data-baseweb="select"] {
-    border: 2px solid #4CAF50;
-    border-radius: 10px;
-    padding: 5px;
-}
-/* 기본 Streamlit UI 제거 */
-.stAppHeader, [data-testid="stToolbar"], [data-testid="stMainMenu"] {
-    display: none !important;
-}
-
-/* 상단 고정 텍스트 박스 */
-.custom-header {
-    position: fixed;
-    top: 10px;
-    right: 20px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #2196F3;
-    background-color: rgba(255, 255, 255, 0.95);
-    border: 2px solid #2196F3;
-    border-radius: 6px;
-    padding: 8px 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    z-index: 10000;
-}
-
-/* 반응형 (모바일 대응) */
-@media (max-width: 768px) {
-    .custom-header {
-        font-size: 18px;
-        right: 10px;
-        padding: 6px 15px;
-    }
-}
-
-/* 콤보박스 스타일 */
-div[data-baseweb="select"] > div:first-child {
-    border: 2px solid #2196F3 !important;
-    background-color: #E3F2FD !important;
-    font-weight: 600 !important;
-    color: #2196F3 !important;
-}
-/* 기본 텍스트 스타일 */
-.header-title {
-    font-size: 22px;
-    font-weight: 600;
-}
-
-.info-text {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
-.section-divider {
-    margin: 20px 0;
-    border: none;
-    border-top: 1px solid #ccc;
-}
-
-/* Streamlit 상단 우측, 하단 버튼 숨기기 */
-button[kind="icon"],
-[data-testid="stToolbarActions"],
-[data-testid="stToolbar"] {
-    display: none !important;
-}
-
-/* 기존 캘린더 스타일 유지 */
+/* 달력 그리드 */
 .calendar {
-    display: grid; 
-    grid-template-columns: repeat(7, 44px);
-    grid-gap: 5px;
-    margin-bottom: 20px;
-    background: #fff; 
-    padding: 10px 1px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  width: 100%;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
 }
 
-.day-header, .empty-day {
-    width: 44px; 
-    height: 44px;
-    line-height: 45px;
-    text-align: center;
-    font-weight: bold; 
-    color: #555;
-}
-
-.day-header.sunday { color: red; }
-.day-header.saturday { color: blue; }
-.day.sunday { color: red; }
-.day.saturday { color: blue; }
-
+/* 요일 헤더 */
 .day-header {
-    background: #e0e0e0;
-    border-radius: 5px;
-    font-size: 16px;
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+.day-header.sunday {
+  color: red;
+}
+.day-header.saturday {
+  color: blue;
 }
 
-.empty-day { background: transparent; border: none; }
-
+/* 날짜 */
 .day {
-    width: 44px; 
-    height: 44px;
-    line-height: 45px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.1s ease, border 0.1s ease;
-    font-size: 18px;
-    color: #333;
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #333;
 }
 
-.day:hover { background: #f0f0f0; }
-
-.day.selected {
-    border: 2px solid #2196F3;
-    background: #2196F3;
-    color: #fff;
-    font-weight: bold;
+.day.sunday {
+  color: red;
+}
+.day.saturday {
+  color: blue;
 }
 
-#resultContainer {
-    color: #121212;
-    background: #fff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    font-size: 15px;
-    line-height: 1.6;
+/* 빈칸 */
+.day.empty {
+  border: none;
+  background: none;
 }
-
-#resultContainer h3 {
-    color: #0d47a1;
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
-
-/* 달력 년월 텍스트 여백 조절 */
-#calendar-container h4 {
-    margin-bottom: 5px;
-}
-
-/* 다크 모드 스타일 */
-html[data-theme="dark"] #resultContainer {
-    background: #262730;
-    color: #FAFAFA;
-}
-
-html[data-theme="dark"] #resultContainer h3 {
-    color: #90CAF9;
-}
-
-html[data-theme="dark"] h4 {
-    color: #FFFFFF !important;
-}
-
-html[data-theme="dark"] .day {
-    background-color: #31333F;
-    color: #FAFAFA;
-    border: 1px solid #4B4B4B;
-}
-
-html[data-theme="dark"] .day:hover {
-    background-color: #45475A;
-}
-
-html[data-theme="dark"] .day.selected {
-    background: #2196F3;
-    color: #fff;
-}
-
-html[data-theme="dark"] .day-header {
-    background: #31333F;
-    color: #BBBBBB;
-}
-.calendar {
-    display: grid; 
-    grid-template-columns: repeat(7, 44px);
-    grid-gap: 5px;
-    margin-bottom: 20px; 
-    background: #fff; 
-    padding: 10px 1px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-.day-header, .empty-day {
-    width: 44px; 
-    height: 44px;
-    line-height: 45px;
-    text-align: center;
-    font-weight: bold; 
-    color: #555;
-}
-.day-header.sunday { color: red; }
-.day-header.saturday { color:
-
