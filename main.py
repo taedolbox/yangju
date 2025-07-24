@@ -4,7 +4,6 @@ import os
 # 필요한 앱 함수들 임포트
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
-from app.unemployment_recognition import unemployment_recognition_app
 from app.job_search_faq import job_search_faq_app # <-- 이 부분 추가
 
 def load_css(file_name):
