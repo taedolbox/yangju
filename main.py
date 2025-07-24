@@ -1,10 +1,11 @@
 import streamlit as st
 import os
 
-# 필요한 앱 함수들만 임포트
+# 필요한 앱 함수들 임포트
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
 from app.unemployment_recognition import unemployment_recognition_app
+from app.job_search_faq import job_search_faq_app # <-- 이 부분 추가
 
 def load_css(file_name):
     """CSS 파일을 읽어 Streamlit에 적용"""
@@ -159,7 +160,8 @@ def main():
     menu_functions = {
         "실업인정": unemployment_recognition_app,
         "조기재취업수당": early_reemployment_app,
-        "일용직(건설일용포함)": daily_worker_eligibility_app
+        "일용직(건설일용포함)": daily_worker_eligibility_app,
+        "구직 활동 FAQ": job_search_faq_app # <-- 이 부분 추가
     }
 
     # 메뉴와 표시될 텍스트 제목
@@ -167,7 +169,8 @@ def main():
         "메뉴 선택": "실업급여 지원 시스템",
         "실업인정": "실업인정",
         "조기재취업수당": "조기재취업수당 요건 판단",
-        "일용직(건설일용포함)": "일용직(건설일용포함)"
+        "일용직(건설일용포함)": "일용직(건설일용포함)",
+        "구직 활동 FAQ": "구직 활동 및 의무 FAQ" # <-- 이 부분 추가
     }
 
     # 메뉴 목록
@@ -241,7 +244,7 @@ def main():
                     <li>🔹 <b>실업인정:</b> 실업인정 신청 및 관련된 정보를 확인합니다.</li>
                     <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
                     <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
-                </ul>
+                    <li>🔹 <b>구직 활동 FAQ:</b> 실업급여 수급 중 구직 활동 및 의무에 대한 자주 묻는 질문을 확인합니다.</li> </ul>
                 <p style="font-size: 14px; color: #555; margin-top: 20px;">
                     💡 <b>주의:</b> 본 시스템의 결과는 참고용이며, 최종적인 실업급여 수급 여부는 관할 고용센터의 판단에 따릅니다.
                 </p>
@@ -259,4 +262,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
