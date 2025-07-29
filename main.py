@@ -4,8 +4,8 @@ import os
 # 필요한 앱 함수들 임포트
 from app.daily_worker_eligibility import daily_worker_eligibility_app
 from app.early_reemployment import early_reemployment_app
-from app.unemployment_recognition import unemployment_recognition_app
-from app.job_search_faq import job_search_faq_app # <-- 이 부분 추가
+# from app.unemployment_recognition import unemployment_recognition_app # <-- 이 줄을 삭제하거나 주석 처리
+from app.job_search_faq import job_search_faq_app
 
 def load_css(file_name):
     """CSS 파일을 읽어 Streamlit에 적용"""
@@ -27,7 +27,6 @@ def main():
     # 모든 CSS 스타일 (오른쪽 상단 메뉴 숨기기 추가)
     st.markdown("""
     <style>
-    
     /* 기존 스타일 유지 */
     /* 콤보박스 선택 영역 (현재 선택된 값 표시되는 부분) */
     div[data-baseweb="select"] > div:first-child {
@@ -158,23 +157,29 @@ def main():
 
     # 각 메뉴에 연결될 함수 매핑
     menu_functions = {
-        "실업인정": unemployment_recognition_app,
+        # "실업인정": unemployment_recognition_app, # <-- 이 줄을 삭제하거나 주석 처리
         "조기재취업수당": early_reemployment_app,
         "일용직(건설일용포함)": daily_worker_eligibility_app,
-        "구직 활동 FAQ": job_search_faq_app # <-- 이 부분 추가
+        "구직 활동 FAQ": job_search_faq_app
     }
 
     # 메뉴와 표시될 텍스트 제목
     menu_text_titles = {
         "메뉴 선택": "실업급여 지원 시스템",
-        "실업인정": "실업인정",
+        # "실업인정": "실업인정", # <-- 이 줄을 삭제하거나 주석 처리
         "조기재취업수당": "조기재취업수당 요건 판단",
         "일용직(건설일용포함)": "일용직(건설일용포함)",
-        "구직 활동 FAQ": "구직 활동 및 의무 FAQ" # <-- 이 부분 추가
+        "구직 활동 FAQ": "구직 활동 및 의무 FAQ"
     }
 
     # 메뉴 목록
-    menus = list(menu_text_titles.keys())
+    # '실업인정'을 목록에서 제외합니다.
+    menus = ["메뉴 선택"] + [
+        "조기재취업수당",
+        "일용직(건설일용포함)",
+        "구직 활동 FAQ"
+    ]
+
 
     # 1. 초기 메뉴 인덱스 결정 (URL 또는 세션 상태)
     menu_param_from_url = st.query_params.get("menu", None)
@@ -241,7 +246,6 @@ def main():
                     <span style="font-weight: bold; color: #e91e63;">'📋 메뉴 선택' 콤보박스에서 기능을 선택해주세요!</span>
                 </p>
                 <ul style="font-size: 15px; line-height: 1.8; margin-top: 15px; color: #333333;">
-                    <li>🔹 <b>실업인정:</b> 실업인정 신청 및 관련된 정보를 확인합니다.</li>
                     <li>🔹 <b>조기재취업수당:</b> 조기재취업수당 신청 가능 여부를 판단합니다.</li>
                     <li>🔹 <b>일용직(건설일용포함):</b> 일용직 근로자의 실업급여 신청 가능 시점을 판단합니다.</li>
                     <li>🔹 <b>구직 활동 FAQ:</b> 실업급여 수급 중 구직 활동 및 의무에 대한 자주 묻는 질문을 확인합니다.</li> </ul>
