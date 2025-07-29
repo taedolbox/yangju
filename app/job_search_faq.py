@@ -1,106 +1,156 @@
 # app/job_search_faq.py
 
-import streamlit as st
+from flask import Flask, render_template_string
 
-def job_search_faq_app():
-    """
-    실업급여 구직 활동 및 의무 관련 자주 하는 질문(FAQ) 페이지
-    """
-    st.markdown("### 🔎 실업급여 구직 활동 및 의무 FAQ")
-    st.markdown("실업급여 수급 중 필수로 이행해야 하는 구직 활동 및 의무에 대해 궁금한 점들을 모아봤습니다. 정확한 정보는 고용보험 공식 홈페이지를 참고해주세요.")
-    st.markdown("---")
+app = Flask(__name__)
 
-    # FAQ 데이터 (질문, 답변, 이미지 경로 또는 URL)
-    # 이미지 경로는 실제 이미지 파일 경로 또는 웹 링크로 대체해야 합니다.
-    faqs = [
-        {
-            "question": "Q1. 실업급여를 받으면서 해야 할 구직 활동은 무엇인가요?",
-            "answer": """
-            실업급여 수급자는 매 실업인정일마다 고용센터가 정한 기준에 따라 구직 활동 또는 재취업 활동을 수행해야 합니다.
-            일반적으로 인정되는 활동은 다음과 같습니다:
-            * **재취업을 위한 노력:**
-                * 구인업체에 입사 지원 (워크넷, 취업포털 등)
-                * 면접 참여
-                * 직업훈련 참여 (고용노동부 인정 훈련)
-                * 자영업 준비 활동 (고용센터 승인 필요)
-                * 직업능력개발 훈련 수강
-            * **상담 및 설명회 참여:**
-                * 고용센터 방문하여 구직 상담 또는 취업 특강 참여
-                * 채용 박람회 참가
-            
-            **주의:** 활동 유형과 횟수는 실업인정 회차(1차, 2차, 3차 등)에 따라 다를 수 있으므로, 반드시 담당 고용센터의 안내를 확인하세요.
-            """,
-            "image": "https://images.unsplash.com/photo-1517048676732-d65bc9c46ceb?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" # 예시 이미지 URL
-        },
-        {
-            "question": "Q2. 구직 활동 증빙은 어떻게 하나요? (온라인 입사 지원, 면접 등)",
-            "answer": """
-            수행한 구직 활동에 대한 증빙 자료를 실업인정일에 제출해야 합니다.
-            * **온라인 입사 지원:**
-                * 지원 화면 캡처본 (지원일시, 회사명, 직무명, 지원 결과 확인 가능하도록)
-                * 이메일 지원의 경우, 보낸 메일함 캡처
-            * **면접 참여:**
-                * 면접확인서 (회사 직인 또는 담당자 서명 포함)
-                * 면접 안내 문자, 이메일 등
-            * **직업훈련 수강:**
-                * 수료증, 출석 확인서
-            * **채용 박람회 참여:**
-                * 참여 확인증 또는 명함 교환 내역 등
-            
-            **팁:** 워크넷을 통해 구직 활동을 하는 경우, 자동으로 기록되어 편리하게 증빙할 수 있습니다.
-            """,
-            "image": "https://images.unsplash.com/photo-1556761175-5973dd3474d7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" # 예시 이미지 URL
-        },
-        {
-            "question": "Q3. 실업인정일은 어떻게 되나요? (1차, 2차 등)",
-            "answer": """
-            실업인정일은 수급자격 신청 시 고용센터에서 지정해주는 날짜입니다.
-            * **1차 실업인정:** 보통 수급자격 신청일로부터 8일 ~ 14일 이내에 진행되며, 주로 온라인 교육 이수 후 온라인으로 진행됩니다. (2주 단위)
-            * **2차 이후 실업인정:** 1차 실업인정일 이후 약 4주(28일) 간격으로 지정됩니다. 이 기간 동안 구직 활동을 수행하고 증빙 자료를 제출해야 합니다.
-            
-            실업인정일은 개인별로 다르므로, 반드시 수급자격 인정 통지서 또는 고용보험 홈페이지를 통해 본인의 실업인정일을 확인해야 합니다.
-            """,
-            "image": "https://images.unsplash.com/photo-1522071820081-008113f02479?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" # 예시 이미지 URL
-        },
-        {
-            "question": "Q4. 재취업 활동 계획서 작성 방법이 궁금해요.",
-            "answer": """
-            재취업 활동 계획서는 고용센터에서 구직자의 취업 목표와 그에 따른 활동 계획을 파악하기 위해 요구하는 서류입니다.
-            작성 시 다음 내용을 포함해야 합니다:
-            * **희망하는 직종 및 업종:** 구체적으로 어떤 분야에서 일하고 싶은지 명시
-            * **취업 목표:** 언제까지 취업을 할 것인지 대략적인 목표 기간
-            * **재취업을 위한 노력:** 어떤 구직 활동을 할 것인지 구체적으로 작성 (예: 주 2회 구인 업체 입사 지원, 직업 훈련 수강, 자격증 취득 준비 등)
-            * **기타:** 취업에 도움이 될 만한 개인적인 강점이나 계획 등
-            
-            고용센터 담당자와 상담하여 본인에게 맞는 계획을 수립하는 것이 중요합니다.
-            """,
-            "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" # 예시 이미지 URL
-        },
-        {
-            "question": "Q5. 지정된 실업인정일에 출석하지 못하면 어떻게 되나요?",
-            "answer": """
-            지정된 실업인정일에 정당한 사유 없이 출석하지 않거나, 온라인으로 실업인정 신청을 하지 않으면 **해당 회차 실업급여는 지급되지 않습니다.**
-            
-            **정당한 사유 (예시):**
-            * 천재지변
-            * 본인 또는 직계존비속의 질병, 부상, 경조사 (증빙 서류 필요)
-            * 채용 면접 등 구직 활동으로 인한 불참 (사전 고지 및 증빙 필요)
-            
-            정당한 사유가 있는 경우, **반드시 실업인정일 이전에** 고용센터에 연락하여 사유를 설명하고 증빙 서류와 함께 불참을 통보해야 합니다. 고용센터의 승인을 받으면 실업인정일을 변경하거나 다른 방법으로 실업인정을 받을 수 있습니다.
-            """,
-            "image": "https://images.unsplash.com/photo-1542435503-956c469947f6?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" # 예시 이미지 URL
+# HTML 내용을 문자열 변수에 저장합니다.
+# 이 방법은 HTML이 매우 길거나 동적인 부분이 많을 때 비효율적일 수 있습니다.
+# 일반적으로는 HTML 파일을 templates 폴더에 저장하고 render_template()을 사용합니다.
+HTML_CONTENT = """
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>근로, 취업 및 산재 내역</title>
+    <style>
+        body {
+            font-family: "맑은 고딕", Malgun Gothic, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-    ]
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #003087;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #003087;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .radio-group {
+            display: flex;
+            align-items: center;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        .work-details {
+            display: none;
+            margin-top: 10px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .question-text {
+            font-size: 0.9em; /* 한 단계 작게 조정 */
+        }
+        .sub-text {
+            font-size: 0.8em; /* 한 단계 더 작게 조정 */
+        }
+        .bold-question {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>근로, 취업 및 산재 내역</h2>
+        <div class="step">
+            <div class="form-group">
+                <label>근로 또는 노무제공 내역</label>
+                <p class="question-text"><span class="bold-question">실업 인정 대상 기간 중 어떠한 형태로든(소득 발생 여부와 관계 없이) 근로 또는 노무를 제공하거나 수당이 발생하는 회의 참석, 자문 등을 한 사실이 있습니까?</span>
+                    <div class="radio-group">
+                        <input type="radio" id="yesWork" name="workStatus" value="yes" onchange="toggleWorkDetails()">
+                        <label for="yesWork">예</label>
+                        <input type="radio" id="noWork" name="workStatus" value="no" onchange="toggleWorkDetails()">
+                        <label for="noWork">아니오</label>
+                    </div>
+                </p>
+            </div>
+            <div id="workDetails" class="work-details">
+                <label>근로내역 입력</label>
+                <input type="text" id="workDescription" placeholder="근로 내용 입력" required>
+                <input type="number" id="dailyIncome" placeholder="일 소득액" required>
+                <p>근로를 제공하거나 소득이 발생한 사실이 있는 경우 근로내역을 입력하십시오.</p>
+                <p>일 소득액이 구직급여 일액 이상인 경우에 해당 근로일에 대한 구직급여 일액이 감액됩니다. (일용근로자의 경우, 일 소득액과 무관하게 해당 근로일에 대한 구직급여 일액 감액).</p>
+                <p>1개월간 60시간(주 15시간) 이상으로 근로 계약을 하고 일한 경우 또는 1개월간 60시간 미만이라 하더라도, 3개월 이상 계속하여 일하기로 한 경우 취업으로 인정됩니다.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="form-group">
+                <label>취업 내역</label>
+                <p class="question-text"><span class="bold-question">실업인정 대상 기간 중 취업(예정)이거나 개인 사업을 개시하셨습니까?</span>
+                    <div class="radio-group">
+                        <input type="radio" id="yesEmployment" name="employmentStatus" value="yes">
+                        <label for="yesEmployment">예</label>
+                        <input type="radio" id="noEmployment" name="employmentStatus" value="no">
+                        <label for="noEmployment">아니오</label>
+                    </div>
+                </p>
+                <p class="sub-text">취업 예정으로 신고하고자 하는 경우에는 관할 센터로 문의하시기 바랍니다.</p>
+                <p class="sub-text">임대사업자 중 근로자가 발생하면 취업으로 인정됩니다. 관할센터로 문의하시기 바랍니다.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="form-group">
+                <label>산재 휴업급여 수급권</label>
+                <p class="question-text"><span class="bold-question">산재 휴업급여를 지급받고 있거나 수급권을 가지고 있습니까?</span>
+                    <div class="radio-group">
+                        <input type="radio" id="yesInjury" name="injuryStatus" value="yes">
+                        <label for="yesInjury">예</label>
+                        <input type="radio" id="noInjury" name="injuryStatus" value="no">
+                        <label for="noInjury">아니오</label>
+                    </div>
+                </p>
+                <p class="sub-text">행정심판(심사청구) 또는 행정소송 등을 통해 소급하여 산재 요양이 승인되어 휴업급여 지급 대상이 되거나 지급받은 경우에는 실업급여를 지급받을 수 없고, 지급받은 실업급여는 반환하여야 합니다.</p>
+            </div>
+        </div>
+    </div>
 
-    # FAQ 섹션 생성
-    for i, faq in enumerate(faqs):
-        with st.expander(faq["question"]):
-            st.write(faq["answer"])
-            if faq["image"]:
-                try:
-                    st.image(faq["image"], caption=f"{faq['question'].split('.')[0]} 관련 이미지", use_column_width=True)
-                except Exception as e:
-                    st.error(f"이미지를 불러오는 데 실패했습니다: {e}")
-                    st.info("이미지 경로 또는 URL이 올바른지 확인해주세요.")
-    st.markdown("---")
-    st.markdown("더 자세한 정보나 개인별 상황에 대한 상담은 반드시 관할 고용센터에 문의하시기 바랍니다.")
+    <script>
+        function toggleWorkDetails() {
+            const hasWork = document.querySelector('input[name="workStatus"]:checked')?.value;
+            const workDetails = document.getElementById('workDetails');
+            workDetails.style.display = hasWork === 'yes' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/job_search_faq')
+def job_search_faq():
+    """
+    근로, 취업 및 산재 내역 HTML 페이지를 렌더링합니다.
+    """
+    return render_template_string(HTML_CONTENT)
+
+if __name__ == '__main__':
+    # 개발 환경에서 앱을 실행합니다.
+    # 실제 운영 환경에서는 Gunicorn, uWSGI 등 WSGI 서버를 사용해야 합니다.
+    app.run(debug=True, port=5000)
