@@ -3,6 +3,7 @@ import streamlit as st
 def job_search_faq_app():
     """
     근로, 취업 및 산재 내역을 Streamlit 위젯으로 렌더링합니다.
+    '근로내역 입력' 상세 필드는 숨기고 질문과 라디오 버튼만 표시합니다.
     """
     st.markdown("""
     <style>
@@ -35,10 +36,6 @@ def job_search_faq_app():
             display: block;
         }
         /* Streamlit 기본 라디오 버튼 스타일 */
-        /* .radio-group은 Streamlit에서 직접 제어하므로 CSS는 필요 없습니다. */
-
-        /* 숨겨진 div를 Streamlit으로 제어할 것이므로, 기본 display: none;은 필요 없음 */
-        /* .work-details { display: none; } 이 부분은 Streamlit 로직으로 대체 */
 
         input[type="text"], input[type="number"] {
             width: 100%;
@@ -69,6 +66,7 @@ def job_search_faq_app():
     st.markdown('<div class="container">', unsafe_allow_html=True)
     st.markdown('<h2>근로, 취업 및 산재 내역</h2>', unsafe_allow_html=True)
 
+    # --- 1. 근로 또는 노무제공 내역 ---
     st.markdown('<div class="step">', unsafe_allow_html=True)
     st.markdown('<div class="form-group">', unsafe_allow_html=True)
     st.markdown('<label>근로 또는 노무제공 내역</label>', unsafe_allow_html=True)
@@ -77,29 +75,33 @@ def job_search_faq_app():
         unsafe_allow_html=True
     )
 
-    # 자바스크립트 대신 Streamlit 라디오 버튼 사용
+    # '예/아니오' 라디오 버튼
     has_work = st.radio(
-        "선택하세요:",
+        "선택하세요:", # 라디오 버튼 위 텍스트를 숨기려면 빈 문자열을 사용
         options=("예", "아니오"),
         key="workStatus_radio", # 위젯 고유 키
         horizontal=True # 가로로 배치
     )
 
-    # '예'를 선택했을 때만 근로내역 입력 필드를 보여줌
-    if has_work == "예":
-        # workDetails div 대신 Streamlit 컨테이너 사용
-        with st.container(border=True): # 시각적인 구분을 위해 border=True 사용
-            st.markdown('<label>근로내역 입력</label>', unsafe_allow_html=True)
-            st.text_input("근로 내용 입력", placeholder="근로 내용 입력", key="workDescription")
-            st.number_input("일 소득액", placeholder="일 소득액", key="dailyIncome", min_value=0)
-            st.markdown("<p>근로를 제공하거나 소득이 발생한 사실이 있는 경우 근로내역을 입력하십시오.</p>", unsafe_allow_html=True)
-            st.markdown("<p>일 소득액이 구직급여 일액 이상인 경우에 해당 근로일에 대한 구직급여 일액이 감액됩니다. (일용근로자의 경우, 일 소득액과 무관하게 해당 근로일에 대한 구직급여 일액 감액).</p>", unsafe_allow_html=True)
-            st.markdown("<p>1개월간 60시간(주 15시간) 이상으로 근로 계약을 하고 일한 경우 또는 1개월간 60시간 미만이라 하더라도, 3개월 이상 계속하여 일하기로 한 경우 취업으로 인정됩니다.</p>", unsafe_allow_html=True)
+    # '예'를 선택했을 때만 나타나는 상세 내역 (이번 요청에서는 다시 숨김)
+    # 이전 HTML의 workDetails div의 내용이 사라지도록 조건문을 제거하거나, 빈 컨테이너로 대체
+    # if has_work == "예":
+    #     with st.container(border=True):
+    #         st.markdown('<label>근로내역 입력</label>', unsafe_allow_html=True)
+    #         st.text_input("근로 내용 입력", placeholder="근로 내용 입력", key="workDescription")
+    #         st.number_input("일 소득액", placeholder="일 소득액", key="dailyIncome", min_value=0)
+    #         # 아래 3가지 기준은 전체 문맥상 필요하므로, 이 부분에서는 제외
+
+    # 근로내역 설명 (3가지 기준)을 다시 추가
+    st.markdown("<p>근로를 제공하거나 소득이 발생한 사실이 있는 경우 근로내역을 입력하십시오.</p>", unsafe_allow_html=True)
+    st.markdown("<p>일 소득액이 구직급여 일액 이상인 경우에 해당 근로일에 대한 구직급여 일액이 감액됩니다. (일용근로자의 경우, 일 소득액과 무관하게 해당 근로일에 대한 구직급여 일액 감액).</p>", unsafe_allow_html=True)
+    st.markdown("<p>1개월간 60시간(주 15시간) 이상으로 근로 계약을 하고 일한 경우 또는 1개월간 60시간 미만이라 하더라도, 3개월 이상 계속하여 일하기로 한 경우 취업으로 인정됩니다.</p>", unsafe_allow_html=True)
+
 
     st.markdown('</div>', unsafe_allow_html=True) # form-group 닫기
     st.markdown('</div>', unsafe_allow_html=True) # step 닫기
 
-
+    # --- 2. 취업 내역 ---
     st.markdown('<div class="step">', unsafe_allow_html=True)
     st.markdown('<div class="form-group">', unsafe_allow_html=True)
     st.markdown('<label>취업 내역</label>', unsafe_allow_html=True)
@@ -108,7 +110,7 @@ def job_search_faq_app():
         unsafe_allow_html=True
     )
     st.radio(
-        "선택하세요:",
+        "취업 여부:", # 라디오 버튼 위 텍스트를 숨기려면 빈 문자열 사용
         options=("예", "아니오"),
         key="employmentStatus_radio",
         horizontal=True
@@ -118,7 +120,7 @@ def job_search_faq_app():
     st.markdown('</div>', unsafe_allow_html=True) # form-group 닫기
     st.markdown('</div>', unsafe_allow_html=True) # step 닫기
 
-
+    # --- 3. 산재 휴업급여 수급권 ---
     st.markdown('<div class="step">', unsafe_allow_html=True)
     st.markdown('<div class="form-group">', unsafe_allow_html=True)
     st.markdown('<label>산재 휴업급여 수급권</label>', unsafe_allow_html=True)
@@ -127,7 +129,7 @@ def job_search_faq_app():
         unsafe_allow_html=True
     )
     st.radio(
-        "선택하세요:",
+        "산재 여부:", # 라디오 버튼 위 텍스트를 숨기려면 빈 문자열 사용
         options=("예", "아니오"),
         key="injuryStatus_radio",
         horizontal=True
